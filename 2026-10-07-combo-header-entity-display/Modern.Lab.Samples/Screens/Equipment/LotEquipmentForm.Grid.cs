@@ -1,5 +1,4 @@
 using System.Data;
-using Modern.Lab.Controls.Wpf.Data;
 
 using Modern.Lab.Samples.Services;
 using Modern.Lab.WinForms.Controls.Data;
@@ -64,26 +63,6 @@ namespace Modern.Lab.Samples
                     .Column(lot.LastEventCd.Name).Spin(lot.LastEventCd.JobStart.Value)
                     .Column(lot.ReqSerialNo.Name).Link()
                     .Column(lot.DurableId.Name, lot.GoalDurableId.Name).Link();
-        }
-
-        // Target Durable 콤보의 펼친 목록 — Prio 를 앞에, Durable Id 를 뒤에 둔다(닫힌 콤보에는 엔티티 콤보 표시 필드의 첫 필드 Durable Id 가 보인다).
-        private static ModernDataGridColumn[] DurableComboColumns()
-        {
-            DurablePriorityEntity durable = Schemas.DurablePriority;
-
-            return new ModernDataGridColumn[]
-            {
-                ComboColumn(durable.Priority),
-                ComboColumn(durable.DurableId)
-            };
-        }
-
-        private static ModernDataGridColumn ComboColumn(Field field)
-        {
-            ModernDataGridColumn column = new ModernDataGridColumn(field.Name, field.CaptionSetting);
-            column.TopLabel = field.TopLabelSetting ?? string.Empty;
-            column.BottomLabel = field.BottomLabelSetting ?? string.Empty;
-            return column;
         }
 
         // Sample 목록 — 공유 엔티티(Schemas.Sample)를 그대로 쓰고, 위 요청 정보 카드가 이미 보이는 REQ_SERIAL_NO 만 이 화면에서 숨긴다.
