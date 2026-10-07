@@ -51,6 +51,7 @@ namespace Modern.Lab.Samples
         private bool cycleLotsReflected;
         private bool cycleRefresh;
 
+        private const string channelGroups = "groups";
         private const string channelEquipments = "equipments";
         private const string channelPorts = "ports";
         private const string channelLots = "lots";
@@ -63,6 +64,8 @@ namespace Modern.Lab.Samples
 
         private readonly JobDecision decision = new JobDecision();
         private bool lotFinderBinding;
+        private bool groupSetup;
+        private string loadedEqpGrpId = string.Empty;
         private readonly System.Windows.Forms.Timer refreshTimer = new System.Windows.Forms.Timer();
 
         private readonly System.Windows.Forms.Timer targetFlashTimer = new System.Windows.Forms.Timer();
@@ -156,6 +159,9 @@ namespace Modern.Lab.Samples
 
         private void OnFormLoad(object sender, EventArgs e)
         {
+            this.cboGroup.UseEntity(Schemas.EquipmentGroup);
+            this.cboLot.UseEntity(Schemas.LotPriority);
+
             this.cboInterval.DisplayMember = RefreshInterval.LabelColumn;
             this.cboInterval.ValueMember = RefreshInterval.SecondsColumn;
             this.cboInterval.DataSource = RefreshInterval.Options();
@@ -191,6 +197,7 @@ namespace Modern.Lab.Samples
             this.RefreshDecisionPanel();
             this.RefreshActionStates();
 
+            this.LoadGroups();
             this.ExecuteSearch();
         }
 
@@ -198,6 +205,44 @@ namespace Modern.Lab.Samples
         {
             this.refreshTimer.Stop();
             this.refreshTimer.Dispose();
+        }
+
+        private async void LoadGroups()
+        {
+            LoadOutcome<DataTable> outcome = await this.FetchAsync(
+                    channelGroups, () => this.GetEquipmentGroups());
+
+            if (!outcome.IsCurrent || outcome.Failure != null)
+            {
+                return;
+            }
+
+            this.groupSetup = true;
+
+            try
+            {
+                this.cboGroup.DataSource = outcome.Value;
+                this.cboGroup.SelectedIndex = -1;
+            }
+            finally
+            {
+                this.groupSetup = false;
+            }
+        }
+
+        private void OnGroupChanged(object sender, EventArgs e)
+        {
+            if (this.groupSetup)
+            {
+                return;
+            }
+
+            this.ExecuteSearch();
+        }
+
+        private string SelectedEqpGrpId()
+        {
+            return (Convert.ToString(this.cboGroup.SelectedValue) ?? string.Empty).Trim();
         }
 
         private void OnRefreshClick(object sender, EventArgs e)
@@ -459,10 +504,11 @@ namespace Modern.Lab.Samples
 
         private async void ExecuteSearch(bool silent = false)
         {
-            bool inPlace = !silent && this.lotData != null;
+            string eqpGrpId = this.SelectedEqpGrpId();
+            bool inPlace = !silent && this.lotData != null && eqpGrpId == this.loadedEqpGrpId;
             this.userRefresh = inPlace;
 
-            IDisposable busy = silent ? null : this.Busy("Loading lots...", string.Empty);
+            IDisposable busy = silent ? null : this.Busy("Loading lots...", eqpGrpId);
 
             if (!silent && !inPlace)
             {
@@ -475,7 +521,7 @@ namespace Modern.Lab.Samples
 
             try
             {
-                outcome = await this.FetchAsync(channelLots, () => this.GetLotPriorities(), silent);
+                outcome = await this.FetchAsync(channelLots, () => this.GetLotPriorities(eqpGrpId, string.Empty, string.Empty), silent);
             }
             finally
             {
@@ -490,6 +536,7 @@ namespace Modern.Lab.Samples
                 return;
             }
 
+            this.loadedEqpGrpId = eqpGrpId;
             this.BindLotPriorities(outcome.Failure != null ? null : outcome.Value, silent || inPlace);
         }
 
@@ -1123,6 +1170,7 @@ namespace Modern.Lab.Samples
             string keepLotId = this.SelectedLotId();
             DataTable finder = new DataTable("LOT_FINDER");
             finder.Columns.Add(Schemas.LotPriority.LotId.Name);
+            finder.Columns.Add(Schemas.LotPriority.ReqSerialNo.Name);
 
             if (this.lotData != null)
             {
@@ -1134,7 +1182,7 @@ namespace Modern.Lab.Samples
 
                     if (lotId.Length > 0)
                     {
-                        finder.Rows.Add(lotId);
+                        finder.Rows.Add(lotId, TableHelper.CellText(view[index].Row, Schemas.LotPriority.ReqSerialNo.Name).Trim());
                     }
                 }
             }
@@ -1143,8 +1191,6 @@ namespace Modern.Lab.Samples
 
             try
             {
-                this.cboLot.DisplayMember = Schemas.LotPriority.LotId.Name;
-                this.cboLot.ValueMember = Schemas.LotPriority.LotId.Name;
                 this.cboLot.DataSource = finder;
                 this.cboLot.SelectedValue = keepLotId.Length > 0 ? keepLotId : null;
             }
