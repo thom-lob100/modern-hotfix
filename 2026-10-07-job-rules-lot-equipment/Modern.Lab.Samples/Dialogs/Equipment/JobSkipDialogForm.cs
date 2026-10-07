@@ -4,9 +4,9 @@ using System.Windows.Forms;
 using Modern.Lab.Data;
 using Modern.Lab.Hosting;
 using Modern.Lab.Hosting.Contracts;
-using Modern.Lab.Hosting.ResponseContracts;
 using Modern.Lab.WinForms.Controls.Selection;
 using Modern.Lab.Hosting.Schema;
+using Modern.Lab.WinForms.Controls.Display;
 
 namespace Modern.Lab.Samples
 {
@@ -15,6 +15,7 @@ namespace Modern.Lab.Samples
         private const string lookupChannel = "skipLookups";
         private readonly DataRow lot;
         private readonly DataRow job;
+        private readonly ModernFieldDefinition[] jobFields;
         private bool ready;
         private bool closed;
         private bool refreshPending;
@@ -30,13 +31,14 @@ namespace Modern.Lab.Samples
             }
         }
 
-        public JobSkipDialogForm(DataRow lot, DataRow job = null) : this()
+        public JobSkipDialogForm(DataRow lot, DataRow job = null, ModernFieldDefinition[] jobFields = null) : this()
         {
             if (lot == null) { throw new ArgumentNullException(nameof(lot)); }
             DataTable copy = lot.Table.Clone();
             copy.Rows.Add(lot.ItemArray);
             this.lot = copy.Rows[0];
             this.job = job;
+            this.jobFields = jobFields;
             this.LotId = TableHelper.CellText(this.lot, Schemas.LotPriority.LotId.Name).Trim();
             this.OperId = TableHelper.CellText(this.lot, Schemas.LotPriority.OperId.Name).Trim();
         }
@@ -59,12 +61,12 @@ namespace Modern.Lab.Samples
         private async void OnFormLoad(object sender, EventArgs e)
         {
             if (IsDesignTime() || this.DesignMode || this.lot == null) { return; }
-            this.Text = "Skip — " + this.LotId;
-            this.txtDescription.Text = Services.DefaultDescriptions.SkipOper;
+            this.Text = "Cancel Oper — " + this.LotId;
+            this.txtDescription.Text = Services.DefaultDescriptions.CancelOper;
             SourceDefinitions(this.lot.Table).Apply(this.fieldSource);
             this.fieldSource.SetRow(this.lot);
             this.jobCard.Visible = this.job != null;
-            this.fieldJob.DefineFields(EquipmentLotForm.JobSummaryFields());
+            this.fieldJob.DefineFields(this.jobFields ?? EquipmentJobDialogForm.DefaultSourceFields());
             this.fieldJob.SetRow(this.job);
             ConfigureCodes(this.cboCode);
             this.SetLookupReady(false);
@@ -82,12 +84,10 @@ namespace Modern.Lab.Samples
                 return;
             }
             DataTable codes = outcome.Value;
-            string missing = codes != null && codes.Rows.Count == 0 ? string.Empty
-                    : ResponseColumns.Missing(codes, Schemas.ReasonCode.ReasonCd.Name, Schemas.ReasonCode.CtnDesc.Name);
-            if (missing.Length > 0)
+            if (codes == null)
             {
                 this.lblStatus.Text = "The skip codes could not be loaded.";
-                this.ShowErrorMessage("Lookup unavailable", this.lblStatus.Text, "Reason codes: " + missing);
+                this.ShowErrorMessage("Lookup unavailable", this.lblStatus.Text, "Reason codes: the response has no table.");
                 return;
             }
             this.cboCode.DataSource = codes;

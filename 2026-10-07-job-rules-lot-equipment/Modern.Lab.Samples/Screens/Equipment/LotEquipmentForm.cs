@@ -22,9 +22,8 @@ using Modern.Lab.Hosting.Schema;
 
 namespace Modern.Lab.Samples
 {
-    public partial class EquipmentLotForm : ModernFormBase
+    public partial class LotEquipmentForm : ModernFormBase
     {
-        private DataTable groupData;
         private static readonly ResponseContractSet Contracts = EquipmentLotContracts.Build();
 
         private DataTable equipmentData;
@@ -52,7 +51,6 @@ namespace Modern.Lab.Samples
         private bool cycleLotsReflected;
         private bool cycleRefresh;
 
-        private const string channelGroups = "groups";
         private const string channelEquipments = "equipments";
         private const string channelPorts = "ports";
         private const string channelLots = "lots";
@@ -78,15 +76,10 @@ namespace Modern.Lab.Samples
         private string requestLotId = string.Empty;
         private string reqSerialNo = string.Empty;
 
-        private bool groupSetup;
         private bool gridBinding;
         private bool silentRefresh;
 
         private bool userRefresh;
-
-        private string loadedEqpGrpId = string.Empty;
-
-        private string lotEquipmentsLotId = string.Empty;
 
         private int decisionHeight = -1;
         private int decisionSplitHeightSeen = -1;
@@ -94,10 +87,8 @@ namespace Modern.Lab.Samples
         private bool fittingColumns;
         private bool fittingListPanels;
         private string requestFieldShape = string.Empty;
-        private bool syncingListHeights;
-        private int listHeight;
-        private int listPanelHeightSeen;
-        private int listSplitDistanceSeen;
+        private int requestHeaderHeight;
+        private bool durableComboBinding;
         private int decisionPending;
         private int requestLoadSerial;
         private string durableListLotId = string.Empty;
@@ -112,19 +103,9 @@ namespace Modern.Lab.Samples
         private readonly DependentCover portCover;
         private readonly DependentCover durableCover;
 
-        protected virtual bool LotFirst
-        {
-            get { return false; }
-        }
-
-        public EquipmentLotForm()
+        public LotEquipmentForm()
         {
             this.InitializeComponent();
-
-            if (this.LotFirst)
-            {
-                this.ArrangeLotFirst();
-            }
 
             this.portCover = new DependentCover(this.portBusy);
             this.durableCover = new DependentCover(this.durableBusy);
@@ -148,10 +129,9 @@ namespace Modern.Lab.Samples
             this.splitRight.SizeChanged += this.OnBottomLayoutSizeChanged;
             this.splitDurableDecision.SizeChanged += this.OnBottomLayoutSizeChanged;
             this.midPanel.SizeChanged += this.OnMidPanelSizeChanged;
+            this.splitRequest.SizeChanged += this.OnRequestSplitSizeChanged;
+            this.durablePanel.Resize += this.OnDurablePanelResize;
             this.actionCard.SizeChanged += this.OnActionColumnSizeChanged;
-            this.listHeight = this.splitLeft.SplitterDistance;
-            this.listPanelHeightSeen = this.midPanel.ClientSize.Height;
-            this.listSplitDistanceSeen = this.listHeight;
             this.lblRequestRemarkCaption.ForeColor = Modern.Lab.Theming.ModernTheme.TextSecondary;
             this.SyncActionColumns();
         }
@@ -162,7 +142,7 @@ namespace Modern.Lab.Samples
 
             if (this.decisionHeight < 0)
             {
-                this.decisionHeight = this.splitDurableDecision.Panel2.Height;
+                this.decisionHeight = DecisionHeight * this.DeviceDpi / 96;
                 this.decisionSplitHeightSeen = this.splitDurableDecision.Height;
                 this.decisionSplitDistanceSeen = this.splitDurableDecision.SplitterDistance;
             }
@@ -171,16 +151,11 @@ namespace Modern.Lab.Samples
             this.FitListPanels();
             this.SyncActionColumns();
 
-            if (this.LotFirst)
-            {
-                this.FitLotFirstColumns();
-            }
+            this.FitLowerColumns();
         }
 
         private void OnFormLoad(object sender, EventArgs e)
         {
-            this.cboGroup.UseEntity(Schemas.EquipmentGroup);
-
             this.cboInterval.DisplayMember = RefreshInterval.LabelColumn;
             this.cboInterval.ValueMember = RefreshInterval.SecondsColumn;
             this.cboInterval.DataSource = RefreshInterval.Options();
@@ -197,8 +172,9 @@ namespace Modern.Lab.Samples
             this.gridLotPriorities.CellLinkClick += this.OnLotRequestLinkClick;
             this.gridLotPriorities.CellLinkClick += this.OnDurableIdLinkClick;
 
-            this.gridDurablePriorities.RowKeyMember = Schemas.DurablePriority.RowKey;
-            this.gridDurablePriorities.CellLinkClick += this.OnDurableIdLinkClick;
+            this.cboDurable.UseEntity(Schemas.DurablePriority);
+            this.cboDurable.ConfigureDropDownColumns(DurableComboColumns());
+            this.cboDurable.SelectedIndexChanged += this.OnDurableComboChanged;
             this.gridSamples.RowKeyMember = Schemas.Sample.RowKey;
             this.fieldRequest.FieldLinkClick += this.OnRequestFieldLinkClick;
             string[] tones = Modern.Lab.Theming.Palette.GetColors(4);
@@ -216,59 +192,13 @@ namespace Modern.Lab.Samples
             this.RefreshDecisionPanel();
             this.RefreshActionStates();
 
-            if (this.LotFirst)
-            {
-                this.ExecuteSearch();
-                return;
-            }
-
-            this.LoadGroups();
+            this.ExecuteSearch();
         }
 
         private void OnFormDisposed(object sender, EventArgs e)
         {
             this.refreshTimer.Stop();
             this.refreshTimer.Dispose();
-        }
-
-        private async void LoadGroups()
-        {
-            LoadOutcome<DataTable> outcome = await this.FetchAsync(
-                    channelGroups, () => this.GetEquipmentGroups());
-
-            if (!outcome.IsCurrent || outcome.Failure != null)
-            {
-                return;
-            }
-
-            this.groupData = outcome.Value;
-            this.groupSetup = true;
-
-            try
-            {
-                this.cboGroup.DataSource = outcome.Value;
-
-                if (outcome.Value != null && outcome.Value.Rows.Count > 0)
-                {
-                    this.cboGroup.SelectedIndex = 0;
-                }
-            }
-            finally
-            {
-                this.groupSetup = false;
-            }
-
-            this.ExecuteSearch();
-        }
-
-        private void OnGroupChanged(object sender, EventArgs e)
-        {
-            if (this.groupSetup)
-            {
-                return;
-            }
-
-            this.ExecuteSearch();
         }
 
         private void OnRefreshClick(object sender, EventArgs e)
@@ -339,56 +269,10 @@ namespace Modern.Lab.Samples
             this.decisionSplitHeightSeen = lower.Height;
             this.decisionSplitDistanceSeen = lower.SplitterDistance;
 
-            if (this.LotFirst)
-            {
-                this.FitLotFirstPanels();
-            }
+            this.FitLowerPanels();
         }
 
-        private void ArrangeLotFirst()
-        {
-            this.splitRight.Panel1.SuspendLayout();
-            this.splitRight.Panel1.Controls.Remove(this.splitMain);
-            this.splitMain.Panel1.Controls.Remove(this.splitLeft);
-            this.splitLeft.Panel1.Controls.Remove(this.eqpCard);
-            this.splitLeft.Panel2.Controls.Remove(this.lotCard);
-
-            this.splitLeft.Panel1MinSize = 160;
-            this.splitLeft.Panel2MinSize = 160;
-            this.splitLeft.FixedPanel = FixedPanel.Panel2;
-            this.splitMain.Panel1MinSize = 280;
-            this.splitMain.Panel2MinSize = 420;
-            this.splitLotRequest.Panel1MinSize = 180;
-            this.splitLotRequest.Panel2MinSize = 220;
-            this.splitLotRequest.FixedPanel = FixedPanel.None;
-            this.splitLotRequest.Orientation = Orientation.Vertical;
-
-            this.splitLotRequest.Panel2.Controls.Remove(this.requestCard);
-            this.splitDurableDecision.Panel1.Controls.Remove(this.durableCard);
-            this.splitLotRequest.Panel2.Controls.Add(this.durableCard);
-            this.splitDurableDecision.Panel1.Controls.Add(this.requestCard);
-
-            this.splitLeft.Panel1.Controls.Add(this.lotCard);
-            this.splitLeft.Panel2.Controls.Add(this.splitMain);
-            this.splitMain.Panel1.Controls.Add(this.eqpCard);
-            this.splitRight.Panel1.Controls.Add(this.splitLeft);
-            this.splitRight.Panel1.Controls.SetChildIndex(this.splitLeft, 0);
-            this.splitRight.Panel1.ResumeLayout(true);
-
-            this.decisionGrid.SetCellPosition(this.kpiLot, new TableLayoutPanelCellPosition(0, 0));
-            this.decisionGrid.SetCellPosition(this.kpiDurable, new TableLayoutPanelCellPosition(1, 0));
-            this.decisionGrid.SetCellPosition(this.kpiEquipment, new TableLayoutPanelCellPosition(0, 1));
-            this.decisionGrid.SetCellPosition(this.kpiPorts, new TableLayoutPanelCellPosition(1, 1));
-
-            this.lblGroup.Visible = false;
-            this.cboGroup.Visible = false;
-            this.lblLot.Visible = true;
-            this.cboLot.Visible = true;
-            this.lblTitle.Text = "Lot / Equipment";
-            this.Text = "Lot / Equipment";
-        }
-
-        private void FitLotFirstPanels()
+        private void FitLowerPanels()
         {
             int room = this.splitLeft.Height - this.splitLeft.SplitterWidth;
 
@@ -418,11 +302,11 @@ namespace Modern.Lab.Samples
             }
         }
 
-        private void FitLotFirstColumns()
+        private void FitLowerColumns()
         {
             int width = this.splitMain.Width - this.splitMain.SplitterWidth;
-            int equipmentWidth = width * 42 / 100;
-            int rest = width - equipmentWidth - this.splitLotRequest.SplitterWidth;
+            int equipmentWidth = width - PortColumnsWidth * this.DeviceDpi / 96;
+            int room = this.splitLotRequest.Height - this.splitLotRequest.SplitterWidth;
 
             try
             {
@@ -431,65 +315,16 @@ namespace Modern.Lab.Samples
                     this.splitMain.SplitterDistance = equipmentWidth;
                 }
 
-                int portWidth = rest * 40 / 100;
+                int portHeight = PortListHeight * this.DeviceDpi / 96;
 
-                if (portWidth >= this.splitLotRequest.Panel1MinSize && rest - portWidth >= this.splitLotRequest.Panel2MinSize)
+                if (portHeight >= this.splitLotRequest.Panel1MinSize && room - portHeight >= this.splitLotRequest.Panel2MinSize)
                 {
-                    this.splitLotRequest.SplitterDistance = portWidth;
+                    this.splitLotRequest.SplitterDistance = portHeight;
                 }
             }
             catch (InvalidOperationException)
             {
             }
-        }
-
-        private void OnListSplitterMoved(object sender, SplitterEventArgs e)
-        {
-            if (this.LotFirst || this.syncingListHeights || this.fittingListPanels)
-            {
-                return;
-            }
-
-            Modern.Lab.WinForms.Controls.Layout.ModernSplitContainer source =
-                    sender as Modern.Lab.WinForms.Controls.Layout.ModernSplitContainer;
-            Modern.Lab.WinForms.Controls.Layout.ModernSplitContainer target =
-                    object.ReferenceEquals(source, this.splitLeft) ? this.splitLotRequest : this.splitLeft;
-
-            if (source == null)
-            {
-                return;
-            }
-
-            if (this.midPanel.ClientSize.Height == this.listPanelHeightSeen
-                    && source.SplitterDistance != this.listSplitDistanceSeen)
-            {
-                this.listHeight = source.SplitterDistance;
-            }
-
-            int room = target.Height - target.SplitterWidth;
-
-            if (room < target.Panel1MinSize + target.Panel2MinSize)
-            {
-                return;
-            }
-
-            int distance = Math.Max(target.Panel1MinSize, Math.Min(source.SplitterDistance, room - target.Panel2MinSize));
-            this.syncingListHeights = true;
-
-            try
-            {
-                target.SplitterDistance = distance;
-            }
-            catch (InvalidOperationException)
-            {
-            }
-            finally
-            {
-                this.syncingListHeights = false;
-            }
-
-            this.listPanelHeightSeen = this.midPanel.ClientSize.Height;
-            this.listSplitDistanceSeen = distance;
         }
 
         private void OnMidPanelSizeChanged(object sender, EventArgs e)
@@ -499,39 +334,7 @@ namespace Modern.Lab.Samples
 
         private void FitListPanels()
         {
-            if (this.LotFirst)
-            {
-                this.FitLotFirstPanels();
-                return;
-            }
-
-            int room = this.midPanel.ClientSize.Height - this.splitLeft.SplitterWidth;
-            int upperMinimum = Math.Max(this.splitLeft.Panel1MinSize, this.splitLotRequest.Panel1MinSize);
-            int lowerMinimum = Math.Max(this.splitLeft.Panel2MinSize, this.splitLotRequest.Panel2MinSize);
-
-            if (room < upperMinimum + lowerMinimum)
-            {
-                return;
-            }
-
-            int distance = Math.Max(upperMinimum, Math.Min(this.listHeight, room - lowerMinimum));
-            this.fittingListPanels = true;
-
-            try
-            {
-                this.splitLeft.SplitterDistance = distance;
-                this.splitLotRequest.SplitterDistance = distance;
-            }
-            catch (InvalidOperationException)
-            {
-            }
-            finally
-            {
-                this.fittingListPanels = false;
-            }
-
-            this.listPanelHeightSeen = this.midPanel.ClientSize.Height;
-            this.listSplitDistanceSeen = distance;
+            this.FitLowerPanels();
         }
 
         private void OnBottomLayoutSizeChanged(object sender, EventArgs e)
@@ -585,10 +388,7 @@ namespace Modern.Lab.Samples
                 this.fittingColumns = false;
             }
 
-            if (this.LotFirst)
-            {
-                this.FitLotFirstPanels();
-            }
+            this.FitLowerPanels();
         }
 
         private void OnDecisionBarResize(object sender, EventArgs e)
@@ -640,11 +440,6 @@ namespace Modern.Lab.Samples
                     ToastKind.Info);
         }
 
-        private string SelectedEqpGrpId()
-        {
-            return (Convert.ToString(this.cboGroup.SelectedValue) ?? string.Empty).Trim();
-        }
-
         private string SelectedEquipmentId()
         {
             DataRowView equipment = this.gridEquipmentPriorities.SelectedItem as DataRowView;
@@ -665,83 +460,23 @@ namespace Modern.Lab.Samples
 
         private async void ExecuteSearch(bool silent = false)
         {
-            if (this.LotFirst)
-            {
-                this.ExecuteLotSearch(string.Empty, silent);
-                return;
-            }
-
-            string eqpGrpId = this.SelectedEqpGrpId();
-
-            if (eqpGrpId.Length == 0)
-            {
-                return;
-            }
-
-            string keepEqpId = this.decision.EqpId;
-            bool inPlace = !silent && this.equipmentData != null && eqpGrpId == this.loadedEqpGrpId;
+            bool inPlace = !silent && this.lotData != null;
             this.userRefresh = inPlace;
 
-            IDisposable busy = silent ? null : this.Busy("Loading equipment...", this.cboGroup.Text);
-
-            if (!silent)
-            {
-                this.InvalidateChannel(channelLots);
-            }
-
-            if (!silent && !inPlace)
-            {
-                this.BindEquipmentPriorityTable(null, keepEqpId, false, false);
-            }
-
-            LoadOutcome<DataTable> outcome;
-
-            try
-            {
-                outcome = await this.FetchAsync(
-                        channelEquipments, () => this.GetEquipmentPriorities(eqpGrpId), silent);
-            }
-            finally
-            {
-                if (busy != null)
-                {
-                    busy.Dispose();
-                }
-            }
-
-            if (!outcome.IsCurrent)
-            {
-                return;
-            }
-
-            if (outcome.Failure == null)
-            {
-                this.loadedEqpGrpId = eqpGrpId;
-            }
-
-            this.BindEquipmentPriorityTable(outcome.Failure != null ? null : outcome.Value, keepEqpId, silent, true, silent || inPlace);
-        }
-
-        private async void ExecuteLotSearch(string eqpGrpId, bool silent)
-        {
-            bool inPlace = !silent && this.lotData != null && eqpGrpId == this.loadedEqpGrpId;
-            this.userRefresh = inPlace;
-
-            IDisposable busy = silent ? null : this.Busy("Loading lots...", this.cboGroup.Text);
+            IDisposable busy = silent ? null : this.Busy("Loading lots...", string.Empty);
 
             if (!silent && !inPlace)
             {
                 this.InvalidateChannel(channelEquipments);
-                this.lotEquipmentsLotId = string.Empty;
                 this.BindLotPriorities(null, false);
-                this.BindEquipmentPriorityTable(null, string.Empty, false, false);
+                this.BindEquipmentPriorityTable(null, string.Empty, false);
             }
 
             LoadOutcome<DataTable> outcome;
 
             try
             {
-                outcome = await this.FetchAsync(channelLots, () => this.GetLotPriorities(eqpGrpId), silent);
+                outcome = await this.FetchAsync(channelLots, () => this.GetLotPriorities(), silent);
             }
             finally
             {
@@ -754,38 +489,28 @@ namespace Modern.Lab.Samples
             if (!outcome.IsCurrent)
             {
                 return;
-            }
-
-            if (outcome.Failure == null)
-            {
-                this.loadedEqpGrpId = eqpGrpId;
             }
 
             this.BindLotPriorities(outcome.Failure != null ? null : outcome.Value, silent || inPlace);
         }
 
-        private string RequestLotId()
+        private void BindEquipmentPriorityTable(DataTable equipments, string keepEqpId, bool silent)
         {
-            return this.LotFirst ? this.decision.LotId : string.Empty;
+            this.BindEquipmentPriorityTable(equipments, keepEqpId, silent, silent);
         }
 
-        private void BindEquipmentPriorityTable(DataTable equipments, string keepEqpId, bool silent, bool loadLots)
+        private void BindEquipmentPriorityTable(DataTable equipments, string keepEqpId, bool silent, bool merge)
         {
-            this.BindEquipmentPriorityTable(equipments, keepEqpId, silent, loadLots, silent);
-        }
-
-        private void BindEquipmentPriorityTable(DataTable equipments, string keepEqpId, bool silent, bool loadLots, bool merge)
-        {
-            this.BindEquipmentPriorityTable(equipments, keepEqpId, silent, loadLots, merge, false);
+            this.BindEquipmentPriorityTable(equipments, keepEqpId, silent, merge, false);
         }
 
         private void BindEquipmentPriorityTable(
-                DataTable equipments, string keepEqpId, bool silent, bool loadLots, bool merge, bool ignoreLock)
+                DataTable equipments, string keepEqpId, bool silent, bool merge, bool ignoreLock)
         {
             bool merged;
             this.equipmentData = this.BindJudged(
                     EquipmentLotContracts.EquipmentTable, this.equipmentData, ref this.equipmentCurrent,
-                    equipments, Schemas.EquipmentPriority.EqpId.Name, silent, merge, out merged);
+                    equipments, Schemas.EquipmentPriority.RowKey, silent, merge, out merged);
 
             this.decision.EquipmentList = this.equipmentData;
 
@@ -799,7 +524,7 @@ namespace Modern.Lab.Samples
             this.decision.DropDetached();
             DataTable table = this.equipmentData;
             DataRow equipment = this.decision.Locked && !ignoreLock
-                    ? EquipmentLotPresenter.FindById(table, Schemas.EquipmentPriority.EqpId.Name, keepEqpId)
+                    ? EquipmentLotPresenter.FindById(table, Schemas.EquipmentPriority.RowKey, keepEqpId)
                     : EquipmentLotPresenter.TopPriority(table);
             string decidedEqpId = TableHelper.CellText(equipment, Schemas.EquipmentPriority.EqpId.Name).Trim();
 
@@ -810,12 +535,12 @@ namespace Modern.Lab.Samples
                 if (!merged)
                 {
                     this.gridEquipmentPriorities.DataSource = table;
-                    this.SelectRow(this.gridEquipmentPriorities, table, Schemas.EquipmentPriority.EqpId.Name, decidedEqpId);
+                    this.SelectRow(this.gridEquipmentPriorities, table, Schemas.EquipmentPriority.RowKey, decidedEqpId);
                 }
                 else if (this.gridEquipmentPriorities.SelectedItem == null
                         || (decidedEqpId.Length > 0 && decidedEqpId != this.decision.EqpId))
                 {
-                    this.SelectRow(this.gridEquipmentPriorities, table, Schemas.EquipmentPriority.EqpId.Name, decidedEqpId);
+                    this.SelectRow(this.gridEquipmentPriorities, table, Schemas.EquipmentPriority.RowKey, decidedEqpId);
                 }
             }
             finally
@@ -833,11 +558,6 @@ namespace Modern.Lab.Samples
 
             this.LoadPortPriorities(this.SelectedEquipmentId(), this.silentRefresh);
             this.ApplyEquipmentDecision();
-
-            if (loadLots)
-            {
-                this.LoadDecisionLotPriorities(this.SelectedEqpGrpId());
-            }
 
             this.SyncDecisionDurables(false);
         }
@@ -894,12 +614,6 @@ namespace Modern.Lab.Samples
             this.cycleLotsReflected = true;
         }
 
-        private void LoadDecisionLotPriorities(string eqpGrpId)
-        {
-            bool silent = this.silentRefresh;
-            this.LoadDependent(channelLots, () => this.GetLotPriorities(eqpGrpId), table => this.BindLotPriorities(table, silent), !silent, silent, null);
-        }
-
         private void SyncDecisionDurables(bool refresh)
         {
             bool runMode = EquipmentLotPresenter.HasActiveJob(this.decision.Lot);
@@ -928,7 +642,7 @@ namespace Modern.Lab.Samples
 
                 if (refresh && goalPortNm.Length > 0)
                 {
-                    string refreshLotId = this.RequestLotId();
+                    string refreshLotId = this.decision.LotId;
                     bool lotChanged = refreshLotId != this.durableListLotId;
                     this.durableListLotId = refreshLotId;
 
@@ -952,7 +666,7 @@ namespace Modern.Lab.Samples
 
             if (keepShown)
             {
-                string keptLotId = this.RequestLotId();
+                string keptLotId = this.decision.LotId;
                 this.durableListLotId = keptLotId;
                 this.durablesPending = !runMode;
                 this.UpdateMaterialsPending();
@@ -964,7 +678,7 @@ namespace Modern.Lab.Samples
             }
 
             this.durableData = null;
-            this.durableCard.Text = EquipmentLotPresenter.DurableListTitle(string.Empty);
+            this.lblDurable.Text = "-";
             this.decision.GoalDurable = null;
             this.durablesPending = false;
             this.UpdateMaterialsPending();
@@ -972,14 +686,14 @@ namespace Modern.Lab.Samples
             if (eqpId.Length == 0 || goalPortNm.Length == 0)
             {
                 this.durableCover.Reset();
-                this.gridDurablePriorities.DataSource = null;
+                this.BindDurableCombo(null);
                 this.dependentSerial++;
                 this.RefreshDecisionPanel();
                 this.RefreshActionStates();
                 return;
             }
 
-            string durableLotId = this.RequestLotId();
+            string durableLotId = this.decision.LotId;
             this.durableListLotId = durableLotId;
             this.LoadDependent(channelDurables, () => this.GetDurablePriorities(eqpId, goalPortNm, durableLotId), table => this.BindDurablePriorities(table, false, false, true), !runMode, false, this.durableCover);
             this.dependentSerial++;
@@ -1000,7 +714,7 @@ namespace Modern.Lab.Samples
             {
                 this.decision.GoalDurable = goalDurableId.Length == 0
                         ? null
-                        : EquipmentLotPresenter.FindById(this.durableData, Schemas.DurablePriority.DurableId.Name, goalDurableId);
+                        : EquipmentLotPresenter.FindById(this.durableData, Schemas.DurablePriority.RowKey, goalDurableId);
             }
 
             this.dependentSerial++;
@@ -1149,9 +863,7 @@ namespace Modern.Lab.Samples
                 return;
             }
 
-            configure(table)
-                    .Hide(EquipmentLotPresenter.ServerOrderColumn, EquipmentLotPresenter.AutoCanColumn)
-                    .Apply(grid);
+            HideScreenColumns(configure(table)).Apply(grid);
         }
 
         private static GridColumns AutoVocabulary(GridColumns columns)
@@ -1195,7 +907,7 @@ namespace Modern.Lab.Samples
 
             if (eqpId.Length > 0)
             {
-                string portLotId = this.RequestLotId();
+                string portLotId = this.decision.LotId;
                 this.LoadDependent(channelPorts, () => this.GetPortPriorities(eqpId, portLotId), table => this.BindPortPriorities(table, same), !same && eqpId == this.decision.EqpId, same, same ? null : this.portCover);
             }
             else
@@ -1215,7 +927,7 @@ namespace Modern.Lab.Samples
 
             ConfigureGrid(
                     this.gridPortPriorities, this.portData, Judged(this.portCurrent),
-                    this.LotFirst ? (Func<DataTable, GridColumns>)LotFirstPortColumns : PortPriorityColumns);
+                    PortPriorityColumns);
 
             if (!merged)
             {
@@ -1341,7 +1053,7 @@ namespace Modern.Lab.Samples
             string colorsBefore = EquipmentLotPresenter.JobColorSignature(this.lotData);
             bool merged;
             this.lotData = this.BindJudged(
-                    EquipmentLotContracts.LotTable, this.lotData, ref this.lotCurrent, lots, Schemas.LotPriority.LotId.Name, silent, silent, out merged);
+                    EquipmentLotContracts.LotTable, this.lotData, ref this.lotCurrent, lots, Schemas.LotPriority.RowKey, silent, silent, out merged);
             this.decision.DropDetached();
 
             if (Judged(this.lotCurrent))
@@ -1368,11 +1080,11 @@ namespace Modern.Lab.Samples
 
             this.RefreshDecisionTitles();
 
-            this.decision.Lot = this.decision.Locked || (this.LotFirst && silent)
-                    ? EquipmentLotPresenter.FindById(this.lotData, Schemas.LotPriority.LotId.Name, previousLotId)
+            this.decision.Lot = this.decision.Locked || (silent)
+                    ? EquipmentLotPresenter.FindById(this.lotData, Schemas.LotPriority.RowKey, previousLotId)
                     : EquipmentLotPresenter.TopPriority(this.lotData);
 
-            if (this.LotFirst && !this.decision.Locked && this.decision.Lot == null)
+            if (!this.decision.Locked && this.decision.Lot == null)
             {
                 this.decision.Lot = EquipmentLotPresenter.TopPriority(this.lotData);
             }
@@ -1387,7 +1099,7 @@ namespace Modern.Lab.Samples
             {
                 if (!silent || this.gridLotPriorities.SelectedItem == null)
                 {
-                    this.SelectRow(this.gridLotPriorities, this.lotData, Schemas.LotPriority.LotId.Name, this.decision.LotId);
+                    this.SelectRow(this.gridLotPriorities, this.lotData, Schemas.LotPriority.RowKey, this.decision.LotId);
                 }
             }
             finally
@@ -1400,12 +1112,8 @@ namespace Modern.Lab.Samples
             this.RefreshDecisionPanel();
             this.RefreshActionStates();
 
-            if (this.LotFirst)
-            {
-                this.FillLotFinder();
-            }
-
-            if (this.LotFirst && lots != null)
+            this.FillLotFinder();
+            if (lots != null)
             {
                 this.LoadLotEquipments(this.decision.LotId);
             }
@@ -1482,7 +1190,7 @@ namespace Modern.Lab.Samples
 
             if (lotId.Length > 0)
             {
-                this.SelectRow(this.gridLotPriorities, this.lotData, Schemas.LotPriority.LotId.Name, lotId);
+                this.SelectRow(this.gridLotPriorities, this.lotData, Schemas.LotPriority.RowKey, lotId);
             }
         }
 
@@ -1496,29 +1204,23 @@ namespace Modern.Lab.Samples
             string keepDurable = this.decision.GoalDurableId;
             bool merged;
             this.durableData = this.BindJudged(
-                    EquipmentLotContracts.DurableTable, this.durableData, ref this.durableCurrent, durables, Schemas.DurablePriority.DurableId.Name, silent, merge, out merged);
+                    EquipmentLotContracts.DurableTable, this.durableData, ref this.durableCurrent, durables, Schemas.DurablePriority.RowKey, silent, merge, out merged);
 
-            ConfigureGrid(this.gridDurablePriorities, this.durableData, Judged(this.durableCurrent), DurablePriorityColumns);
-
-            if (!merged)
-            {
-                this.gridDurablePriorities.DataSource = this.durableData;
-            }
-
+            this.BindDurableCombo(this.durableData);
             this.decision.DropDetached();
-            this.durableCard.Text = EquipmentLotPresenter.DurableListTitle(this.GoalDurableTyp());
+            this.lblDurable.Text = ValueOrDash(this.GoalDurableTyp());
 
             if (this.JobRunMode())
             {
                 string jobDurableId = EquipmentLotPresenter.JobGoalDurableId(this.decision.Lot);
                 this.decision.GoalDurable = jobDurableId.Length == 0
                         ? null
-                        : EquipmentLotPresenter.FindById(this.durableData, Schemas.DurablePriority.DurableId.Name, jobDurableId);
+                        : EquipmentLotPresenter.FindById(this.durableData, Schemas.DurablePriority.RowKey, jobDurableId);
             }
             else
             {
                 this.decision.GoalDurable = this.decision.Locked && !retarget
-                        ? EquipmentLotPresenter.FindById(this.durableData, Schemas.DurablePriority.DurableId.Name, keepDurable)
+                        ? EquipmentLotPresenter.FindById(this.durableData, Schemas.DurablePriority.RowKey, keepDurable)
                         : EquipmentLotPresenter.TopPriority(this.durableData);
             }
 
@@ -1560,23 +1262,20 @@ namespace Modern.Lab.Samples
 
         private async void LoadLotEquipments(string lotId)
         {
-            string eqpGrpId = string.Empty;
-
             if (lotId.Length == 0)
             {
-                this.lotEquipmentsLotId = string.Empty;
                 this.lotRetarget = false;
                 this.lotEquipmentsPending = false;
                 this.UpdateMaterialsPending();
-                this.BindEquipmentPriorityTable(null, string.Empty, true, false, false);
+                this.BindEquipmentPriorityTable(null, string.Empty, true, false);
                 return;
             }
 
             bool retarget = this.lotRetarget;
-            this.lotEquipmentsLotId = lotId;
             string keepEqpId = this.decision.EqpId;
+            string eqpId = TableHelper.CellText(this.decision.Lot, Schemas.LotPriority.EqpId.Name).Trim();
             LoadOutcome<DataTable> outcome = await this.FetchAsync(
-                    channelEquipments, () => this.GetEquipmentPriorities(eqpGrpId, lotId), !this.userRefresh);
+                    channelEquipments, () => this.GetEquipmentPriorities(eqpId, lotId), !this.userRefresh);
 
             if (!outcome.IsCurrent || lotId != this.decision.LotId)
             {
@@ -1588,7 +1287,7 @@ namespace Modern.Lab.Samples
 
             if (outcome.Failure != null)
             {
-                this.BindEquipmentPriorityTable(null, string.Empty, false, false, false);
+                this.BindEquipmentPriorityTable(null, string.Empty, false, false);
                 return;
             }
 
@@ -1601,7 +1300,7 @@ namespace Modern.Lab.Samples
             }
 
             bool durablesListed = this.durableListGoalPortNm.Length > 0 && this.durableListLotId != lotId;
-            this.BindEquipmentPriorityTable(outcome.Value, keepEqpId, true, false, true, retarget);
+            this.BindEquipmentPriorityTable(outcome.Value, keepEqpId, true, true, retarget);
 
             if (durablesListed)
             {
@@ -1616,12 +1315,8 @@ namespace Modern.Lab.Samples
                 return;
             }
 
-            if (this.LotFirst)
-            {
-                this.FollowSelectedLot();
-                this.SyncLotFinder(this.SelectedLotId());
-            }
-
+            this.FollowSelectedLot();
+            this.SyncLotFinder(this.SelectedLotId());
             string key = this.SelectedRequestSerialNo();
 
             if (key.Length > 0 && key == this.reqSerialNo && this.requestData != null)
@@ -1734,7 +1429,7 @@ namespace Modern.Lab.Samples
             bool merged;
             this.requestData = this.BindJudged(
                     EquipmentLotContracts.RequestTable, this.requestData, ref this.requestCurrent,
-                    master, Schemas.Request.ReqSerialNo.Name, silent, silent, out merged);
+                    master, Schemas.Request.RowKey, silent, silent, out merged);
 
             this.BindRequestFields(this.requestData, snapshot == null ? string.Empty : snapshot.Remarks);
 
@@ -1794,11 +1489,16 @@ namespace Modern.Lab.Samples
             int remarkHeight = row == null ? 0 : RequestRemarkHeight * this.DeviceDpi / 96;
             int headerHeight = fieldHeight + remarkHeight;
 
-            if (row != null && this.tableRequestMaster.Height != headerHeight)
+            if (row != null)
             {
-                this.tableRequestMaster.RowStyles[0].Height = fieldHeight;
-                this.tableRequestMaster.RowStyles[1].Height = remarkHeight;
-                this.tableRequestMaster.Height = headerHeight;
+                if (this.tableRequestMaster.Height != headerHeight)
+                {
+                    this.tableRequestMaster.RowStyles[0].Height = fieldHeight;
+                    this.tableRequestMaster.RowStyles[1].Height = remarkHeight;
+                    this.tableRequestMaster.Height = headerHeight;
+                }
+
+                this.requestHeaderHeight = headerHeight;
                 this.FitRequestHeader(headerHeight);
             }
             this.lblRequestRemarkCaption.Text = "Purpose";
@@ -1834,6 +1534,12 @@ namespace Modern.Lab.Samples
             this.lblRequestRemark.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             this.btnRequestRemarkMore.BringToFront();
         }
+        private const int PortListHeight = 228;
+
+        private const int PortColumnsWidth = 340;
+
+        private const int DecisionHeight = 288;
+
         private const int RequestFieldBaseColumns = 3;
 
         private const int RequestFieldRowHeight = 32;
@@ -1842,7 +1548,7 @@ namespace Modern.Lab.Samples
 
         private const int RequestRemarkHeight = 38;
 
-        private const int RequestDetailMinHeight = 160;
+        private const int RequestDetailMinHeight = 80;
 
         private static int RequestFieldColumns(int count)
         {
@@ -1866,6 +1572,24 @@ namespace Modern.Lab.Samples
             }
 
             return shape.ToString();
+        }
+
+        private void OnDurablePanelResize(object sender, EventArgs e)
+        {
+            int width = this.durablePanel.ClientSize.Width - this.cboDurable.Left - 6;
+
+            if (width > 0 && this.cboDurable.Width != width)
+            {
+                this.cboDurable.Width = width;
+            }
+        }
+
+        private void OnRequestSplitSizeChanged(object sender, EventArgs e)
+        {
+            if (this.requestHeaderHeight > 0)
+            {
+                this.FitRequestHeader(this.requestHeaderHeight);
+            }
         }
 
         private void FitRequestHeader(int desiredHeight)
@@ -2033,7 +1757,7 @@ namespace Modern.Lab.Samples
             if (this.portEqpId != this.decision.EqpId)
             {
                 DataRow equipment = CandidateRow(
-                        EquipmentLotPresenter.FindById(this.equipmentData, Schemas.EquipmentPriority.EqpId.Name, this.portEqpId));
+                        EquipmentLotPresenter.FindById(this.equipmentData, Schemas.EquipmentPriority.RowKey, this.portEqpId));
 
                 if (equipment == null)
                 {
@@ -2107,24 +1831,82 @@ namespace Modern.Lab.Samples
             }
         }
 
-        private void OnDurableRowDoubleClick(object sender, EventArgs e)
+        private void OnDurableComboChanged(object sender, EventArgs e)
         {
+            if (this.durableComboBinding)
+            {
+                return;
+            }
+
             if (this.JobRunMode())
             {
                 this.NotifyJobRunMode();
                 return;
             }
 
-            DataRow durable = Candidate(this.gridDurablePriorities.SelectedItem);
+            DataRow durable = CandidateRow(EquipmentLotPresenter.FindById(
+                    this.durableData, Schemas.DurablePriority.RowKey, Convert.ToString(this.cboDurable.SelectedValue)));
 
             if (durable == null)
             {
+                this.SyncDurableCombo();
                 return;
             }
 
             this.decision.GoalDurable = durable;
             this.RefreshDecisionPanel();
             this.RefreshActionStates();
+        }
+
+        private void BindDurableCombo(DataTable source)
+        {
+            this.durableComboBinding = true;
+
+            try
+            {
+                DataTable choices = null;
+
+                if (source != null)
+                {
+                    choices = source.Clone();
+
+                    foreach (DataRow row in source.Rows)
+                    {
+                        if (CandidateRow(row) != null)
+                        {
+                            choices.ImportRow(row);
+                        }
+                    }
+                }
+
+                this.cboDurable.DataSource = choices;
+                this.cboDurable.Enabled = choices != null && choices.Rows.Count > 0;
+            }
+            finally
+            {
+                this.durableComboBinding = false;
+            }
+        }
+
+        private void SyncDurableCombo()
+        {
+            string goalDurableId = this.decision.GoalDurableId;
+
+            if (Convert.ToString(this.cboDurable.SelectedValue) == goalDurableId)
+            {
+                return;
+            }
+
+            this.durableComboBinding = true;
+
+            try
+            {
+                this.cboDurable.SelectedValue = goalDurableId.Length == 0 ? null : goalDurableId;
+            }
+            finally
+            {
+                this.durableComboBinding = false;
+            }
         }
 
         private void RefreshDecisionTitles()
@@ -2134,17 +1916,8 @@ namespace Modern.Lab.Samples
             this.eqpCard.TitleRightText = DecidedTitle(
                     word, TableHelper.CellText(summary, Schemas.EquipmentPriority.EqpId.Name), this.equipmentData, "equipment");
             this.lotCard.TitleRightText = DecidedTitle("Decided ", this.decision.LotId, this.lotData, "lots");
-            this.durableCard.TitleRightText = DecidedTitle(
-                    word, EquipmentLotPresenter.DecidedGoalDurableId(this.decision), this.durableData, "durables");
+            this.portCard.TitleRightText = string.Empty;
             this.RefreshDecisionCaption();
-
-            string portNm = TableHelper.CellText(summary, Schemas.LotPriority.PortNm.Name);
-            string goalPortNm = TableHelper.CellText(summary, Schemas.LotPriority.GoalPortNm.Name);
-            string ports = portNm.Length == 0 && goalPortNm.Length == 0
-                    ? string.Empty
-                    : portNm + " → " + goalPortNm;
-
-            this.portCard.TitleRightText = DecidedTitle(word, ports, this.portData, "ports");
         }
 
         private static string DecidedTitle(string word, string decided, DataTable table, string noun)
@@ -2161,6 +1934,7 @@ namespace Modern.Lab.Samples
 
         private void RefreshDecisionPanel()
         {
+            this.SyncDurableCombo();
             DataRow lot = this.decision.Lot;
             DataRow summary = EquipmentLotPresenter.JobSummary(this.decision);
 
@@ -2272,6 +2046,12 @@ namespace Modern.Lab.Samples
             options.Title = EquipmentLotPresenter.JobLabel(key) + " — " + this.decision.LotId;
             options.SourceCaption = options.Title;
             options.OkText = EquipmentLotPresenter.JobLabel(key);
+            if (key == EquipmentLotPresenter.ActionJobPrepCancel || key == EquipmentLotPresenter.ActionJobStartCancel)
+            {
+                options.OkTopLabel = EquipmentLotPresenter.JobLabel(key == EquipmentLotPresenter.ActionJobPrepCancel
+                    ? EquipmentLotPresenter.ActionJobPrep : EquipmentLotPresenter.ActionJobStart);
+                options.OkText = EquipmentLotPresenter.CancelWord;
+            }
             options.Target = new JobDecision
             {
                 Lot = ActionRows.Copy(this.decision.Lot),
@@ -2280,12 +2060,12 @@ namespace Modern.Lab.Samples
                 GoalPort = ActionRows.Copy(this.decision.GoalPort),
                 GoalDurable = ActionRows.Copy(this.decision.GoalDurable)
             };
-            options.SelectedEqpGrpId = this.SelectedEqpGrpId();
-            options.Source = EquipmentLotPresenter.JobSummary(options.Target);
+            options.ExecutionTarget = new JobExecutionTarget(options.Target, string.Empty);
+            options.Source = EquipmentLotPresenter.JobTargetSummary(options.ExecutionTarget);
             options.SourceFields = JobSummaryFields();
             options.DefaultDescription = DefaultDescriptions.ForJob(key);
 
-            if (key == EquipmentLotPresenter.ActionJobSkip)
+            if (key == EquipmentLotPresenter.ActionCancelOper)
             {
                 JobSkipDialogResult skip = this.OpenSkipDialog(options.Target.Lot);
 
@@ -2333,7 +2113,7 @@ namespace Modern.Lab.Samples
         private string JobGroupId(DataRow job)
         {
             string eqpGrpId = TableHelper.CellText(job, Schemas.EquipmentPriority.EqpGrpId.Name).Trim();
-            return eqpGrpId.Length == 0 ? this.SelectedEqpGrpId() : eqpGrpId;
+            return eqpGrpId;
         }
 
         protected virtual JudgeDialogResult OpenJudgeDialog(JudgeDialogOptions options)
@@ -2362,7 +2142,7 @@ namespace Modern.Lab.Samples
                 return null;
             }
 
-            using (JobSkipDialogForm dialog = new JobSkipDialogForm(lot, EquipmentLotPresenter.JobSummary(this.decision)))
+            using (JobSkipDialogForm dialog = new JobSkipDialogForm(lot, EquipmentLotPresenter.JobSummary(this.decision), JobSummaryFields()))
             {
                 return dialog.ShowDialog(this) == DialogResult.OK ? dialog.Result : null;
             }
@@ -2371,7 +2151,7 @@ namespace Modern.Lab.Samples
         private void ProcessSkip(EquipmentJobDialogOptions options, JobSkipDialogResult skip)
         {
             DataRow job = options.Source;
-            string key = EquipmentLotPresenter.ActionJobSkip;
+            string key = EquipmentLotPresenter.ActionCancelOper;
             string lotId = TableHelper.CellText(job, Schemas.LotPriority.LotId.Name).Trim();
             string reason = skip != null && skip.LotId == lotId
                             && SameJobTarget(job, EquipmentLotPresenter.JobSummary(this.decision))
@@ -2389,13 +2169,13 @@ namespace Modern.Lab.Samples
                 return;
             }
 
-            JobDecision target = options.Target;
+            JobExecutionTarget target = options.ExecutionTarget;
             string skipCode = skip.ReasonCode;
             string description = skip.Description;
 
             this.Process(
-                    () => this.JobSkip(target.Lot, target.Equipment, target.Port, target.GoalPort, target.GoalDurable, options.SelectedEqpGrpId, skipCode, description),
-                    "Skipping process for " + lotId + "…",
+                    () => this.JobSkip(target, skipCode, description),
+                    "Cancelling the operation for " + lotId + "…",
                     () => this.ExecuteSearch(true));
         }
 
@@ -2417,21 +2197,21 @@ namespace Modern.Lab.Samples
                 return;
             }
 
-            JobDecision target = options.Target;
+            JobExecutionTarget target = options.ExecutionTarget;
             string lotId = TableHelper.CellText(job, Schemas.LotPriority.LotId.Name).Trim();
 
             switch (key)
             {
                 case EquipmentLotPresenter.ActionJobPrep:
                     this.Process(
-                            () => this.JobPrep(target.Lot, target.Equipment, target.Port, target.GoalPort, target.GoalDurable, options.SelectedEqpGrpId, description),
+                            () => this.JobPrep(target, description),
                             "Preparing job for " + lotId + "…",
                             () => this.ExecuteSearch(true));
                     break;
 
                 case EquipmentLotPresenter.ActionJobStart:
                     this.Process(
-                            () => this.JobStart(target.Lot, target.Equipment, target.Port, target.GoalPort, target.GoalDurable, options.SelectedEqpGrpId, description),
+                            () => this.JobStart(target, description),
                             "Starting job " + lotId + "…",
                             () => this.ExecuteSearch(true));
                     break;
@@ -2444,29 +2224,29 @@ namespace Modern.Lab.Samples
                     }
 
                     this.Process(
-                            () => this.JobEnd(target.Lot, target.Equipment, target.Port, target.GoalPort, target.GoalDurable, options.SelectedEqpGrpId, description, judgeResults),
+                            () => this.JobEnd(target, description, judgeResults),
                             "Ending job " + lotId + "…",
                             () => this.ExecuteSearch(true));
                     break;
 
                 case EquipmentLotPresenter.ActionJobPrepCancel:
                     this.Process(
-                            () => this.JobPrepCancel(target.Lot, target.Equipment, target.Port, target.GoalPort, target.GoalDurable, options.SelectedEqpGrpId, description),
+                            () => this.JobPrepCancel(target, description),
                             "Cancelling job preparation for " + lotId + "…",
                             () => this.ExecuteSearch(true));
                     break;
 
                 case EquipmentLotPresenter.ActionJobStartCancel:
                     this.Process(
-                            () => this.JobStartCancel(target.Lot, target.Equipment, target.Port, target.GoalPort, target.GoalDurable, options.SelectedEqpGrpId, description),
+                            () => this.JobStartCancel(target, description),
                             "Cancelling job start for " + lotId + "…",
                             () => this.ExecuteSearch(true));
                     break;
 
-                case EquipmentLotPresenter.ActionJobUndo:
+                case EquipmentLotPresenter.ActionBackToPrevOper:
                     this.Process(
-                            () => this.JobUndo(target.Lot, target.Equipment, target.Port, target.GoalPort, target.GoalDurable, options.SelectedEqpGrpId, description),
-                            "Undoing job start for " + lotId + "…",
+                            () => this.JobUndo(target, description),
+                            "Returning " + lotId + " to the previous operation…",
                             () => this.ExecuteSearch(true));
                     break;
             }
@@ -2497,7 +2277,7 @@ namespace Modern.Lab.Samples
         private bool EquipmentStillAllows(string key, string eqpId)
         {
             DataRow equipment = this.ValidEquipment(
-                    EquipmentLotPresenter.FindById(this.equipmentData, Schemas.EquipmentPriority.EqpId.Name, eqpId));
+                    EquipmentLotPresenter.FindById(this.equipmentData, Schemas.EquipmentPriority.RowKey, eqpId));
             string reason = equipment == null
                     ? EquipmentPortManagementForm.NoEquipmentSelected
                     : EquipmentPortManagementForm.EquipmentActionReason(key, equipment);
@@ -2830,10 +2610,10 @@ namespace Modern.Lab.Samples
                     return JobPrepCancelReason(decision, equipment, lot);
                 case EquipmentLotPresenter.ActionJobStartCancel:
                     return JobStartCancelReason(decision, equipment, lot);
-                case EquipmentLotPresenter.ActionJobSkip:
-                    return JobSkipReason(decision, equipment, lot);
-                case EquipmentLotPresenter.ActionJobUndo:
-                    return JobUndoReason(decision, equipment, lot);
+                case EquipmentLotPresenter.ActionCancelOper:
+                    return CancelOperReason(decision, equipment, lot);
+                case EquipmentLotPresenter.ActionBackToPrevOper:
+                    return BackToPrevOperReason(decision, equipment, lot);
             }
 
             return NoDecision;

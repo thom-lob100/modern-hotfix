@@ -1,4 +1,5 @@
 using System.Data;
+using Modern.Lab.Controls.Wpf.Data;
 
 using Modern.Lab.Samples.Services;
 using Modern.Lab.WinForms.Controls.Data;
@@ -7,7 +8,7 @@ using Modern.Lab.Hosting.Schema;
 
 namespace Modern.Lab.Samples
 {
-    public partial class EquipmentLotForm
+    public partial class LotEquipmentForm
     {
         // Job 확인 창과 Skip 창의 Job 요약 카드에 보일 항목과 순서. 캡션·형식·배지는 엔티티에서 오고,
         // 엔티티와 다르게 보일 캡션만 여기서 적는다. 회사에서 항목을 바꾸면 이 목록만 고친다.
@@ -46,16 +47,10 @@ namespace Modern.Lab.Samples
         {
             PortPriorityEntity port = Schemas.PortPriority;
 
-            return port.Columns(table)
+            return port.Columns(table).Hide(port.EqpId.Name)
                     .Column(port.Priority.Name).BadgeColor(EquipmentLotPresenter.PriorityColorColumn).NoFilter()
                     .Column(port.PortTyp.Name).BadgeWidth(port.PortTyp.ValueCodes())
                     .Column(port.TransferStatCd.Name).BadgeWidth(port.TransferStatCd.ValueCodes()).Spin(port.TransferStatCd.Processing.Value);
-        }
-
-        // Lot / Equipment 화면의 Port 목록 — 장비 Id 는 카드 제목(Port List — 장비)에 이미 있어 열로 보이지 않는다.
-        private static GridColumns LotFirstPortColumns(DataTable table)
-        {
-            return PortPriorityColumns(table).Hide(Schemas.PortPriority.EqpId.Name);
         }
 
         private static GridColumns LotPriorityColumns(DataTable table)
@@ -71,14 +66,16 @@ namespace Modern.Lab.Samples
                     .Column(lot.DurableId.Name, lot.GoalDurableId.Name).Link();
         }
 
-        private static GridColumns DurablePriorityColumns(DataTable table)
+        // Target Durable 콤보의 펼친 목록 — Prio 를 앞에, Durable Id 를 뒤에 둔다(닫힌 콤보에는 엔티티 콤보 표시 필드의 첫 필드 Durable Id 가 보인다).
+        private static ModernDataGridColumn[] DurableComboColumns()
         {
             DurablePriorityEntity durable = Schemas.DurablePriority;
 
-            // Durable Id 링크 — 누르면 Durable 정보 팝업(슬롯 맵)을 연다.
-            return durable.Columns(table)
-                    .Column(durable.Priority.Name).BadgeColor(EquipmentLotPresenter.PriorityColorColumn).NoFilter()
-                    .Column(durable.DurableId.Name).Link();
+            return new ModernDataGridColumn[]
+            {
+                new ModernDataGridColumn(durable.Priority.Name, durable.Priority.CaptionSetting),
+                new ModernDataGridColumn(durable.DurableId.Name, durable.DurableId.CaptionSetting)
+            };
         }
 
         // Sample 목록 — 공유 엔티티(Schemas.Sample)를 그대로 쓰고, 위 요청 정보 카드가 이미 보이는 REQ_SERIAL_NO 만 이 화면에서 숨긴다.
@@ -92,8 +89,13 @@ namespace Modern.Lab.Samples
         // 요청 정보 카드의 회사 표시 설정 — 공유 엔티티(Schemas.Request)에 화면 계산 컬럼 숨김만 더한다.
         private static GridColumns RequestOverviewColumns(DataTable overview)
         {
-            return Schemas.Request.Columns(overview)
-                    .Hide(EquipmentLotPresenter.ServerOrderColumn, EquipmentLotPresenter.AutoCanColumn);
+            return HideScreenColumns(Schemas.Request.Columns(overview));
+        }
+
+        // 화면이 계산해 붙인 컬럼(서버 순서 · Auto 가능 여부)은 어느 표에서도 열로 보이지 않는다.
+        private static GridColumns HideScreenColumns(GridColumns columns)
+        {
+            return columns.Hide(EquipmentLotPresenter.ServerOrderColumn, EquipmentLotPresenter.AutoCanColumn);
         }
     }
 }

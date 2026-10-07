@@ -19,10 +19,10 @@ namespace Modern.Lab.Samples.Services
         public const string ActionJobEnd = "JobEnd";
         public const string ActionJobPrepCancel = "JobPrepCancel";
         public const string ActionJobStartCancel = "JobStartCancel";
-        public const string ActionJobSkip = "JobSkip";
-        public const string ActionJobUndo = "JobUndo";
+        public const string ActionCancelOper = "JobSkip";
+        public const string ActionBackToPrevOper = "JobUndo";
         public const string CancelWord = "Cancel";
-        public const string JobMenuSeparatorBefore = ActionJobSkip;
+        public const string JobMenuSeparatorBefore = ActionCancelOper;
 
         public static readonly string PriorityColumn = Schemas.LotPriority.Priority.Name;
 
@@ -54,8 +54,8 @@ namespace Modern.Lab.Samples.Services
                     new LotAction(ActionJobStart, "JobStart"),
                     new LotAction(ActionJobStartCancel, "JobStart Cancel"),
                     new LotAction(ActionJobEnd, "JobEnd"),
-                    new LotAction(ActionJobSkip, "Skip"),
-                    new LotAction(ActionJobUndo, "Undo")
+                    new LotAction(ActionCancelOper, "Cancel Oper"),
+                    new LotAction(ActionBackToPrevOper, "Back to Prev Oper")
                 }.AsReadOnly();
 
         public static string JobColorSignature(DataTable lots)
@@ -288,6 +288,11 @@ namespace Modern.Lab.Samples.Services
 
         public static DataRow JobSummary(JobDecision decision)
         {
+            return JobTargetSummary(decision == null ? null : new JobExecutionTarget(decision, string.Empty));
+        }
+
+        public static DataRow JobTargetSummary(JobExecutionTarget target)
+        {
             DataTable table = new DataTable();
             table.Columns.Add(Schemas.EquipmentPriority.EqpGrpId.Name);
             table.Columns.Add(Schemas.EquipmentPriority.EqpId.Name);
@@ -302,52 +307,22 @@ namespace Modern.Lab.Samples.Services
 
             DataRow row = table.NewRow();
 
-            if (decision != null)
+            if (target != null)
             {
-                DataRow lot = decision.Lot;
-                bool job = HasActiveJob(lot);
-                DataRow equipment = JobEquipment(decision);
-
-                row[Schemas.EquipmentPriority.EqpGrpId.Name] = equipment == null
-                        ? string.Empty
-                        : TableHelper.CellText(equipment, Schemas.EquipmentPriority.EqpGrpId.Name).Trim();
-                row[Schemas.EquipmentPriority.EqpId.Name] = job ? LotText(lot, Schemas.LotPriority.EqpId.Name) : decision.EqpId;
-                row[Schemas.EquipmentPriority.CommStatTyp.Name] = equipment == null
-                        ? string.Empty
-                        : EquipmentPortManagementPresenter.Mode(equipment);
-                row[Schemas.LotPriority.PortNm.Name] = job ? LotText(lot, Schemas.LotPriority.PortNm.Name) : decision.PortNm;
-                row[Schemas.LotPriority.GoalPortNm.Name] = job ? LotText(lot, Schemas.LotPriority.GoalPortNm.Name) : decision.GoalPortNm;
-                row[Schemas.LotPriority.LotId.Name] = decision.LotId;
-                row[Schemas.LotPriority.DurableId.Name] = decision.DurableId;
-                row[Schemas.LotPriority.GoalDurableId.Name] = job ? LotText(lot, Schemas.LotPriority.GoalDurableId.Name) : decision.GoalDurableId;
-                row[Schemas.DurablePriority.DurableTyp.Name] = GoalDurableTyp(decision, job);
-                row[Schemas.LotPriority.LastEventCd.Name] = JobState(lot);
+                row[Schemas.EquipmentPriority.EqpGrpId.Name] = target.EqpGrpId;
+                row[Schemas.EquipmentPriority.EqpId.Name] = target.EqpId;
+                row[Schemas.EquipmentPriority.CommStatTyp.Name] = target.CommStatTyp;
+                row[Schemas.LotPriority.PortNm.Name] = target.PortNm;
+                row[Schemas.LotPriority.GoalPortNm.Name] = target.GoalPortNm;
+                row[Schemas.LotPriority.LotId.Name] = target.LotId;
+                row[Schemas.LotPriority.DurableId.Name] = target.DurableId;
+                row[Schemas.LotPriority.GoalDurableId.Name] = target.GoalDurableId;
+                row[Schemas.DurablePriority.DurableTyp.Name] = target.GoalDurableTyp;
+                row[Schemas.LotPriority.LastEventCd.Name] = target.LastEventCd;
             }
 
             table.Rows.Add(row);
             return row;
-        }
-
-        private static string LotText(DataRow lot, string column)
-        {
-            return JobDecision.IsLive(lot) ? TableHelper.CellText(lot, column).Trim() : string.Empty;
-        }
-
-        private static string GoalDurableTyp(JobDecision decision, bool job)
-        {
-            DataRow goalDurable = decision.GoalDurable;
-
-            if (!JobDecision.IsLive(goalDurable))
-            {
-                return string.Empty;
-            }
-
-            if (job && decision.GoalDurableId != JobGoalDurableId(decision.Lot))
-            {
-                return string.Empty;
-            }
-
-            return TableHelper.CellText(goalDurable, Schemas.DurablePriority.DurableTyp.Name).Trim();
         }
 
         public static string JobLabel(string key)
@@ -613,7 +588,7 @@ namespace Modern.Lab.Samples.Services
         public static readonly IList<string> JobKeys =
                 new List<string>
                 {
-                    ActionJobPrep, ActionJobPrepCancel, ActionJobStart, ActionJobStartCancel, ActionJobEnd, ActionJobSkip, ActionJobUndo
+                    ActionJobPrep, ActionJobPrepCancel, ActionJobStart, ActionJobStartCancel, ActionJobEnd, ActionCancelOper, ActionBackToPrevOper
                 }.AsReadOnly();
 
         public static string StatusLineText(JobDecision decision)
