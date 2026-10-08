@@ -953,8 +953,8 @@ namespace Modern.Lab.Samples
 
             if (eqpId.Length > 0)
             {
-                string portLotId = this.decision.LotId;
-                this.LoadDependent(channelPorts, () => this.GetPortPriorities(eqpId, portLotId), table => this.BindPortPriorities(table, same), !same && eqpId == this.decision.EqpId, same, same ? null : this.portCover);
+                DataRow portLot = ActionRows.Copy(this.decision.Lot);
+                this.LoadDependent(channelPorts, () => this.GetPortPriorities(eqpId, portLot), table => this.BindPortPriorities(table, same), !same && eqpId == this.decision.EqpId, same, same ? null : this.portCover);
             }
             else
             {

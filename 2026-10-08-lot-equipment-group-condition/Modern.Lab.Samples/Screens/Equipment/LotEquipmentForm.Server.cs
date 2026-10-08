@@ -37,14 +37,25 @@ namespace Modern.Lab.Samples
         }
 
         // PORT_NM
-        private DataTable GetPortPriorities(string eqpId, string lotId)
+        private DataTable GetPortPriorities(string eqpId, DataRow lot)
         {
+            string lotId = TableHelper.CellText(lot, "LOT_ID").Trim();
+            string inPort = TableHelper.CellText(lot, "PORT_NM").Trim();
+            string outPort = TableHelper.CellText(lot, "GOAL_PORT_NM").Trim();
             StringBuilder request = new StringBuilder();
             request.Append("GetEqpPortList");
             AppendField(request, "EQP_ID", eqpId);
             if (!string.IsNullOrEmpty(lotId))
             {
                 AppendField(request, "LOT_ID", lotId);
+            }
+            if (!string.IsNullOrEmpty(inPort))
+            {
+                AppendField(request, "IN_PORT", inPort);
+            }
+            if (!string.IsNullOrEmpty(outPort))
+            {
+                AppendField(request, "OUT_PORT", outPort);
             }
             return this.Request(request.ToString()).Table;
         }
