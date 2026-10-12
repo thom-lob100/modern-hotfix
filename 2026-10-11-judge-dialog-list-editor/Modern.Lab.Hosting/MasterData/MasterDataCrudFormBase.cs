@@ -287,6 +287,30 @@ namespace Modern.Lab.Hosting.MasterData
         {
         }
 
+        /// <summary>
+        /// 목록 그리드 꾸밈 — 화면의 <c>.Grid.cs</c>가 재정의해 엔티티가 만든 컬럼 위에 캡션·위아래 글씨·형식·배지·숨김을 이어 적는다
+        /// (업무 화면의 <c>Schemas.X.Columns(table)</c> 체인과 같은 문법, <see cref="DefineEditors"/>의 그리드 짝). 목록이 바인딩될 때마다
+        /// 응답 표로 새로 만든 <see cref="GridColumns"/>를 받으므로 응답 컬럼이 바뀌어도 따라간다. 엔티티가 없는 정의에서는 불리지 않는다.
+        /// </summary>
+        protected virtual void DefineListColumns(GridColumns columns)
+        {
+        }
+
+        // 엔티티가 있으면 업무 화면과 같은 출처로 목록 컬럼을 구성한다(2026-10-12 사용자 지시) — 캡션·위아래 글씨·형식·정렬·배지·
+        // 표시 목록·제외가 엔티티에서 오고 화면 꾸밈이 그 위에 얹힌다. 전에는 그리드가 응답 컬럼으로 스스로 만들어 엔티티를 보지 않았다.
+        // 엔티티가 없는 정의(KeyColumn 만 준 화면)는 전처럼 자동 생성에 맡긴다.
+        private void ConfigureListColumns(DataTable bound)
+        {
+            if (this.definition.Entity == null)
+            {
+                return;
+            }
+
+            GridColumns columns = this.definition.Entity.Columns(bound);
+            this.DefineListColumns(columns);
+            columns.Apply(this.view.Grid);
+        }
+
         // 버튼·메뉴·조회·첫 로드는 베이스가 연결한다. VS 디자이너는 Designer.cs 가 베이스 클래스의 메서드를
         // 이벤트 핸들러로 쓰면 폼을 열지 못한다("… a class this class derives from already defines the method").
         // 예전 Designer.cs 에 같은 연결이 남아 있어도 한 번만 불리도록 먼저 뺀 뒤 붙인다.
@@ -872,6 +896,7 @@ namespace Modern.Lab.Hosting.MasterData
             DataTable bound = this.itemList.Table;
             this.view.Editor.SetSchema(bound);
             this.newItems.Track(bound, this.view.Grid.RowKeyMember, criteria);
+            this.ConfigureListColumns(bound);
             this.view.Grid.DataSource = bound;
             NewItemTint.Bind(this.view.Grid, this.newItems, this.view.Grid.RowKeyMember, null, false);
 
