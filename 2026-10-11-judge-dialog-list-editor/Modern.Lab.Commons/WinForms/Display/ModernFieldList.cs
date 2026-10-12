@@ -75,6 +75,15 @@ namespace Modern.Lab.WinForms.Controls.Display
         private int columns;
         private double fontWidthRatio;
 
+        // 행 높이(96 DPI 기준 px) — 0(기본)이면 autoRowHeight 를 쓰고, 컨트롤이 그보다 낮으면 높이를 줄 수로 등분한다.
+        // 정하면 줄 수와 무관하게 그 높이다. 어느 쪽이든 남는 공간은 위아래로 반씩 나뉜다(세로 가운데) —
+        // 줄 수·카드 높이가 화면마다 달라도 같은 밀도·같은 위아래 여백으로 보이게 한다(2026-10-11 사용자).
+        private int rowHeight;
+
+        // 기본 행 높이 — 캡션 줄 14 + 값 줄(배지 24 가 온전히 들어가는 높이). 전에는 컨트롤 높이를 줄 수로 등분해
+        // 1줄·2줄·3줄 카드의 줄 간격이 제각각이었다.
+        private const int autoRowHeight = 38;
+
         // 캡션 배치 — Top(기본) 또는 Left. Left 배치의 캡션 칸 폭·정렬(칸 기준).
         private FieldLabelPlacement labelPlacement = FieldLabelPlacement.Top;
         private int labelWidth = 96;
@@ -127,6 +136,22 @@ namespace Modern.Lab.WinForms.Controls.Display
             set
             {
                 this.columns = Math.Max(1, value);
+                this.SyncBadges();
+                this.Invalidate();
+            }
+        }
+
+        /// <summary>행 높이(96 DPI 기준 px, 배율 비례). 0(기본) = 기본 높이 38 — 컨트롤이 그보다 낮으면 줄 수로 등분해 잘리지 않게 한다.
+        /// 정하면 줄 수와 무관하게 그 높이이고 줄이 넘치면 아래가 잘린다. 어느 쪽이든 줄 묶음은 세로 가운데에 놓인다.</summary>
+        [Category("Modern")]
+        [Description("Row height in px at 96 DPI; 0 uses the default 38 (shrinks to fit when the control is shorter). Rows are centered vertically")]
+        [DefaultValue(0)]
+        public int RowHeight
+        {
+            get { return this.rowHeight; }
+            set
+            {
+                this.rowHeight = Math.Max(0, value);
                 this.SyncBadges();
                 this.Invalidate();
             }
@@ -402,11 +427,13 @@ namespace Modern.Lab.WinForms.Controls.Display
                         textColor = index == this.hoverIndex ? linkHoverColor : linkColor;
                     }
 
+                    // 값은 값 영역의 세로 가운데 — 배지(24px)와 글 값이 같은 높이에 서야 배지가 있는 줄과 없는 줄의
+                    // 간격이 같아 보인다(2026-10-11 사용자 보고: 1·2줄과 2·3줄 간격이 다르다). Top 배치도 같다.
                     ScaledTextRenderer.DrawText(
                             graphics, value.Length > 0 ? value : "-",
                             link ? linkFont : valueFont,
                             valueRect, textColor,
-                            flags | (this.labelPlacement == FieldLabelPlacement.Left ? TextFormatFlags.VerticalCenter : TextFormatFlags.Top),
+                            flags | TextFormatFlags.VerticalCenter,
                             ratio);
                 }
             }
@@ -570,14 +597,18 @@ namespace Modern.Lab.WinForms.Controls.Display
             }
 
             int rows = cursorColumn > 0 ? cursorRow + 1 : cursorRow;
-            int rowHeight = this.Height / Math.Max(1, rows);
+            int rowCount = Math.Max(1, rows);
+            int rowHeight = this.rowHeight > 0
+                    ? (int)Math.Ceiling(this.rowHeight * (this.DeviceDpi / 96d))
+                    : Math.Min((int)Math.Ceiling(autoRowHeight * (this.DeviceDpi / 96d)), this.Height / rowCount);
+            int originTop = Math.Max(0, (this.Height - rowHeight * rowCount) / 2);
             Rectangle[] rects = new Rectangle[count];
 
             for (int index = 0; index < count; index++)
             {
                 int left = this.Width * cellColumn[index] / this.columns;
                 int right = this.Width * (cellColumn[index] + cellSpan[index]) / this.columns;
-                int top = cellRow[index] * rowHeight;
+                int top = originTop + cellRow[index] * rowHeight;
 
                 rects[index] = new Rectangle(left + cellPadding, top, right - left - cellPadding * 2, rowHeight);
             }
@@ -745,9 +776,8 @@ namespace Modern.Lab.WinForms.Controls.Display
                 badge.Enabled = this.Enabled;
                 int scaledBadgeHeight = (int)Math.Ceiling(badgeHeight * (this.DeviceDpi / 96d));
                 int badgeTall = Math.Min(valueRect.Height, scaledBadgeHeight);
-                int badgeTop = this.labelPlacement == FieldLabelPlacement.Left
-                        ? valueRect.Top + (valueRect.Height - badgeTall) / 2
-                        : valueRect.Top;
+                // 배지도 값 영역의 세로 가운데 — 글 값과 같은 기준선(위 DrawText 와 짝).
+                int badgeTop = valueRect.Top + (valueRect.Height - badgeTall) / 2;
                 badge.Bounds = new Rectangle(valueRect.Left, badgeTop, valueRect.Width, badgeTall);
                 badge.Visible = true;
             }
