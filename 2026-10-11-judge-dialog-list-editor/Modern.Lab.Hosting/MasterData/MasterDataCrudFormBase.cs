@@ -395,10 +395,15 @@ namespace Modern.Lab.Hosting.MasterData
         {
         }
 
+        /// <summary>
+        /// 편집기 콤보의 항목 조회 — 기본은 <c>.Grid.cs</c>의 <c>Combo(전문 이름, 값, 표시, 필드…)</c>에 적힌 이름과 필드를
+        /// 그대로 전문으로 보낸다(2026-10-12 사용자 결정). <c>Combo("CommonCodeAction", "CODE", "NAME", "MethodCommand", "getlist")</c>
+        /// 가 <c>CommonCodeAction MethodCommand=getlist</c> 로 나간다. 응답을 가공하거나 이름표로 전문을 가르는 화면만
+        /// <c>.Server.cs</c>에서 재정의한다. 콤보를 펼칠 때의 재조회도 같은 메서드를 탄다.
+        /// </summary>
         protected virtual DataTable RequestLookupItems(string requestName, object[] requestFields)
         {
-            throw new InvalidOperationException(
-                    "콤보 조회 전문이 없다: " + requestName + " — 화면의 .Server.cs 에서 RequestLookupItems 를 재정의할 것.");
+            return this.RequestFields(requestName, requestFields).Table;
         }
 
         // 편집기 콤보를 펼칠 때의 목록 갱신 — 첫 조회와 같은 RequestLookupItems 를 쓴다. 실패하면 오류를 알리고
