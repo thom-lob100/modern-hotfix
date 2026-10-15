@@ -62,13 +62,21 @@ namespace Modern.Lab.Samples
         // MES_PROC_STAT_CD
         // LOT_HOLD_STAT_CD
         // LOT_STAT_TYP
-        private DataTable GetLotPriorities(string eqpGrpId)
+        private DataTable GetLotPriorities(string eqpGrpId, string eqpId, string lotId)
         {
             StringBuilder request = new StringBuilder();
             request.Append("GetJobLotList");
             if (!string.IsNullOrEmpty(eqpGrpId))
             {
                 AppendField(request, "EQP_GRP_ID", eqpGrpId);
+            }
+            if (!string.IsNullOrEmpty(eqpId))
+            {
+                AppendField(request, "EQP_ID", eqpId);
+            }
+            if (!string.IsNullOrEmpty(lotId))
+            {
+                AppendField(request, "LOT_ID", lotId);
             }
             return this.Request(request.ToString()).Table;
         }

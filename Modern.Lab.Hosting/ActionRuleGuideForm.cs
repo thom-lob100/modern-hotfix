@@ -30,7 +30,7 @@ namespace Modern.Lab.Hosting
 
         private const int TreeColumnWidth = 180;
         private const int FieldColumnWidth = 190;
-        private const int RequiredColumnWidth = 150;
+        private const int RequiredColumnWidth = 220;
         private const int CurrentColumnWidth = 120;
         private const int ResultColumnWidth = 90;
         private const int ScrollBarAllowance = 20;
@@ -53,7 +53,7 @@ namespace Modern.Lab.Hosting
             this.FitWidthToColumns();
         }
 
-        // 창 폭은 열 합계에 맞춘다 — 트리 180 + Field 190 + Required 150 + Current 120 + Result 90 = 730.
+        // 창 폭은 열 합계에 맞춘다 — 트리 180 + Field 190 + Required 220 + Current 120 + Result 90 = 800(Required 는 `not A, B or C` 가 다 보이게 2026-10-16 에 150 → 220).
         // WPF 표는 화면 배율로 그려지고 이 폼은 배율을 적용하지 않으므로(픽셀 그대로) 배율을 곱한 뒤
         // 세로 스크롤바와 테두리 여백을 더한다. 디자이너의 1240 은 배율을 모른 채 넉넉히 잡은 값이라 오른쪽이 비었다
         // (2026-10-15 사용자 보고). 사용자가 창을 늘리는 것은 그대로 되고, 최소 폭도 이 값이다.
@@ -82,6 +82,13 @@ namespace Modern.Lab.Hosting
         /// <paramref name="focusKey"/> 가 있는 액션은 그것만 펼치고 첫 조건을 선택한다. 없으면 모두 펼친다.</summary>
         public void ShowRules(string screenTitle, ActionRuleGroup[] groups, DataRow row, string focusKey)
         {
+            this.ShowRules(screenTitle, groups, row, null, focusKey);
+        }
+
+        /// <summary><paramref name="keyColumn"/> 은 머리글에 행을 나타낼 컬럼이다 — 없거나 표에 없으면 표의 기본 키,
+        /// 그것도 없으면 첫 컬럼을 쓴다(2026-10-15 사용자 보고: 첫 컬럼이 PRIORITY 라 "PRIORITY = (empty)" 로 보였다).</summary>
+        public void ShowRules(string screenTitle, ActionRuleGroup[] groups, DataRow row, string keyColumn, string focusKey)
+        {
             string title = string.IsNullOrEmpty(screenTitle) ? "Rules" : screenTitle + " · Rules";
 
             if (this.Text != title)
@@ -89,7 +96,7 @@ namespace Modern.Lab.Hosting
                 this.Text = title;
             }
 
-            this.lblSelection.Text = row == null ? NoRowSelected : CheckedAgainst + RowSummary(row);
+            this.lblSelection.Text = row == null ? NoRowSelected : CheckedAgainst + RowSummary(row, keyColumn);
             DataTable table = BuildTable(groups ?? new ActionRuleGroup[0], row);
             this.treeRules.DataSource = table;
 
@@ -184,12 +191,20 @@ namespace Modern.Lab.Hosting
             result.BadgeSemanticMember = ResultSemanticColumn;
             result.BadgeWidthValues = ResultOk + ";" + ResultBlocked;
 
-            // 열 폭 합계가 창 폭을 정한다(FitWidthToColumns).
+            // 열 폭 합계가 창 폭을 정한다(FitWidthToColumns). 글 열은 머리글과 같은 왼쪽 정렬 — 기본 가운데 정렬이면
+            // 머리글과 내용이 어긋나 보였다(2026-10-16 사용자 보고).
             this.treeRules.ConfigureColumns(
-                    new ModernDataGridColumn(FieldColumn, "Field", FieldColumnWidth),
-                    new ModernDataGridColumn(RequiredColumn, "Required", RequiredColumnWidth),
-                    new ModernDataGridColumn(CurrentColumn, "Current", CurrentColumnWidth),
+                    LeftAligned(new ModernDataGridColumn(FieldColumn, "Field", FieldColumnWidth)),
+                    LeftAligned(new ModernDataGridColumn(RequiredColumn, "Required", RequiredColumnWidth)),
+                    LeftAligned(new ModernDataGridColumn(CurrentColumn, "Current", CurrentColumnWidth)),
                     result);
+        }
+
+        private static ModernDataGridColumn LeftAligned(ModernDataGridColumn column)
+        {
+            column.TextAlignment = GridTextAlignment.Left;
+            column.HeaderAlignment = GridTextAlignment.Left;
+            return column;
         }
 
         private static DataTable BuildTable(ActionRuleGroup[] groups, DataRow row)
@@ -278,7 +293,7 @@ namespace Modern.Lab.Hosting
             target[RowColorColumn] = hasRow && blocked ? SemanticColors.Error : string.Empty;
         }
 
-        private static string RowSummary(DataRow row)
+        private static string RowSummary(DataRow row, string keyColumn)
         {
             if (row.Table == null || row.Table.Columns.Count == 0 || row.RowState == DataRowState.Detached
                     || row.RowState == DataRowState.Deleted)
@@ -286,10 +301,26 @@ namespace Modern.Lab.Hosting
                 return "(row)";
             }
 
-            DataColumn first = row.Table.Columns[0];
-            object value = row[first];
+            DataColumn column = KeyColumnOf(row.Table, keyColumn);
+            object value = row[column];
             string text = value == null || value == DBNull.Value ? "(empty)" : value.ToString();
-            return first.ColumnName + " = " + text;
+            return column.ColumnName + " = " + text;
+        }
+
+        // 머리글 컬럼 — 화면이 준 키 컬럼 → 표의 기본 키 → 첫 컬럼.
+        private static DataColumn KeyColumnOf(DataTable table, string keyColumn)
+        {
+            if (!string.IsNullOrEmpty(keyColumn) && table.Columns.Contains(keyColumn))
+            {
+                return table.Columns[keyColumn];
+            }
+
+            if (table.PrimaryKey != null && table.PrimaryKey.Length > 0)
+            {
+                return table.PrimaryKey[0];
+            }
+
+            return table.Columns[0];
         }
     }
 }

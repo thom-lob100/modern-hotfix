@@ -19,6 +19,8 @@ namespace Modern.Lab.Hosting
     /// - 규칙: <see cref="ActionRuleCatalog.Collect"/> 가 이 화면 클래스의 <c>static ActionRule[] XxxRules</c> 필드를 읽는다.
     /// - 액션 이름: 버튼 글자와 메뉴 항목 글자 중 필드 이름과 맞는 것을 쓰고, 없으면 필드 이름을 띄어 쓴다.
     /// - 선택 행: 화면의 그리드·트리 중 규칙 필드를 가장 많이 가진 표의 선택 행이다. 선택이 바뀌면 창이 따라간다.
+    ///   머리글은 그 그리드의 <c>RowKeyMember</c>(첫 키)로 행을 나타낸다. 여러 표와 결정 상태를 합쳐 판정하는 화면은
+    ///   <see cref="RuleGuideRow"/> 를 재정의해 합친 행을 넘긴다(2026-10-15).
     /// </summary>
     public partial class ModernFormBase
     {
@@ -368,12 +370,27 @@ namespace Modern.Lab.Hosting
                 this.ruleGuideGroups = this.CollectRuleGuideGroups();
             }
 
-            this.ruleGuide.ShowRules(this.Text, this.ruleGuideGroups,
-                    this.ResolveRuleGuideRow(this.ruleGuideGroups), this.ruleGuideFocusKey);
+            string keyColumn;
+            DataRow selected = this.ResolveRuleGuideRow(this.ruleGuideGroups, out keyColumn);
+            DataRow row = this.RuleGuideRow(selected);
+
+            if (!ReferenceEquals(row, selected))
+            {
+                keyColumn = null;
+            }
+
+            this.ruleGuide.ShowRules(this.Text, this.ruleGuideGroups, row, keyColumn, this.ruleGuideFocusKey);
+        }
+
+        /// <summary>안내 창이 대조할 행 — 기본은 선택 행 그대로다. 장비 · Lot · 준비 재료처럼 여러 표의 값을 합쳐
+        /// 판정하는 화면은 그 합친 행을 돌려준다. 합친 행의 머리글은 그 표의 기본 키다.</summary>
+        protected virtual DataRow RuleGuideRow(DataRow selectedRow)
+        {
+            return selectedRow;
         }
 
         // 규칙 필드를 가장 많이 가진 표의 선택 행 — 같으면 포커스가 있는 표, 그다음 먼저 놓인 표.
-        private DataRow ResolveRuleGuideRow(ActionRuleGroup[] groups)
+        private DataRow ResolveRuleGuideRow(ActionRuleGroup[] groups, out string keyColumn)
         {
             HashSet<string> fields = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -392,6 +409,7 @@ namespace Modern.Lab.Hosting
             CollectSelectionSources(this, sources);
 
             DataRow best = null;
+            Control bestSource = null;
             int bestScore = -1;
             bool bestFocused = false;
 
@@ -419,12 +437,24 @@ namespace Modern.Lab.Hosting
                 if (score > bestScore || (score == bestScore && focused && !bestFocused))
                 {
                     best = row;
+                    bestSource = source;
                     bestScore = score;
                     bestFocused = focused;
                 }
             }
 
+            keyColumn = KeyColumnOf(bestSource);
             return best;
+        }
+
+        // 그리드의 RowKeyMember 첫 키 — 트리나 키를 안 준 그리드는 null(안내 창이 기본 키 · 첫 컬럼으로 대신한다).
+        private static string KeyColumnOf(Control source)
+        {
+            Modern.Lab.WinForms.Controls.Data.ModernDataGrid grid = source as Modern.Lab.WinForms.Controls.Data.ModernDataGrid;
+            string members = grid == null || grid.RowKeyMember == null ? string.Empty : grid.RowKeyMember;
+            int comma = members.IndexOf(',');
+            string key = (comma < 0 ? members : members.Substring(0, comma)).Trim();
+            return key.Length == 0 ? null : key;
         }
 
         private static DataRow SelectedRowOf(Control source)
