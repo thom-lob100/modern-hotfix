@@ -362,7 +362,6 @@ namespace Modern.Lab.Samples
             this.gridEquipmentPriorities.Size = new System.Drawing.Size(840, 236);
             this.gridEquipmentPriorities.StatusCountFormat = "{0:N0} equipment";
             this.gridEquipmentPriorities.TabIndex = 0;
-            this.gridEquipmentPriorities.RowDoubleClick += new System.EventHandler(this.OnEqpRowDoubleClick);
             this.gridEquipmentPriorities.SelectionChanged += new System.EventHandler(this.OnEqpSelectionChanged);
             this.gridEquipmentPriorities.CellCheckChanged += new System.EventHandler<Modern.Lab.Controls.Wpf.Data.GridCheckChangedEventArgs>(this.OnEqpCellCheckChanged);
             this.gridEquipmentPriorities.Child = null;
@@ -423,7 +422,6 @@ namespace Modern.Lab.Samples
             this.gridLotPriorities.Size = new System.Drawing.Size(840, 540);
             this.gridLotPriorities.StatusCountFormat = "{0:N0} lots";
             this.gridLotPriorities.TabIndex = 0;
-            this.gridLotPriorities.RowDoubleClick += new System.EventHandler(this.OnLotRowDoubleClick);
             this.gridLotPriorities.SelectionChanged += new System.EventHandler(this.OnLotSelectionChanged);
             this.gridLotPriorities.Child = null;
             //
@@ -497,7 +495,7 @@ namespace Modern.Lab.Samples
             this.gridDurablePriorities.Size = new System.Drawing.Size(400, 522);
             this.gridDurablePriorities.StatusCountFormat = "{0:N0} durables";
             this.gridDurablePriorities.TabIndex = 0;
-            this.gridDurablePriorities.RowDoubleClick += new System.EventHandler(this.OnDurableRowDoubleClick);
+            this.gridDurablePriorities.SelectionChanged += new System.EventHandler(this.OnDurableSelectionChanged);
             this.gridDurablePriorities.Child = null;
             //
             // requestCard
@@ -733,7 +731,6 @@ namespace Modern.Lab.Samples
             this.gridPortPriorities.StatusCountFormat = "{0:N0} ports";
             this.gridPortPriorities.Size = new System.Drawing.Size(484, 236);
             this.gridPortPriorities.TabIndex = 0;
-            this.gridPortPriorities.RowDoubleClick += new System.EventHandler(this.OnPortRowDoubleClick);
             this.gridPortPriorities.SelectionChanged += new System.EventHandler(this.OnPortSelectionChanged);
             this.gridPortPriorities.Child = null;
             //

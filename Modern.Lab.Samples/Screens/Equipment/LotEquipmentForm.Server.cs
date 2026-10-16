@@ -24,11 +24,21 @@ namespace Modern.Lab.Samples
         // MES_STAT_TYP
         // EQP_TYP
         // DET_EQP_TYP
-        private DataTable GetEquipmentPriorities(string eqpId, string lotId)
+        private DataTable GetEquipmentPriorities(DataRow lot)
         {
+            string eqpGrpId = TableHelper.CellText(lot, "EQP_GRP_ID").Trim();
+            string eqpId = TableHelper.CellText(lot, "EQP_ID").Trim();
+            string lotId = TableHelper.CellText(lot, "LOT_ID").Trim();
             StringBuilder request = new StringBuilder();
             request.Append("GetEqpList");
-            AppendField(request, "EQP_ID", eqpId);
+            if (!string.IsNullOrEmpty(eqpGrpId))
+            {
+                AppendField(request, "EQP_GRP_ID", eqpGrpId);
+            }
+            if (!string.IsNullOrEmpty(eqpId))
+            {
+                AppendField(request, "EQP_ID", eqpId);
+            }
             if (!string.IsNullOrEmpty(lotId))
             {
                 AppendField(request, "LOT_ID", lotId);

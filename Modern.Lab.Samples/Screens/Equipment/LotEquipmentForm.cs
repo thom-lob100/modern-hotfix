@@ -1006,6 +1006,12 @@ namespace Modern.Lab.Samples
             }
 
             this.LoadPortPriorities(this.SelectedEquipmentId(), false);
+
+            if (!this.JobRunMode())
+            {
+                this.DecideSelectedEquipment();
+            }
+
             this.RefreshActionStates();
         }
 
@@ -1049,7 +1055,16 @@ namespace Modern.Lab.Samples
 
             if (!merged)
             {
-                this.gridPortPriorities.DataSource = this.portData;
+                this.gridBinding = true;
+
+                try
+                {
+                    this.gridPortPriorities.DataSource = this.portData;
+                }
+                finally
+                {
+                    this.gridBinding = false;
+                }
             }
 
             this.decision.DropDetached();
@@ -1408,9 +1423,9 @@ namespace Modern.Lab.Samples
 
             bool retarget = this.lotRetarget;
             string keepEqpId = this.decision.EqpId;
-            string eqpId = TableHelper.CellText(this.decision.Lot, Schemas.LotPriority.EqpId.Name).Trim();
+            DataRow equipmentLot = this.decision.Lot;
             LoadOutcome<DataTable> outcome = await this.FetchAsync(
-                    channelEquipments, () => this.GetEquipmentPriorities(eqpId, lotId), !this.userRefresh);
+                    channelEquipments, () => this.GetEquipmentPriorities(equipmentLot), !this.userRefresh);
 
             if (!outcome.IsCurrent || lotId != this.decision.LotId)
             {
@@ -1468,6 +1483,11 @@ namespace Modern.Lab.Samples
             if (this.gridBinding)
             {
                 return;
+            }
+
+            if (!this.JobRunMode())
+            {
+                this.DecideSelectedPort();
             }
 
             this.RefreshActionStates();
@@ -1846,14 +1866,8 @@ namespace Modern.Lab.Samples
             return EquipmentLotPresenter.HasActiveJob(this.decision.Lot);
         }
 
-        private void OnEqpRowDoubleClick(object sender, EventArgs e)
+        private void DecideSelectedEquipment()
         {
-            if (this.JobRunMode())
-            {
-                this.NotifyJobRunMode();
-                return;
-            }
-
             DataRow equipment = Candidate(this.gridEquipmentPriorities.SelectedItem);
 
             if (equipment == null
@@ -1874,14 +1888,8 @@ namespace Modern.Lab.Samples
             }
         }
 
-        private void OnPortRowDoubleClick(object sender, EventArgs e)
+        private void DecideSelectedPort()
         {
-            if (this.JobRunMode())
-            {
-                this.NotifyJobRunMode();
-                return;
-            }
-
             DataRow port = Candidate(this.gridPortPriorities.SelectedItem);
 
             if (port == null)
@@ -1938,18 +1946,6 @@ namespace Modern.Lab.Samples
             {
                 this.decision.GoalPort = port;
             }
-        }
-
-        private void OnLotRowDoubleClick(object sender, EventArgs e)
-        {
-            DataRow lot = LiveRow(this.gridLotPriorities.SelectedItem);
-
-            if (lot == null)
-            {
-                return;
-            }
-
-            this.DecideLot(lot);
         }
 
         private void DecideLot(DataRow lot)

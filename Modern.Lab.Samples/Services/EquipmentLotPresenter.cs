@@ -95,6 +95,8 @@ namespace Modern.Lab.Samples.Services
 
         internal sealed class DecisionRuleEntity : EntityDefinition
         {
+            public readonly CommStatTypField DecidedEqpMode = Field<CommStatTypField>("DECIDED_COMM_STAT_TYP").Caption("Mode");
+            public readonly CommStatTypField JobEqpMode = Field<CommStatTypField>("JOB_COMM_STAT_TYP").Caption("Mode");
             public readonly PortsFitField PortsFit = Field<PortsFitField>("PORTS_FIT").Caption("Ports Fit");
         }
 
@@ -107,8 +109,8 @@ namespace Modern.Lab.Samples.Services
             DataColumn lotId = table.Columns.Add(Schemas.LotPriority.LotId.Name, typeof(string));
             table.Columns.Add(Schemas.LotPriority.LastEventCd.Name, typeof(string));
             table.Columns.Add(PriorityColumn, typeof(string));
-            table.Columns.Add(Schemas.EquipmentPriority.EqpId.Name, typeof(string));
-            table.Columns.Add(Schemas.EquipmentPriority.CommStatTyp.Name, typeof(string));
+            table.Columns.Add(DecisionRule.DecidedEqpMode.Name, typeof(string));
+            table.Columns.Add(DecisionRule.JobEqpMode.Name, typeof(string));
             table.Columns.Add(Schemas.LotPriority.PortNm.Name, typeof(string));
             table.Columns.Add(Schemas.LotPriority.GoalPortNm.Name, typeof(string));
             table.Columns.Add(Schemas.LotPriority.GoalDurableId.Name, typeof(string));
@@ -120,14 +122,15 @@ namespace Modern.Lab.Samples.Services
             table.PrimaryKey = new DataColumn[] { lotId };
 
             DataRow lot = decision == null ? null : decision.Lot;
-            DataRow equipment = JobEquipment(decision);
+            DataRow decidedEquipment = decision == null ? null : decision.Equipment;
+            DataRow jobEquipment = HasActiveJob(lot) ? JobEquipment(decision) : null;
             DataRow summary = JobSummary(decision);
             DataRow row = table.NewRow();
             row[Schemas.LotPriority.LotId.Name] = decision == null ? string.Empty : decision.LotId;
             row[Schemas.LotPriority.LastEventCd.Name] = JobState(lot);
             row[PriorityColumn] = JobDecision.IsLive(lot) ? TableHelper.CellText(lot, PriorityColumn).Trim() : string.Empty;
-            row[Schemas.EquipmentPriority.EqpId.Name] = TableHelper.CellText(equipment, Schemas.EquipmentPriority.EqpId.Name).Trim();
-            row[Schemas.EquipmentPriority.CommStatTyp.Name] = TableHelper.CellText(equipment, Schemas.EquipmentPriority.CommStatTyp.Name).Trim();
+            row[DecisionRule.DecidedEqpMode.Name] = LiveText(decidedEquipment, Schemas.EquipmentPriority.CommStatTyp.Name);
+            row[DecisionRule.JobEqpMode.Name] = LiveText(jobEquipment, Schemas.EquipmentPriority.CommStatTyp.Name);
             row[Schemas.LotPriority.PortNm.Name] = TableHelper.CellText(summary, Schemas.LotPriority.PortNm.Name).Trim();
             row[Schemas.LotPriority.GoalPortNm.Name] = TableHelper.CellText(summary, Schemas.LotPriority.GoalPortNm.Name).Trim();
             row[Schemas.LotPriority.GoalDurableId.Name] = DecidedGoalDurableId(decision);

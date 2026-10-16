@@ -562,13 +562,6 @@ namespace Modern.Lab.Samples
                     : (topPriority ? "Top priority" : "Selected");
         }
 
-        private void NotifyJobRunMode()
-        {
-            this.ShowToast(
-                    this.decision.LotId + " has a job in progress. Equipment, port and durable follow that job.",
-                    ToastKind.Info);
-        }
-
         private string SelectedEqpGrpId()
         {
             return (Convert.ToString(this.cboGroup.SelectedValue) ?? string.Empty).Trim();
@@ -1061,6 +1054,12 @@ namespace Modern.Lab.Samples
             }
 
             this.LoadPortPriorities(this.SelectedEquipmentId(), false);
+
+            if (!this.JobRunMode())
+            {
+                this.DecideSelectedEquipment();
+            }
+
             this.RefreshActionStates();
         }
 
@@ -1132,7 +1131,16 @@ namespace Modern.Lab.Samples
 
             if (!merged)
             {
-                this.gridPortPriorities.DataSource = this.portData;
+                this.gridBinding = true;
+
+                try
+                {
+                    this.gridPortPriorities.DataSource = this.portData;
+                }
+                finally
+                {
+                    this.gridBinding = false;
+                }
             }
 
             this.decision.DropDetached();
@@ -1349,7 +1357,16 @@ namespace Modern.Lab.Samples
 
             if (!merged)
             {
-                this.gridDurablePriorities.DataSource = this.durableData;
+                this.gridBinding = true;
+
+                try
+                {
+                    this.gridDurablePriorities.DataSource = this.durableData;
+                }
+                finally
+                {
+                    this.gridBinding = false;
+                }
             }
 
             this.decision.DropDetached();
@@ -1406,15 +1423,14 @@ namespace Modern.Lab.Samples
                 this.LoadRequestSamples(this.SelectedLotId(), key, false);
             }
 
-            this.FollowSelectedJobLot();
+            this.DecideSelectedLot();
         }
 
-        private void FollowSelectedJobLot()
+        private void DecideSelectedLot()
         {
             DataRow lot = LiveRow(this.gridLotPriorities.SelectedItem);
 
-            if (!EquipmentLotPresenter.HasActiveJob(lot)
-                    || TableHelper.CellText(lot, Schemas.LotPriority.LotId.Name).Trim() == this.decision.LotId)
+            if (lot == null || TableHelper.CellText(lot, Schemas.LotPriority.LotId.Name).Trim() == this.decision.LotId)
             {
                 return;
             }
@@ -1427,6 +1443,11 @@ namespace Modern.Lab.Samples
             if (this.gridBinding)
             {
                 return;
+            }
+
+            if (!this.JobRunMode())
+            {
+                this.DecideSelectedPort();
             }
 
             this.RefreshActionStates();
@@ -1791,14 +1812,8 @@ namespace Modern.Lab.Samples
             return EquipmentLotPresenter.HasActiveJob(this.decision.Lot);
         }
 
-        private void OnEqpRowDoubleClick(object sender, EventArgs e)
+        private void DecideSelectedEquipment()
         {
-            if (this.JobRunMode())
-            {
-                this.NotifyJobRunMode();
-                return;
-            }
-
             DataRow equipment = Candidate(this.gridEquipmentPriorities.SelectedItem);
 
             if (equipment == null
@@ -1819,14 +1834,8 @@ namespace Modern.Lab.Samples
             }
         }
 
-        private void OnPortRowDoubleClick(object sender, EventArgs e)
+        private void DecideSelectedPort()
         {
-            if (this.JobRunMode())
-            {
-                this.NotifyJobRunMode();
-                return;
-            }
-
             DataRow port = Candidate(this.gridPortPriorities.SelectedItem);
 
             if (port == null)
@@ -1885,18 +1894,6 @@ namespace Modern.Lab.Samples
             }
         }
 
-        private void OnLotRowDoubleClick(object sender, EventArgs e)
-        {
-            DataRow lot = LiveRow(this.gridLotPriorities.SelectedItem);
-
-            if (lot == null)
-            {
-                return;
-            }
-
-            this.DecideLot(lot);
-        }
-
         private void DecideLot(DataRow lot)
         {
             bool jobBefore = EquipmentLotPresenter.HasActiveJob(this.decision.Lot);
@@ -1916,11 +1913,10 @@ namespace Modern.Lab.Samples
             this.SyncDecisionDurables(false);
         }
 
-        private void OnDurableRowDoubleClick(object sender, EventArgs e)
+        private void OnDurableSelectionChanged(object sender, EventArgs e)
         {
-            if (this.JobRunMode())
+            if (this.gridBinding || this.JobRunMode())
             {
-                this.NotifyJobRunMode();
                 return;
             }
 
