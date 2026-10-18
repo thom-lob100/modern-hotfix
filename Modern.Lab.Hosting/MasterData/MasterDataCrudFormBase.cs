@@ -858,29 +858,53 @@ namespace Modern.Lab.Hosting.MasterData
         }
 
         /// <summary>
-        /// <c>MethodCommand</c> 쌍을 앞에, 더 보낼 이름/값 쌍을 뒤에 붙인 배열 —
-        /// <c>WithMethodCommand("InsertProduct", requestFields, "USER_ID", this.CurrentUserId)</c>처럼 편집기 값 뒤에
-        /// 로그인 사번 같은 값을 한 줄로 덧붙인다(2026-10-18). 쌍은 이름·값 순서로 몇 개든 이어 적는다.
+        /// <c>MethodCommand</c> 쌍을 앞에 붙이고, 더 적은 이름/값 쌍을 편집기 값에 합친 배열 —
+        /// <c>WithMethodCommand("InsertProduct", requestFields, "USER_ID", this.CurrentUserId)</c>처럼 한 줄로 적는다(2026-10-18).
+        /// 이름이 편집기 값에 이미 있으면 <b>그 자리의 값을 바꾸고</b>(순서 유지, 대소문자 무시), 없으면 뒤에 붙인다.
+        /// 이름 자체를 바꾸는 것은 <see cref="WithoutFields"/>로 뺀 뒤 새 쌍을 적는다.
         /// </summary>
         protected static object[] WithMethodCommand(string methodCommand, object[] fields, params object[] moreFields)
         {
-            int fieldCount = fields == null ? 0 : fields.Length;
-            int moreCount = moreFields == null ? 0 : moreFields.Length;
-            object[] result = new object[fieldCount + moreCount + 2];
-            result[0] = "MethodCommand";
-            result[1] = methodCommand;
+            List<object> result = new List<object>();
+            result.Add("MethodCommand");
+            result.Add(methodCommand);
 
-            if (fieldCount > 0)
+            if (fields != null)
             {
-                Array.Copy(fields, 0, result, 2, fieldCount);
+                result.AddRange(fields);
             }
 
-            if (moreCount > 0)
+            for (int index = 0; moreFields != null && index + 1 < moreFields.Length; index += 2)
             {
-                Array.Copy(moreFields, 0, result, 2 + fieldCount, moreCount);
+                string name = Convert.ToString(moreFields[index]);
+                int existing = IndexOfField(result, name);
+
+                if (existing >= 0)
+                {
+                    result[existing + 1] = moreFields[index + 1];
+                }
+                else
+                {
+                    result.Add(moreFields[index]);
+                    result.Add(moreFields[index + 1]);
+                }
             }
 
-            return result;
+            return result.ToArray();
+        }
+
+        // 이름/값 배열에서 이름의 자리(짝수 인덱스) — MethodCommand 쌍(0·1)은 건너뛴다.
+        private static int IndexOfField(List<object> pairs, string name)
+        {
+            for (int index = 2; index + 1 < pairs.Count; index += 2)
+            {
+                if (string.Equals(Convert.ToString(pairs[index]), name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return index;
+                }
+            }
+
+            return -1;
         }
 
         // 목록 조회·바인딩·재선택은 이미 베이스의 흐름이고, 신규 표시는 그 조회 결과를 직전 결과와 비교하는 같은 변경 이유다.
