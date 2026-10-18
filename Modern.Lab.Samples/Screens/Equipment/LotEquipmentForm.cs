@@ -2110,11 +2110,18 @@ namespace Modern.Lab.Samples
                     + (durableId.Length == 0 ? string.Empty : "  from " + durableId);
             this.kpiDurable.Value = ValueOrDash(goalDurableId);
 
+            string procState = JobDecision.IsLive(lot)
+                    ? TableHelper.CellText(lot, Schemas.LotPriority.MesProcStatCd.Name).Trim()
+                    : string.Empty;
+
             this.badgeMode.Text = ValueOrDash(mode);
             this.badgeMode.ColorValue = mode;
+            this.badgeProc.Text = ValueOrDash(procState);
+            this.badgeProc.ColorValue = procState;
             this.badgeJob.Text = jobState.Length == 0 ? "No job" : jobState;
             this.badgeJob.ColorValue = jobState;
             this.badgeJob.SpinValues = Schemas.LotPriority.LastEventCd.JobStart.Value;
+            this.badgeJob.Left = this.badgeProc.Right + 8;
         }
 
         private static string ValueOrDash(string value)
