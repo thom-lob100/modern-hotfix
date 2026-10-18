@@ -825,11 +825,11 @@ namespace Modern.Lab.Samples
                     break;
 
                 case DurableManagementPresenter.ActionAdjust:
-                    this.ShowScrapDialog(row, DurableManagementPresenter.ActionAdjust);
+                    this.ShowAdjustDialog(row);
                     break;
 
                 case DurableManagementPresenter.ActionScrap:
-                    this.ShowScrapDialog(row, DurableManagementPresenter.ActionScrap);
+                    this.ShowScrapDialog(row);
                     break;
 
                 case DurableManagementPresenter.ActionRfId:
@@ -927,15 +927,12 @@ namespace Modern.Lab.Samples
             }
         }
 
-        protected virtual void ShowScrapDialog(DataRow durable, string key)
+        protected virtual void ShowScrapDialog(DataRow durable)
         {
-            bool scrap = key == DurableManagementPresenter.ActionScrap;
             DurableScrapDialogOptions options = new DurableScrapDialogOptions();
-            options.Title = (scrap ? "Scrap" : "Adjust") + " — " + DurableManagementPresenter.Id(durable);
-            options.OkText = scrap ? "Scrap" : "Adjust";
-            options.DefaultDescription = scrap
-                    ? Services.DefaultDescriptions.ScrapDurable
-                    : Services.DefaultDescriptions.AdjustDurable;
+            options.Title = "Scrap — " + DurableManagementPresenter.Id(durable);
+            options.OkText = "Scrap";
+            options.DefaultDescription = Services.DefaultDescriptions.ScrapDurable;
             options.Source = ActionRows.Copy(durable);
 
             using (DurableScrapDialogForm dialog = new DurableScrapDialogForm(options))
@@ -945,14 +942,26 @@ namespace Modern.Lab.Samples
                     return;
                 }
 
-                if (scrap)
+                this.ProcessScrap(options.Source, dialog.Description);
+            }
+        }
+
+        protected virtual void ShowAdjustDialog(DataRow durable)
+        {
+            DurableAdjustDialogOptions options = new DurableAdjustDialogOptions();
+            options.Title = "Adjust — " + DurableManagementPresenter.Id(durable);
+            options.OkText = "Adjust";
+            options.DefaultDescription = Services.DefaultDescriptions.AdjustDurable;
+            options.Source = ActionRows.Copy(durable);
+
+            using (DurableAdjustDialogForm dialog = new DurableAdjustDialogForm(options))
+            {
+                if (dialog.ShowDialog(this) != DialogResult.OK)
                 {
-                    this.ProcessScrap(options.Source, dialog.Description);
+                    return;
                 }
-                else
-                {
-                    this.ProcessAdjust(options.Source, dialog.Description);
-                }
+
+                this.ProcessAdjust(options.Source, dialog.Description);
             }
         }
 

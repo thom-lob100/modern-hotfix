@@ -209,6 +209,13 @@
     </Compile>
     <Compile Include="Dialogs\Durables\DurableHoldDialogForm.Grid.cs" />
     <Compile Include="Dialogs\Durables\DurableHoldDialogForm.Server.cs" />
+    <Compile Include="Dialogs\Durables\DurableAdjustDialogForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dialogs\Durables\DurableAdjustDialogForm.Designer.cs">
+      <DependentUpon>DurableAdjustDialogForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\Durables\DurableAdjustDialogOptions.cs" />
     <Compile Include="Dialogs\Durables\DurableScrapDialogForm.cs">
       <SubType>Form</SubType>
     </Compile>
