@@ -1064,6 +1064,13 @@ namespace Modern.Lab.Hosting.MasterData
                 return kind == WriteKind.Save;
             }
 
+            // 기존 행의 Save 는 값이 바뀐 동안만 연다 — 안 바꾸고 눌러도 Update 전문이 나가 서버가 같은 값으로 다시 쓰던 것을
+            // 막는다(2026-10-18 사용자 결정). 판정은 Cancel 과 같은 IsDirty 하나다.
+            if (kind == WriteKind.Save)
+            {
+                return this.SelectedRowValid && this.view.Editor.IsDirty;
+            }
+
             return this.SelectedRowValid;
         }
 
