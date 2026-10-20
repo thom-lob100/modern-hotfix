@@ -125,6 +125,7 @@ namespace Modern.Lab.Samples
             this.durableCover = new DependentCover(this.durableBusy);
 
             this.InitializeModernForm(this.midPanel);
+            this.RegisterRefreshShortcut(this.btnRefresh);
 
             this.DeferredResize = true;
 

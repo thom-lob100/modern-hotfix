@@ -153,6 +153,18 @@ namespace Modern.Lab.WinForms.Controls.Input
             return base.IsInputKey(keyData);
         }
 
+        protected override void OnGotFocus(EventArgs e)
+        {
+            base.OnGotFocus(e);
+            this.Invalidate();
+        }
+
+        protected override void OnLostFocus(EventArgs e)
+        {
+            base.OnLostFocus(e);
+            this.Invalidate();
+        }
+
         protected override void OnKeyDown(KeyEventArgs e)
         {
             base.OnKeyDown(e);
@@ -229,6 +241,18 @@ namespace Modern.Lab.WinForms.Controls.Input
 
                 using (GraphicsPath path = this.BuildPillPath(ring))
                 using (Pen pen = new Pen(System.Drawing.Color.FromArgb(this.pressed ? 220 : 140, accent), 1f))
+                {
+                    graphics.DrawPath(pen, path);
+                }
+            }
+
+            // 키보드 포커스 링 — Tab 으로 왔을 때만 2px 액센트 링(ModernButton 과 같은 규칙, 2026-10-21).
+            if (this.Focused && this.ShowFocusCues)
+            {
+                Rectangle focus = new Rectangle(1, 1, this.Width - 3, this.Height - 3);
+
+                using (GraphicsPath path = this.BuildPillPath(focus))
+                using (Pen pen = new Pen(ModernTokenColors.Get("Brush.FocusBorder", accent), 2f))
                 {
                     graphics.DrawPath(pen, path);
                 }

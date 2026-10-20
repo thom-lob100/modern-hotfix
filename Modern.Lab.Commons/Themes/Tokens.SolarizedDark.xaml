@@ -1,0 +1,113 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ============================================================= -->
+    <!-- SolarizedDark 테마 오버라이드 — Ethan Schoonover의 Solarized      -->
+    <!-- Dark 정본 팔레트. 딥 틸 배경(base03 #002B36) + 카드(base02        -->
+    <!-- #073642), 블루 액센트(#4BA3DE — 정본 #268BD2를 밝히고 OnAccent를  -->
+    <!-- base03으로: 채움 버튼 글자 대비 확보). 텍스트는 base1 계열 —      -->
+    <!-- Solarized의 저대비 설계를 유지하되 업무 그리드 가독을 위해        -->
+    <!-- 본문만 반 톤 들어 올렸다. 시맨틱은 Solarized 원색을 딥 틸 면      -->
+    <!-- 기준으로 밝게 배치한다.                                          -->
+    <!-- SharedResourceDictionary가 Mode == SolarizedDark일 때 병합.      -->
+    <!-- ============================================================= -->
+
+    <!-- Primary (액센트) — Solarized blue 계열 램프. 정본 #268BD2는 중간톤이라
+         어느 글자색과도 4.5:1이 안 나온다. 딥 틸 면 위에서 밝힌 #4BA3DE +
+         **어두운 OnAccent(base03)** 조합으로 5.4:1을 확보한다
+         (Win11 Dark의 밝은 액센트 + 검정 글자와 같은 문법). -->
+    <SolidColorBrush x:Key="Brush.Accent" Color="#FF4BA3DE" />
+    <SolidColorBrush x:Key="Brush.AccentHover" Color="#FF66B4E6" />
+    <SolidColorBrush x:Key="Brush.AccentPressed" Color="#FF3F9FE0" />
+    <SolidColorBrush x:Key="Brush.OnAccent" Color="#FF002B36" />
+    <SolidColorBrush x:Key="Brush.SelectedBackground" Color="#FF12475F" />
+    <SolidColorBrush x:Key="Brush.SelectedText" Color="#FFA8D6F2" />
+    <!-- 누름(pressed) 전용 짝 — 보조 버튼·토글·메뉴 항목을 누르는 순간. 선택 배경을 빌려 쓰지 않는다(2026-10-21). -->
+    <SolidColorBrush x:Key="Brush.PressedBackground" Color="#FF114659" />
+    <SolidColorBrush x:Key="Brush.PressedText" Color="#FF9FB2B5" />
+    <SolidColorBrush x:Key="Brush.FocusBorder" Color="#FF4BA3DE" />
+    <SolidColorBrush x:Key="Brush.FocusRing" Color="#554BA3DE" />
+
+    <!-- Neutral — 딥 틸 배경(base03) 위 틸 카드(base02) -->
+    <SolidColorBrush x:Key="Brush.Background" Color="#FF002B36" />
+    <SolidColorBrush x:Key="Brush.Surface" Color="#FF073642" />
+    <SolidColorBrush x:Key="Brush.SurfaceAlt" Color="#FF0B3D4A" />
+    <SolidColorBrush x:Key="Brush.HeaderBackground" Color="#FF0A3945" />
+    <SolidColorBrush x:Key="Brush.GridHeaderBackground" Color="#FF114652" />
+    <SolidColorBrush x:Key="Brush.GridRowAlt" Color="#FF06323D" />
+    <SolidColorBrush x:Key="Brush.Border" Color="#FF1E5462" />
+    <SolidColorBrush x:Key="Brush.BorderSubtle" Color="#FF12414F" />
+    <SolidColorBrush x:Key="Brush.BorderHover" Color="#FF33667A" />
+    <SolidColorBrush x:Key="Brush.TextPrimary" Color="#FF9FB2B5" />
+    <SolidColorBrush x:Key="Brush.TextSecondary" Color="#FFA9BBBE" />
+    <SolidColorBrush x:Key="Brush.TextPlaceholder" Color="#FF67818A" />
+    <SolidColorBrush x:Key="Brush.HoverBackground" Color="#FF0A3B47" />
+    <SolidColorBrush x:Key="Brush.DisabledBackground" Color="#FF073642" />
+    <SolidColorBrush x:Key="Brush.DisabledText" Color="#FF4E656D" />
+
+    <!-- Semantic — Solarized 원색(green/yellow/red/blue)을 딥 틸 면 기준으로 -->
+    <SolidColorBrush x:Key="Brush.InfoBackground" Color="#FF103B52" />
+    <SolidColorBrush x:Key="Brush.InfoBorder" Color="#FF1D5170" />
+    <SolidColorBrush x:Key="Brush.InfoText" Color="#FF6BB4E8" />
+    <SolidColorBrush x:Key="Brush.Success" Color="#FF9BB300" />
+    <SolidColorBrush x:Key="Brush.SuccessHover" Color="#FFABC21A" />
+    <SolidColorBrush x:Key="Brush.SuccessPressed" Color="#FF869C00" />
+    <SolidColorBrush x:Key="Brush.SuccessBackground" Color="#FF1C3D17" />
+    <SolidColorBrush x:Key="Brush.SuccessBorder" Color="#FF33531F" />
+    <SolidColorBrush x:Key="Brush.SuccessText" Color="#FFAFC63B" />
+    <!-- Excel 내보내기 버튼(ButtonKind.Excel) — 어두운 면 위 밝은 초록 아웃라인. -->
+    <SolidColorBrush x:Key="Brush.ExcelText" Color="#FF52C08A" />
+    <SolidColorBrush x:Key="Brush.ExcelBorderSoft" Color="#FF2F5C46" />
+    <SolidColorBrush x:Key="Brush.ExcelBackground" Color="#FF1E3A2C" />
+    <SolidColorBrush x:Key="Brush.ExcelBorder" Color="#FF3F7F5D" />
+    <SolidColorBrush x:Key="Brush.ExcelPressed" Color="#FF7FDBAC" />
+    <SolidColorBrush x:Key="Brush.Warning" Color="#FFCDA400" />
+    <SolidColorBrush x:Key="Brush.WarningBackground" Color="#FF3B3810" />
+    <SolidColorBrush x:Key="Brush.WarningBorder" Color="#FF5C5619" />
+    <SolidColorBrush x:Key="Brush.WarningText" Color="#FFD9B62E" />
+    <SolidColorBrush x:Key="Brush.StatusSuccess" Color="#FF9BB300" />
+    <SolidColorBrush x:Key="Brush.StatusWarning" Color="#FFCDA400" />
+    <SolidColorBrush x:Key="Brush.ErrorBorder" Color="#FFEE6A62" />
+    <SolidColorBrush x:Key="Brush.ErrorBorderSoft" Color="#FF6A3A3C" />
+    <SolidColorBrush x:Key="Brush.ErrorBackground" Color="#FF432A2C" />
+    <SolidColorBrush x:Key="Brush.ErrorText" Color="#FFF28B84" />
+    <SolidColorBrush x:Key="Brush.DangerPressed" Color="#FFC94840" />
+    <SolidColorBrush x:Key="Brush.NeutralBackground" Color="#FF114550" />
+    <SolidColorBrush x:Key="Brush.NeutralText" Color="#FFA8BCC0" />
+
+    <SolidColorBrush x:Key="Brush.Scrim" Color="#99000000" />
+
+    <Color x:Key="Color.Accent">#FF4BA3DE</Color>
+    <Color x:Key="Color.AccentSoft">#FF8CC6EC</Color>
+    <!-- 코멧 테일 페이드 끝색 — 액센트와 같은 RGB의 알파 0. -->
+    <Color x:Key="Color.AccentFade">#004BA3DE</Color>
+    <Color x:Key="Color.TrackOff">#FF2A5766</Color>
+
+    <!-- Text.* 스타일 재정의 — 어두운 면 전경 (Dark와 동일 이유) -->
+    <Style x:Key="Text.Title" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource Font.Family}" />
+        <Setter Property="FontSize" Value="{DynamicResource Font.Size.Title}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}" />
+    </Style>
+    <Style x:Key="Text.Label" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource Font.Family}" />
+        <Setter Property="FontSize" Value="{DynamicResource Font.Size.Label}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.TextSecondary}" />
+    </Style>
+    <Style x:Key="Text.Body" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource Font.Family}" />
+        <Setter Property="FontSize" Value="{DynamicResource Font.Size.Body}" />
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}" />
+    </Style>
+    <Style x:Key="Text.Helper" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource Font.Family}" />
+        <Setter Property="FontSize" Value="{DynamicResource Font.Size.Helper}" />
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.TextSecondary}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+</ResourceDictionary>

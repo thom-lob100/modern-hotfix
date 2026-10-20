@@ -80,6 +80,7 @@ namespace Modern.Lab.Samples
             this.historyCover = new DependentCover(this.historyBusy);
 
             this.InitializeModernForm(this.midPanel);
+            this.RegisterRefreshShortcut(this.btnRefresh);
 
             this.DeferredResize = true;
 

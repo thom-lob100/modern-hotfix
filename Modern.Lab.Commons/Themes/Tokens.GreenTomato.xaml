@@ -16,8 +16,11 @@
     <SolidColorBrush x:Key="Brush.AccentPressed" Color="#FF15522A" />
     <SolidColorBrush x:Key="Brush.OnAccent" Color="#FFFFFFFF" />
     <!-- 선택 강조는 진한 토마토 + 흰 글자 — 그린 화면 위에서 보색으로 또렷하다. -->
-    <SolidColorBrush x:Key="Brush.SelectedBackground" Color="#FFC8402F" />
+    <SolidColorBrush x:Key="Brush.SelectedBackground" Color="#FFA8336F" />
     <SolidColorBrush x:Key="Brush.SelectedText" Color="#FFFFFFFF" />
+    <!-- 누름(pressed) 전용 짝 — 보조 버튼·토글·메뉴 항목을 누르는 순간. 선택 배경을 빌려 쓰지 않는다(2026-10-21). -->
+    <SolidColorBrush x:Key="Brush.PressedBackground" Color="#FFCDDED3" />
+    <SolidColorBrush x:Key="Brush.PressedText" Color="#FF15522A" />
     <SolidColorBrush x:Key="Brush.FocusBorder" Color="#FF1B6B37" />
     <SolidColorBrush x:Key="Brush.FocusRing" Color="#331B6B37" />
 
@@ -41,7 +44,7 @@
          라이트 기본 팔레트의 변화에 끌려가지 않게 여기서 명시한다). -->
     <SolidColorBrush x:Key="Brush.TextPrimary" Color="#FF1B1B1B" />
     <SolidColorBrush x:Key="Brush.TextSecondary" Color="#FF5D5D5D" />
-    <SolidColorBrush x:Key="Brush.TextPlaceholder" Color="#FF9B9B9B" />
+    <SolidColorBrush x:Key="Brush.TextPlaceholder" Color="#FF919191" />
     <SolidColorBrush x:Key="Brush.DisabledBackground" Color="#FFF5F5F5" />
     <SolidColorBrush x:Key="Brush.DisabledText" Color="#FF9D9D9D" />
     <SolidColorBrush x:Key="Brush.InfoBackground" Color="#FFEBF3FC" />
