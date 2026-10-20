@@ -173,25 +173,11 @@ namespace Modern.Lab.Samples.Services
             return decidedEquipment;
         }
 
-        public static string ChildLabel(string parentEqpId, string childEqpId, string childName)
+        public static string ChildLabel(string childEqpId, string alias)
         {
-            string name = (childName ?? string.Empty).Trim();
-
-            if (name.Length > 0)
-            {
-                return name;
-            }
-
             string id = (childEqpId ?? string.Empty).Trim();
-            string parent = (parentEqpId ?? string.Empty).Trim();
-
-            if (parent.Length > 0 && id.Length > parent.Length + 1
-                    && id.StartsWith(parent + "-", StringComparison.OrdinalIgnoreCase))
-            {
-                return id.Substring(parent.Length + 1);
-            }
-
-            return id;
+            string shortName = (alias ?? string.Empty).Trim();
+            return shortName.Length == 0 ? id : id + " · " + shortName;
         }
 
         public static bool ChildFits(JobDecision decision)

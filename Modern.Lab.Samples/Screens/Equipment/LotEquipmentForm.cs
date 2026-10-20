@@ -1148,9 +1148,8 @@ namespace Modern.Lab.Samples
         {
             string status = TableHelper.CellText(child, Schemas.ChildEquipment.MesEqpStatCd.Name).Trim();
             string label = EquipmentLotPresenter.ChildLabel(
-                    this.childEqpId,
                     TableHelper.CellText(child, Schemas.ChildEquipment.EqpId.Name),
-                    TableHelper.CellText(child, Schemas.ChildEquipment.EqpNm.Name));
+                    TableHelper.CellText(child, Schemas.ChildEquipment.EqpIdAlias.Name));
             Modern.Lab.WinForms.Controls.Input.ModernChoiceChip chip = new Modern.Lab.WinForms.Controls.Input.ModernChoiceChip();
             chip.Tag = child;
             chip.Text = status.Length == 0 ? label : label + " · " + status;
@@ -1204,7 +1203,7 @@ namespace Modern.Lab.Samples
                     DataRow child = chip.Tag as DataRow;
                     string id = TableHelper.CellText(child, Schemas.ChildEquipment.EqpId.Name).Trim();
                     chip.Checked = childId.Length > 0 && id == childId;
-                    chip.Enabled = !runMode && EquipmentLotPresenter.IsCandidate(child);
+                    chip.Enabled = runMode ? chip.Checked : EquipmentLotPresenter.IsCandidate(child);
                 }
             }
             finally
@@ -2291,9 +2290,8 @@ namespace Modern.Lab.Samples
             string childEqpId = TableHelper.CellText(summary, Schemas.LotPriority.ChildEqpId.Name).Trim();
             DataRow childRow = this.decision.ChildEqpId == childEqpId ? this.decision.ChildEquipment : null;
             this.kpiEquipment.BottomLabel = EquipmentLotPresenter.ChildLabel(
-                    TableHelper.CellText(summary, Schemas.EquipmentPriority.EqpId.Name),
                     childEqpId,
-                    JobDecision.IsLive(childRow) ? TableHelper.CellText(childRow, Schemas.ChildEquipment.EqpNm.Name) : string.Empty);
+                    JobDecision.IsLive(childRow) ? TableHelper.CellText(childRow, Schemas.ChildEquipment.EqpIdAlias.Name) : string.Empty);
             this.kpiPorts.Value = portNm.Length == 0 && goalPortNm.Length == 0
                     ? "-"
                     : ValueOrDash(portNm) + " → " + ValueOrDash(goalPortNm);
