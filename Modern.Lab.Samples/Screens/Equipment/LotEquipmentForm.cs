@@ -1153,7 +1153,6 @@ namespace Modern.Lab.Samples
             Modern.Lab.WinForms.Controls.Input.ModernChoiceChip chip = new Modern.Lab.WinForms.Controls.Input.ModernChoiceChip();
             chip.Tag = child;
             chip.Text = status.Length == 0 ? label : label + " · " + status;
-            chip.ColorValue = status;
             chip.Spinning = status == Schemas.ChildEquipment.MesEqpStatCd.Run.Value;
             chip.Margin = new Padding(0, 0, ChildChipGap, ChildChipGap);
             chip.Height = ChildChipHeight;
@@ -2321,6 +2320,7 @@ namespace Modern.Lab.Samples
             this.badgeJob.Text = jobState.Length == 0 ? "No job" : jobState;
             this.badgeJob.ColorValue = jobState;
             this.badgeJob.SpinValues = Schemas.LotPriority.LastEventCd.JobStart.Value;
+            this.badgeProc.Left = this.badgeMode.Right + 8;
             this.badgeJob.Left = this.badgeProc.Right + 8;
         }
 

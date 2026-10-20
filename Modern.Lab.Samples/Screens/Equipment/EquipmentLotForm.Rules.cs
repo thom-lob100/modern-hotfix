@@ -29,13 +29,16 @@ namespace Modern.Lab.Samples
         private const string LotEntityName = "Lot";
         private const string DecidedEquipmentEntityName = "Decided Equipment";
         private const string JobEquipmentEntityName = "Job Equipment";
+        private const string ChildEquipmentEntityName = "Child Equipment";
         private const string DecisionEntityName = "Decision";
 
         // 공통 목록은 두지 않는다 — 액션마다 열리기 위한 조건 전부를 자기 목록에 적는다(2026-10-16 사용자 지시). JobPrep 은 사용자가
         // 결정한 장비(Decided Equipment)를, 작업이 걸린 뒤의 액션은 그 작업의 장비(Job Equipment)를 본다. 결정 행이 두 장비의 모드를 따로 담는다.
 
         // JobPrep — 결정 장비가 통신 중(Remote 또는 Local) · Lot 선택 · Lot 자격 네 줄(LoggedOut · WAIT · NotOnHold · Released) · 포트 짝 · 목표 Durable
-        // · 자식 장비 짝(Child Eqp Fit — 자식 장비가 있는 장비(핸들러)면 자식 하나가 결정돼 있어야 한다. 자식 없는 장비는 늘 Y. 2026-10-20 사용자 지시).
+        // · 자식 장비 짝(Child Eqp Fit — 자식 장비가 있는 장비(핸들러)면 자식 하나가 결정돼 있어야 한다. 자식 없는 장비는 늘 Y. 2026-10-20 사용자 지시)
+        // · 자식 장비 모드(Child Equipment · Mode — 부모 규칙과 같은 꼴. 결정 행의 CHILD_COMM_STAT_TYP · CHILD_MES_EQP_STAT_CD 는 결정 자식의 값이고,
+        //   자식 없는 장비면 부모 값이 그대로 들어간다. 회사에서 자식 조건을 더할 때는 이 줄처럼 ChildEquipmentEntityName 으로 한 줄씩 — 2026-10-20 사용자 지시).
         // 자격 네 줄은 순위 없는 Lot 을 클릭해 결정했을 때를 위한 것이다 — 서버가 순위를 준 Lot 은 이미 통과한다
         // (2026-10-16 사용자 지시, 2026-10-07 에 뺐던 것을 되살림). 진행 중인 작업(JobPrep · Reserved · JobStart)이 걸린 Lot 은
         // WAIT · LoggedOut 이 아니므로 작업 단계 줄을 따로 두지 않는다(2026-10-16 사용자 확인).
@@ -43,6 +46,8 @@ namespace Modern.Lab.Samples
         {
             ActionRule.Value(DecidedEquipmentEntityName, EquipmentLotPresenter.DecisionRule.DecidedEqpMode,
                     EquipmentLotPresenter.DecisionRule.DecidedEqpMode.OnLineRemote, EquipmentLotPresenter.DecisionRule.DecidedEqpMode.OnLineLocal),
+            ActionRule.Value(ChildEquipmentEntityName, EquipmentLotPresenter.DecisionRule.ChildEqpMode,
+                    EquipmentLotPresenter.DecisionRule.ChildEqpMode.OnLineRemote, EquipmentLotPresenter.DecisionRule.ChildEqpMode.OnLineLocal),
             ActionRule.NotEmpty(LotEntityName, Schemas.LotPriority.LotId),
             ActionRule.Value(LotEntityName, Schemas.LotPriority.LotProcStatCd, Schemas.LotPriority.LotProcStatCd.LoggedOut),
             ActionRule.Value(LotEntityName, Schemas.LotPriority.MesProcStatCd, Schemas.LotPriority.MesProcStatCd.Wait),

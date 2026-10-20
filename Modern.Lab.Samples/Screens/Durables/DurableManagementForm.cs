@@ -144,9 +144,6 @@ namespace Modern.Lab.Samples
             this.ddbHold.DisplayMember = "LABEL";
             this.ddbHold.ValueMember = "VALUE";
             this.ddbHold.EnabledMember = "CAN";
-            this.ddbChange.DisplayMember = "LABEL";
-            this.ddbChange.ValueMember = "VALUE";
-            this.ddbChange.EnabledMember = "CAN";
             this.PopulateMenus();
             this.RefreshActionStates();
 
@@ -741,9 +738,10 @@ namespace Modern.Lab.Samples
             this.ddbHold.DataSource = DurableManagementPresenter.BuildGatedMenuTable(
                     DurableManagementPresenter.HoldActions, key => this.ActionEnabled(key, row));
             this.ddbHold.Enabled = this.newItems.ActionsReady && row != null;
-            this.ddbChange.DataSource = DurableManagementPresenter.BuildGatedMenuTable(
-                    DurableManagementPresenter.ChangeActions, key => this.ActionEnabled(key, row));
-            this.ddbChange.Enabled = this.newItems.ActionsReady && row != null;
+            this.ApplyActionReason(this.btnAdjust, this.ActionReason(DurableManagementPresenter.ActionAdjust, row));
+            this.ApplyActionReason(this.btnRfId, this.ActionReason(DurableManagementPresenter.ActionRfId, row));
+            this.ApplyActionReason(this.btnExchange, this.ActionReason(DurableManagementPresenter.ActionExchange, row));
+            this.ApplyActionReason(this.btnEdit, this.ActionReason(DurableManagementPresenter.ActionEdit, row));
             this.ApplyActionReason(this.btnScrap, this.ActionReason(DurableManagementPresenter.ActionScrap, row));
             this.ApplyActionReason(this.btnTransport, this.ActionReason(DurableManagementPresenter.ActionTransport, row));
 
@@ -770,14 +768,29 @@ namespace Modern.Lab.Samples
             this.ExecuteAction(e.Value as string);
         }
 
-        private void OnChangeActionClicked(object sender, Modern.Lab.Controls.Wpf.Input.DropDownItemClickedEventArgs e)
+        private void OnAdjustClick(object sender, EventArgs e)
         {
-            this.ExecuteAction(e.Value as string);
+            this.ExecuteAction(DurableManagementPresenter.ActionAdjust);
         }
 
         private void OnScrapClick(object sender, EventArgs e)
         {
             this.ExecuteAction(DurableManagementPresenter.ActionScrap);
+        }
+
+        private void OnRfIdClick(object sender, EventArgs e)
+        {
+            this.ExecuteAction(DurableManagementPresenter.ActionRfId);
+        }
+
+        private void OnExchangeClick(object sender, EventArgs e)
+        {
+            this.ExecuteAction(DurableManagementPresenter.ActionExchange);
+        }
+
+        private void OnEditClick(object sender, EventArgs e)
+        {
+            this.ExecuteAction(DurableManagementPresenter.ActionEdit);
         }
 
         private void OnTransportClick(object sender, EventArgs e)
@@ -1223,39 +1236,26 @@ namespace Modern.Lab.Samples
         private void PopulateMenus()
         {
             this.menuDurable.Items.Clear();
-            this.PopulateMenuGroup(this.menuDurable, "Hold/Release", DurableManagementPresenter.HoldActions, this.OnDurableMenuItemClick);
-            this.PopulateMenuGroup(this.menuDurable, "Change", DurableManagementPresenter.ChangeActions, this.OnDurableMenuItemClick);
-            this.PopulateMenu(this.menuDurable, DurableManagementPresenter.MenuSoloActions, this.OnDurableMenuItemClick);
+            this.PopulateMenu(this.menuDurable, "Hold/Release", DurableManagementPresenter.HoldActions, this.OnDurableMenuItemClick);
+            this.PopulateMenu(this.menuDurable, "Execute", DurableManagementPresenter.MenuExecuteActions, this.OnDurableMenuItemClick);
         }
 
-        private void PopulateMenuGroup(
-                ContextMenuStrip menu, string groupText,
+        private void PopulateMenu(
+                ContextMenuStrip menu, string headerText,
                 IList<DurableAction> actions, EventHandler onClick)
         {
-            ToolStripMenuItem group = new ToolStripMenuItem(groupText);
+            if (!string.IsNullOrEmpty(headerText))
+            {
+                menu.Items.Add(new ToolStripLabel(headerText));
+            }
 
             foreach (DurableAction action in actions)
             {
-                group.DropDownItems.Add(this.MenuItemFor(action, onClick));
+                ToolStripMenuItem item = MenuGlyphs.CreateItem(action.Label);
+                item.Tag = action.Key;
+                item.Click += onClick;
+                menu.Items.Add(item);
             }
-
-            menu.Items.Add(group);
-        }
-
-        private void PopulateMenu(ContextMenuStrip menu, IList<DurableAction> actions, EventHandler onClick)
-        {
-            foreach (DurableAction action in actions)
-            {
-                menu.Items.Add(this.MenuItemFor(action, onClick));
-            }
-        }
-
-        private ToolStripMenuItem MenuItemFor(DurableAction action, EventHandler onClick)
-        {
-            ToolStripMenuItem item = MenuGlyphs.CreateItem(action.Label);
-            item.Tag = action.Key;
-            item.Click += onClick;
-            return item;
         }
 
         private void OnMenuDurableOpening(object sender, CancelEventArgs e)
@@ -1268,31 +1268,14 @@ namespace Modern.Lab.Samples
                 return;
             }
 
-            this.ApplyMenuReasons(this.menuDurable.Items, durable.Row);
-        }
-
-        private void ApplyMenuReasons(ToolStripItemCollection items, DataRow row)
-        {
-            foreach (object entry in items)
+            foreach (object entry in this.menuDurable.Items)
             {
                 ToolStripMenuItem item = entry as ToolStripMenuItem;
-
-                if (item == null)
-                {
-                    continue;
-                }
-
-                if (item.HasDropDownItems)
-                {
-                    this.ApplyMenuReasons(item.DropDownItems, row);
-                    continue;
-                }
-
-                string key = item.Tag as string;
+                string key = item == null ? null : item.Tag as string;
 
                 if (key != null && DurableManagementPresenter.IsActionKey(key))
                 {
-                    ApplyActionReason(item, this.ActionReason(key, row));
+                    ApplyActionReason(item, this.ActionReason(key, durable.Row));
                 }
             }
         }

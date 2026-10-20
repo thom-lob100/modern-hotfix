@@ -47,22 +47,6 @@ namespace Modern.Lab.Samples.Services
                     Of(ActionRelease)
                 }.AsReadOnly();
 
-        public static readonly IList<DurableAction> ChangeActions =
-                new List<DurableAction>
-                {
-                    Of(ActionEdit),
-                    Of(ActionAdjust),
-                    Of(ActionRfId),
-                    Of(ActionExchange)
-                }.AsReadOnly();
-
-        public static readonly IList<DurableAction> MenuSoloActions =
-                new List<DurableAction>
-                {
-                    Of(ActionScrap),
-                    Of(ActionTransport)
-                }.AsReadOnly();
-
         public static readonly IList<DurableAction> MenuActions = MenuOf(Actions);
 
         public static readonly IList<DurableAction> MenuExecuteActions = ExecuteOf(MenuActions);

@@ -19,8 +19,11 @@ namespace Modern.Lab.WinForms.Controls.Input
     /// 아래 자식 칩 줄). 배타 선택은 칩을 놓은 쪽이 맡는다 — 하나를 누르면 나머지를 끄는 것은 폼의 일이다
     /// (<see cref="ModernToggleGroup"/>처럼 한 덩어리가 아니라 칩마다 상태 색이 다르기 때문).
     ///
-    /// 시각 규칙: 배지 그대로 그린 뒤, 눌림이면 액센트 2px 테두리, 마우스 오버면 옅은 액센트 1px 테두리,
-    /// 꺼짐(Enabled=false)이면 표면색 반투명을 덮어 흐리게 한다. 알약 폭 · 높이는 컨트롤 크기를 꽉 채운다
+    /// 시각 규칙: 안 눌린 칩은 배지 그대로(기본 중립색 — <see cref="ModernStatusBadge.ColorValue"/> 등을 주면 그 색),
+    /// **눌린 칩은 액센트 채움**(토글 버튼의 켬과 같은 문법 — 배지의 Color 경로로 칠하므로 빛띠는 그 위에 그대로 돈다.
+    /// 2026-10-20 사용자: 자식마다 색이 다른 것은 어지럽다), 마우스 오버면 옅은 액센트 1px 테두리,
+    /// 꺼짐(Enabled=false)이면 표면색 반투명을 덮어 흐리게 한다. 그래서 <see cref="ModernStatusBadge.Color"/> 직접 대입은
+    /// 칩에서 쓰지 않는다 — 눌림이 바뀔 때마다 칩이 다시 정한다. 알약 폭 · 높이는 컨트롤 크기를 꽉 채운다
     /// (FillWidth · FillHeight 켬) — 칩을 나란히 둘 때 폭을 통일하기 위해서다.
     ///
     /// 조작: 클릭 · Space · Enter 가 <see cref="Checked"/>를 반전한다(ModernToggleButton 과 같다).
@@ -32,9 +35,6 @@ namespace Modern.Lab.WinForms.Controls.Input
     {
         // Radius.Sm 4 — 배지 Rounded 모서리와 같은 반경으로 테두리를 두른다.
         private const int ringRadius = 4;
-
-        // 눌림 테두리 두께 — 1px 은 배지 강조 테두리(1.5px)와 구분이 안 돼 2px 로 둔다.
-        private const float checkedRingWidth = 2f;
 
         // 꺼짐 덮개의 알파 — 글자가 읽히되 눌리지 않는 것으로 보일 만큼.
         private const int disabledVeilAlpha = 150;
@@ -73,6 +73,7 @@ namespace Modern.Lab.WinForms.Controls.Input
                 }
 
                 this.isChecked = value;
+                this.ApplyCheckedColor();
                 this.Invalidate();
 
                 if (this.CheckedChanged != null)
@@ -90,6 +91,15 @@ namespace Modern.Lab.WinForms.Controls.Input
             }
 
             base.OnClick(e);
+        }
+
+        // 눌림 = 액센트 채움, 안 눌림 = 배지의 다른 색 경로(ColorValue · Semantic, 없으면 중립). 배지의 Color 가
+        // 가장 앞서는 경로라 여기에 액센트를 넣으면 나머지 경로를 덮고, 비우면 되돌아온다.
+        private void ApplyCheckedColor()
+        {
+            this.Color = this.isChecked
+                    ? ColorTranslator.ToHtml(ModernTokenColors.Get("Brush.Accent", System.Drawing.Color.FromArgb(0, 120, 212)))
+                    : string.Empty;
         }
 
         protected override void OnMouseEnter(EventArgs e)
@@ -213,18 +223,7 @@ namespace Modern.Lab.WinForms.Controls.Input
 
             System.Drawing.Color accent = ModernTokenColors.Get("Brush.Accent", System.Drawing.Color.FromArgb(0, 120, 212));
 
-            if (this.isChecked)
-            {
-                int inset = (int)Math.Ceiling(checkedRingWidth / 2f);
-                Rectangle ring = new Rectangle(inset, inset, this.Width - (inset * 2) - 1, this.Height - (inset * 2) - 1);
-
-                using (GraphicsPath path = this.BuildPillPath(ring))
-                using (Pen pen = new Pen(this.pressed ? ModernTokenColors.Get("Brush.AccentPressed", accent) : accent, checkedRingWidth))
-                {
-                    graphics.DrawPath(pen, path);
-                }
-            }
-            else if (this.hovered || this.pressed)
+            if (!this.isChecked && (this.hovered || this.pressed))
             {
                 Rectangle ring = new Rectangle(0, 0, this.Width - 1, this.Height - 1);
 

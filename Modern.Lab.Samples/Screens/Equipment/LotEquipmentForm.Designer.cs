@@ -895,6 +895,7 @@ namespace Modern.Lab.Samples
             //
             // badgeMode
             //
+            this.badgeMode.AutoSize = true;
             this.badgeMode.Location = new System.Drawing.Point(4, 6);
             this.badgeMode.Name = "badgeMode";
             this.badgeMode.Shape = Modern.Lab.WinForms.Controls.Display.BadgeShape.Rounded;

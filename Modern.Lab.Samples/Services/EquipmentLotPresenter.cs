@@ -104,6 +104,8 @@ namespace Modern.Lab.Samples.Services
             public readonly CommStatTypField JobEqpMode = Field<CommStatTypField>("JOB_COMM_STAT_TYP").Caption("Mode");
             public readonly PortsFitField PortsFit = Field<PortsFitField>("PORTS_FIT").Caption("Ports Fit");
             public readonly ChildFitField ChildFit = Field<ChildFitField>("CHILD_FIT").Caption("Child Eqp Fit");
+            public readonly CommStatTypField ChildEqpMode = Field<CommStatTypField>("CHILD_COMM_STAT_TYP").Caption("Mode");
+            public readonly MesEqpStatField ChildEqpStatus = Field<MesEqpStatField>("CHILD_MES_EQP_STAT_CD").Caption("Status");
         }
 
         internal static readonly DecisionRuleEntity DecisionRule = new DecisionRuleEntity();
@@ -126,6 +128,8 @@ namespace Modern.Lab.Samples.Services
             table.Columns.Add(Schemas.LotPriority.LotStatTyp.Name, typeof(string));
             table.Columns.Add(DecisionRule.PortsFit.Name, typeof(string));
             table.Columns.Add(DecisionRule.ChildFit.Name, typeof(string));
+            table.Columns.Add(DecisionRule.ChildEqpMode.Name, typeof(string));
+            table.Columns.Add(DecisionRule.ChildEqpStatus.Name, typeof(string));
             table.PrimaryKey = new DataColumn[] { lotId };
 
             DataRow lot = decision == null ? null : decision.Lot;
@@ -147,8 +151,26 @@ namespace Modern.Lab.Samples.Services
             row[Schemas.LotPriority.LotStatTyp.Name] = LiveText(lot, Schemas.LotPriority.LotStatTyp.Name);
             row[DecisionRule.PortsFit.Name] = decision != null && PortsCompatible(decision.Port, decision.GoalPort) ? DecisionRule.PortsFit.Fit.Value : string.Empty;
             row[DecisionRule.ChildFit.Name] = ChildFits(decision) ? DecisionRule.ChildFit.Fit.Value : string.Empty;
+            DataRow workSite = WorkSite(decision, decidedEquipment);
+            row[DecisionRule.ChildEqpMode.Name] = LiveText(workSite, Schemas.ChildEquipment.CommStatTyp.Name);
+            row[DecisionRule.ChildEqpStatus.Name] = LiveText(workSite, Schemas.ChildEquipment.MesEqpStatCd.Name);
             table.Rows.Add(row);
             return row;
+        }
+
+        private static DataRow WorkSite(JobDecision decision, DataRow decidedEquipment)
+        {
+            if (decision == null)
+            {
+                return null;
+            }
+
+            if (decision.ChildRequired)
+            {
+                return decision.ChildEquipment;
+            }
+
+            return decidedEquipment;
         }
 
         public static string ChildLabel(string parentEqpId, string childEqpId, string childName)

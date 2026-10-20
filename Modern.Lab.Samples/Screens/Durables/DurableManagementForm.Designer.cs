@@ -75,9 +75,12 @@ namespace Modern.Lab.Samples
             this.actionCard = new Modern.Lab.WinForms.Controls.Layout.ModernCardPanel();
             this.lblTarget = new Modern.Lab.WinForms.Controls.Display.ModernLabel();
             this.btnTransport = new Modern.Lab.WinForms.Controls.Input.ModernButton();
+            this.btnEdit = new Modern.Lab.WinForms.Controls.Input.ModernButton();
+            this.btnExchange = new Modern.Lab.WinForms.Controls.Input.ModernButton();
+            this.btnRfId = new Modern.Lab.WinForms.Controls.Input.ModernButton();
             this.btnCreate = new Modern.Lab.WinForms.Controls.Input.ModernButton();
             this.ddbHold = new Modern.Lab.WinForms.Controls.Input.ModernDropDownButton();
-            this.ddbChange = new Modern.Lab.WinForms.Controls.Input.ModernDropDownButton();
+            this.btnAdjust = new Modern.Lab.WinForms.Controls.Input.ModernButton();
             this.btnScrap = new Modern.Lab.WinForms.Controls.Input.ModernButton();
             this.titlePanel.SuspendLayout();
             this.searchCard.SuspendLayout();
@@ -623,9 +626,12 @@ namespace Modern.Lab.Samples
             // actionCard
             //
             this.actionCard.Controls.Add(this.btnTransport);
+            this.actionCard.Controls.Add(this.btnEdit);
+            this.actionCard.Controls.Add(this.btnExchange);
+            this.actionCard.Controls.Add(this.btnRfId);
             this.actionCard.Controls.Add(this.btnCreate);
             this.actionCard.Controls.Add(this.ddbHold);
-            this.actionCard.Controls.Add(this.ddbChange);
+            this.actionCard.Controls.Add(this.btnAdjust);
             this.actionCard.Controls.Add(this.btnScrap);
             this.actionCard.Controls.Add(this.lblTarget);
             this.actionCard.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -652,15 +658,51 @@ namespace Modern.Lab.Samples
             this.btnTransport.Kind = Modern.Lab.Controls.Wpf.Input.ButtonKind.Execute;
             this.btnTransport.Name = "btnTransport";
             this.btnTransport.Size = new System.Drawing.Size(108, 32);
-            this.btnTransport.TabIndex = 5;
+            this.btnTransport.TabIndex = 8;
             this.btnTransport.Text = "Transport";
             this.btnTransport.Click += new System.EventHandler(this.OnTransportClick);
             this.btnTransport.Child = null;
             //
+            // btnEdit
+            //
+            this.btnEdit.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnEdit.Location = new System.Drawing.Point(1424, 12);
+            this.btnEdit.Kind = Modern.Lab.Controls.Wpf.Input.ButtonKind.Execute;
+            this.btnEdit.Name = "btnEdit";
+            this.btnEdit.Size = new System.Drawing.Size(108, 32);
+            this.btnEdit.TabIndex = 6;
+            this.btnEdit.Text = "Edit";
+            this.btnEdit.Click += new System.EventHandler(this.OnEditClick);
+            this.btnEdit.Child = null;
+            //
+            // btnExchange
+            //
+            this.btnExchange.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnExchange.Location = new System.Drawing.Point(1308, 12);
+            this.btnExchange.Kind = Modern.Lab.Controls.Wpf.Input.ButtonKind.Execute;
+            this.btnExchange.Name = "btnExchange";
+            this.btnExchange.Size = new System.Drawing.Size(108, 32);
+            this.btnExchange.TabIndex = 5;
+            this.btnExchange.Text = "Exchange";
+            this.btnExchange.Click += new System.EventHandler(this.OnExchangeClick);
+            this.btnExchange.Child = null;
+            //
+            // btnRfId
+            //
+            this.btnRfId.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnRfId.Location = new System.Drawing.Point(1192, 12);
+            this.btnRfId.Kind = Modern.Lab.Controls.Wpf.Input.ButtonKind.Execute;
+            this.btnRfId.Name = "btnRfId";
+            this.btnRfId.Size = new System.Drawing.Size(108, 32);
+            this.btnRfId.TabIndex = 4;
+            this.btnRfId.Text = "RfId";
+            this.btnRfId.Click += new System.EventHandler(this.OnRfIdClick);
+            this.btnRfId.Child = null;
+            //
             // btnCreate
             //
             this.btnCreate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnCreate.Location = new System.Drawing.Point(1192, 12);
+            this.btnCreate.Location = new System.Drawing.Point(844, 12);
             this.btnCreate.Kind = Modern.Lab.Controls.Wpf.Input.ButtonKind.Execute;
             this.btnCreate.Name = "btnCreate";
             this.btnCreate.Size = new System.Drawing.Size(108, 32);
@@ -673,7 +715,7 @@ namespace Modern.Lab.Samples
             //
             this.ddbHold.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.ddbHold.Kind = Modern.Lab.Controls.Wpf.Input.ButtonKind.Execute;
-            this.ddbHold.Location = new System.Drawing.Point(1308, 12);
+            this.ddbHold.Location = new System.Drawing.Point(960, 12);
             this.ddbHold.Name = "ddbHold";
             this.ddbHold.Size = new System.Drawing.Size(108, 32);
             this.ddbHold.TabIndex = 2;
@@ -682,17 +724,17 @@ namespace Modern.Lab.Samples
             this.ddbHold.ItemClicked += new System.EventHandler<Modern.Lab.Controls.Wpf.Input.DropDownItemClickedEventArgs>(this.OnHoldActionClicked);
             this.ddbHold.Child = null;
             //
-            // ddbChange
+            // btnAdjust
             //
-            this.ddbChange.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.ddbChange.Kind = Modern.Lab.Controls.Wpf.Input.ButtonKind.Execute;
-            this.ddbChange.Location = new System.Drawing.Point(1424, 12);
-            this.ddbChange.Name = "ddbChange";
-            this.ddbChange.Size = new System.Drawing.Size(108, 32);
-            this.ddbChange.TabIndex = 3;
-            this.ddbChange.Text = "Change";
-            this.ddbChange.ItemClicked += new System.EventHandler<Modern.Lab.Controls.Wpf.Input.DropDownItemClickedEventArgs>(this.OnChangeActionClicked);
-            this.ddbChange.Child = null;
+            this.btnAdjust.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnAdjust.Location = new System.Drawing.Point(1076, 12);
+            this.btnAdjust.Kind = Modern.Lab.Controls.Wpf.Input.ButtonKind.Execute;
+            this.btnAdjust.Name = "btnAdjust";
+            this.btnAdjust.Size = new System.Drawing.Size(108, 32);
+            this.btnAdjust.TabIndex = 3;
+            this.btnAdjust.Text = "Adjust";
+            this.btnAdjust.Click += new System.EventHandler(this.OnAdjustClick);
+            this.btnAdjust.Child = null;
             //
             // btnScrap
             //
@@ -701,7 +743,7 @@ namespace Modern.Lab.Samples
             this.btnScrap.Kind = Modern.Lab.Controls.Wpf.Input.ButtonKind.Execute;
             this.btnScrap.Name = "btnScrap";
             this.btnScrap.Size = new System.Drawing.Size(108, 32);
-            this.btnScrap.TabIndex = 4;
+            this.btnScrap.TabIndex = 7;
             this.btnScrap.Text = "Scrap";
             this.btnScrap.Click += new System.EventHandler(this.OnScrapClick);
             this.btnScrap.Child = null;
@@ -803,9 +845,12 @@ namespace Modern.Lab.Samples
         private Modern.Lab.WinForms.Controls.Layout.ModernCardPanel actionCard;
         private Modern.Lab.WinForms.Controls.Display.ModernLabel lblTarget;
         private Modern.Lab.WinForms.Controls.Input.ModernButton btnTransport;
+        private Modern.Lab.WinForms.Controls.Input.ModernButton btnEdit;
+        private Modern.Lab.WinForms.Controls.Input.ModernButton btnExchange;
+        private Modern.Lab.WinForms.Controls.Input.ModernButton btnRfId;
         private Modern.Lab.WinForms.Controls.Input.ModernButton btnCreate;
         private Modern.Lab.WinForms.Controls.Input.ModernDropDownButton ddbHold;
-        private Modern.Lab.WinForms.Controls.Input.ModernDropDownButton ddbChange;
+        private Modern.Lab.WinForms.Controls.Input.ModernButton btnAdjust;
         private Modern.Lab.WinForms.Controls.Input.ModernButton btnScrap;
     }
 }
