@@ -29,6 +29,7 @@ namespace Modern.Lab.Samples
 
         private DataTable equipmentData;
         private DataTable portData;
+        private DataTable childData;
         private DataTable lotData;
 
         private DataTable requestData;
@@ -38,6 +39,7 @@ namespace Modern.Lab.Samples
 
         private TableResponse equipmentCurrent;
         private TableResponse portCurrent;
+        private TableResponse childCurrent;
         private TableResponse lotCurrent;
         private TableResponse requestCurrent;
         private TableResponse sampleCurrent;
@@ -56,6 +58,10 @@ namespace Modern.Lab.Samples
         private const string channelGroups = "groups";
         private const string channelEquipments = "equipments";
         private const string channelPorts = "ports";
+        private const string channelChildren = "children";
+        private const int ChildChipHeight = 28;
+        private const int ChildChipGap = 6;
+        private const int ChildChipMinWidth = 80;
         private const string channelLots = "lots";
         private const string channelRequests = "requests";
 
@@ -78,6 +84,7 @@ namespace Modern.Lab.Samples
         private int dependentSerial;
 
         private string portEqpId = string.Empty;
+        private string childEqpId = string.Empty;
         private string requestLotId = string.Empty;
         private string reqSerialNo = string.Empty;
 
@@ -118,6 +125,7 @@ namespace Modern.Lab.Samples
             this.InitializeComponent();
 
             this.portCover = new DependentCover(this.portBusy);
+            this.childChips.SizeChanged += this.OnChildChipsSizeChanged;
             this.durableCover = new DependentCover(this.durableBusy);
 
             this.InitializeModernForm(this.midPanel);
@@ -704,6 +712,8 @@ namespace Modern.Lab.Samples
             {
                 this.decision.Port = null;
                 this.decision.GoalPort = null;
+                this.decision.ChildEquipment = null;
+                this.decision.ChildEquipmentList = null;
             }
 
             this.silentRefresh = merged && this.decision.EqpId == previousEqpId && this.decision.EqpId.Length > 0;
@@ -1099,6 +1109,7 @@ namespace Modern.Lab.Samples
 
             this.portEqpId = eqpId;
             this.portCard.Text = eqpId.Length > 0 ? "Port List — " + eqpId : "Port List";
+            this.LoadChildEquipments(eqpId, silent);
 
             if (eqpId.Length > 0)
             {
@@ -1112,6 +1123,189 @@ namespace Modern.Lab.Samples
                 this.portCover.Reset();
                 this.gridPortPriorities.DataSource = null;
             }
+        }
+
+        private void LoadChildEquipments(string eqpId, bool silent)
+        {
+            bool same = silent && eqpId == this.childEqpId && this.childData != null;
+
+            if (!same)
+            {
+                this.InvalidateChannel(channelChildren);
+                this.childData = null;
+                this.childCurrent = null;
+            }
+
+            this.childEqpId = eqpId;
+
+            if (eqpId.Length > 0)
+            {
+                DataRow childLot = this.PortQueryLot(eqpId);
+                this.LoadDependent(channelChildren, () => this.GetChildEquipmentPriorities(eqpId, childLot), table => this.BindChildEquipments(table, same), false, same, null);
+                return;
+            }
+
+            this.childData = null;
+            this.BuildChildChips();
+        }
+
+        private void BindChildEquipments(DataTable children, bool silent)
+        {
+            bool merged;
+            this.childData = this.BindJudged(
+                    EquipmentLotContracts.ChildEquipmentTable, this.childData, ref this.childCurrent, children, Schemas.ChildEquipment.EqpId.Name, silent, silent, out merged);
+            this.decision.DropDetached();
+
+            if (this.childEqpId == this.decision.EqpId)
+            {
+                this.decision.ChildEquipmentList = this.childData;
+                this.ResolveDecisionChild();
+            }
+
+            this.BuildChildChips();
+            this.dependentSerial++;
+            this.RefreshDecisionPanel();
+            this.RefreshActionStates();
+        }
+
+        private void BuildChildChips()
+        {
+            bool bindingBefore = this.gridBinding;
+            this.gridBinding = true;
+
+            try
+            {
+                this.childChips.SuspendLayout();
+
+                while (this.childChips.Controls.Count > 0)
+                {
+                    Control chip = this.childChips.Controls[0];
+                    this.childChips.Controls.RemoveAt(0);
+                    chip.Dispose();
+                }
+
+                if (this.childData != null)
+                {
+                    foreach (DataRow child in this.childData.Rows)
+                    {
+                        this.childChips.Controls.Add(this.ChildChip(child));
+                    }
+                }
+
+                this.childChips.Visible = this.childChips.Controls.Count > 0;
+                this.childChips.ResumeLayout();
+                this.SyncChildChips();
+            }
+            finally
+            {
+                this.gridBinding = bindingBefore;
+            }
+        }
+
+        private Modern.Lab.WinForms.Controls.Input.ModernChoiceChip ChildChip(DataRow child)
+        {
+            string status = TableHelper.CellText(child, Schemas.ChildEquipment.MesEqpStatCd.Name).Trim();
+            string label = EquipmentLotPresenter.ChildLabel(
+                    this.childEqpId,
+                    TableHelper.CellText(child, Schemas.ChildEquipment.EqpId.Name),
+                    TableHelper.CellText(child, Schemas.ChildEquipment.EqpNm.Name));
+            Modern.Lab.WinForms.Controls.Input.ModernChoiceChip chip = new Modern.Lab.WinForms.Controls.Input.ModernChoiceChip();
+            chip.Tag = child;
+            chip.Text = status.Length == 0 ? label : label + " · " + status;
+            chip.ColorValue = status;
+            chip.Spinning = status == Schemas.ChildEquipment.MesEqpStatCd.Run.Value;
+            chip.Margin = new Padding(0, 0, ChildChipGap, ChildChipGap);
+            chip.Height = ChildChipHeight;
+            chip.Width = this.ChildChipWidth();
+            chip.CheckedChanged += this.OnChildChipCheckedChanged;
+            return chip;
+        }
+
+        private int ChildChipWidth()
+        {
+            int width = (this.childChips.ClientSize.Width - this.childChips.Padding.Horizontal - (ChildChipGap * 2)) / 2;
+            return Math.Max(ChildChipMinWidth, width);
+        }
+
+        private void OnChildChipsSizeChanged(object sender, EventArgs e)
+        {
+            int width = this.ChildChipWidth();
+
+            foreach (Control chip in this.childChips.Controls)
+            {
+                if (chip.Width != width)
+                {
+                    chip.Width = width;
+                }
+            }
+        }
+
+        private void SyncChildChips()
+        {
+            DataRow summary = EquipmentLotPresenter.JobSummary(this.decision);
+            string eqpId = TableHelper.CellText(summary, Schemas.EquipmentPriority.EqpId.Name).Trim();
+            string childId = eqpId == this.childEqpId ? TableHelper.CellText(summary, Schemas.LotPriority.ChildEqpId.Name).Trim() : string.Empty;
+            bool runMode = this.JobRunMode();
+            bool bindingBefore = this.gridBinding;
+            this.gridBinding = true;
+
+            try
+            {
+                foreach (Control control in this.childChips.Controls)
+                {
+                    Modern.Lab.WinForms.Controls.Input.ModernChoiceChip chip = control as Modern.Lab.WinForms.Controls.Input.ModernChoiceChip;
+
+                    if (chip == null)
+                    {
+                        continue;
+                    }
+
+                    DataRow child = chip.Tag as DataRow;
+                    string id = TableHelper.CellText(child, Schemas.ChildEquipment.EqpId.Name).Trim();
+                    chip.Checked = childId.Length > 0 && id == childId;
+                    chip.Enabled = !runMode && EquipmentLotPresenter.IsCandidate(child);
+                }
+            }
+            finally
+            {
+                this.gridBinding = bindingBefore;
+            }
+        }
+
+        private void OnChildChipCheckedChanged(object sender, EventArgs e)
+        {
+            if (this.gridBinding)
+            {
+                return;
+            }
+
+            Modern.Lab.WinForms.Controls.Input.ModernChoiceChip chip = (Modern.Lab.WinForms.Controls.Input.ModernChoiceChip)sender;
+            DataRow child = CandidateRow(chip.Tag as DataRow);
+
+            if (this.JobRunMode() || this.childEqpId != this.decision.EqpId || child == null || !chip.Checked)
+            {
+                this.SyncChildChips();
+                return;
+            }
+
+            this.decision.ChildEquipment = child;
+            this.SyncChildChips();
+            this.RefreshDecisionPanel();
+            this.RefreshActionStates();
+        }
+
+        private void ResolveDecisionChild()
+        {
+            if (EquipmentLotPresenter.HasActiveJob(this.decision.Lot))
+            {
+                this.decision.ChildEquipment = EquipmentLotPresenter.FindById(
+                        this.childData, Schemas.ChildEquipment.EqpId.Name,
+                        TableHelper.CellText(this.decision.Lot, Schemas.LotPriority.ChildEqpId.Name).Trim());
+                return;
+            }
+
+            DataRow kept = EquipmentLotPresenter.FindById(this.childData, Schemas.ChildEquipment.EqpId.Name, this.decision.ChildEqpId);
+            this.decision.ChildEquipment = kept ?? EquipmentLotPresenter.TopPriority(this.childData);
         }
 
         private DataRow PortQueryLot(string eqpId)
@@ -1242,6 +1436,8 @@ namespace Modern.Lab.Samples
             {
                 this.decision.Port = null;
                 this.decision.GoalPort = null;
+                this.decision.ChildEquipment = null;
+                this.decision.ChildEquipmentList = null;
             }
 
             if (EquipmentLotPresenter.HasActiveJob(this.decision.Lot))
@@ -1848,6 +2044,8 @@ namespace Modern.Lab.Samples
             this.decision.Equipment = equipment;
             this.decision.Port = null;
             this.decision.GoalPort = null;
+            this.decision.ChildEquipment = null;
+            this.decision.ChildEquipmentList = null;
             this.silentRefresh = false;
             this.ApplyEquipmentDecision();
 
@@ -1879,6 +2077,8 @@ namespace Modern.Lab.Samples
                 this.decision.Equipment = equipment;
                 this.decision.Port = null;
                 this.decision.GoalPort = null;
+                this.decision.ChildEquipment = null;
+                this.decision.ChildEquipmentList = null;
                 this.ApplyPortChoice(port);
                 this.silentRefresh = false;
                 this.RefreshDecisionPanel();
@@ -1999,6 +2199,12 @@ namespace Modern.Lab.Samples
             string jobState = TableHelper.CellText(summary, Schemas.LotPriority.LastEventCd.Name);
 
             this.kpiEquipment.Value = ValueOrDash(TableHelper.CellText(summary, Schemas.EquipmentPriority.EqpId.Name));
+            string childEqpId = TableHelper.CellText(summary, Schemas.LotPriority.ChildEqpId.Name).Trim();
+            DataRow childRow = this.decision.ChildEqpId == childEqpId ? this.decision.ChildEquipment : null;
+            this.kpiEquipment.BottomLabel = EquipmentLotPresenter.ChildLabel(
+                    TableHelper.CellText(summary, Schemas.EquipmentPriority.EqpId.Name),
+                    childEqpId,
+                    JobDecision.IsLive(childRow) ? TableHelper.CellText(childRow, Schemas.ChildEquipment.EqpNm.Name) : string.Empty);
             this.kpiPorts.Value = portNm.Length == 0 && goalPortNm.Length == 0
                     ? "-"
                     : ValueOrDash(portNm) + " → " + ValueOrDash(goalPortNm);
@@ -2125,6 +2331,8 @@ namespace Modern.Lab.Samples
                 Equipment = ActionRows.Copy(EquipmentLotPresenter.JobEquipment(this.decision)),
                 Port = ActionRows.Copy(this.decision.Port),
                 GoalPort = ActionRows.Copy(this.decision.GoalPort),
+                ChildEquipment = ActionRows.Copy(this.decision.ChildEquipment),
+                ChildEquipmentList = this.decision.ChildEquipmentList,
                 GoalDurable = ActionRows.Copy(this.decision.GoalDurable)
             };
             options.ExecutionTarget = new JobExecutionTarget(options.Target, this.SelectedEqpGrpId());

@@ -93,11 +93,17 @@ namespace Modern.Lab.Samples.Services
             public readonly FieldValue Fit = Value("Y");
         }
 
+        internal sealed class ChildFitField : Field
+        {
+            public readonly FieldValue Fit = Value("Y");
+        }
+
         internal sealed class DecisionRuleEntity : EntityDefinition
         {
             public readonly CommStatTypField DecidedEqpMode = Field<CommStatTypField>("DECIDED_COMM_STAT_TYP").Caption("Mode");
             public readonly CommStatTypField JobEqpMode = Field<CommStatTypField>("JOB_COMM_STAT_TYP").Caption("Mode");
             public readonly PortsFitField PortsFit = Field<PortsFitField>("PORTS_FIT").Caption("Ports Fit");
+            public readonly ChildFitField ChildFit = Field<ChildFitField>("CHILD_FIT").Caption("Child Eqp Fit");
         }
 
         internal static readonly DecisionRuleEntity DecisionRule = new DecisionRuleEntity();
@@ -119,6 +125,7 @@ namespace Modern.Lab.Samples.Services
             table.Columns.Add(Schemas.LotPriority.LotHoldStatCd.Name, typeof(string));
             table.Columns.Add(Schemas.LotPriority.LotStatTyp.Name, typeof(string));
             table.Columns.Add(DecisionRule.PortsFit.Name, typeof(string));
+            table.Columns.Add(DecisionRule.ChildFit.Name, typeof(string));
             table.PrimaryKey = new DataColumn[] { lotId };
 
             DataRow lot = decision == null ? null : decision.Lot;
@@ -139,8 +146,45 @@ namespace Modern.Lab.Samples.Services
             row[Schemas.LotPriority.LotHoldStatCd.Name] = LiveText(lot, Schemas.LotPriority.LotHoldStatCd.Name);
             row[Schemas.LotPriority.LotStatTyp.Name] = LiveText(lot, Schemas.LotPriority.LotStatTyp.Name);
             row[DecisionRule.PortsFit.Name] = decision != null && PortsCompatible(decision.Port, decision.GoalPort) ? DecisionRule.PortsFit.Fit.Value : string.Empty;
+            row[DecisionRule.ChildFit.Name] = ChildFits(decision) ? DecisionRule.ChildFit.Fit.Value : string.Empty;
             table.Rows.Add(row);
             return row;
+        }
+
+        public static string ChildLabel(string parentEqpId, string childEqpId, string childName)
+        {
+            string name = (childName ?? string.Empty).Trim();
+
+            if (name.Length > 0)
+            {
+                return name;
+            }
+
+            string id = (childEqpId ?? string.Empty).Trim();
+            string parent = (parentEqpId ?? string.Empty).Trim();
+
+            if (parent.Length > 0 && id.Length > parent.Length + 1
+                    && id.StartsWith(parent + "-", StringComparison.OrdinalIgnoreCase))
+            {
+                return id.Substring(parent.Length + 1);
+            }
+
+            return id;
+        }
+
+        public static bool ChildFits(JobDecision decision)
+        {
+            if (decision == null)
+            {
+                return false;
+            }
+
+            if (HasActiveJob(decision.Lot))
+            {
+                return true;
+            }
+
+            return !decision.ChildRequired || decision.ChildEqpId.Length > 0;
         }
 
 
@@ -382,6 +426,7 @@ namespace Modern.Lab.Samples.Services
             table.Columns.Add(Schemas.EquipmentPriority.CommStatTyp.Name);
             table.Columns.Add(Schemas.LotPriority.PortNm.Name);
             table.Columns.Add(Schemas.LotPriority.GoalPortNm.Name);
+            table.Columns.Add(Schemas.LotPriority.ChildEqpId.Name);
             table.Columns.Add(Schemas.LotPriority.LotId.Name);
             table.Columns.Add(Schemas.LotPriority.DurableId.Name);
             table.Columns.Add(Schemas.LotPriority.GoalDurableId.Name);
@@ -397,6 +442,7 @@ namespace Modern.Lab.Samples.Services
                 row[Schemas.EquipmentPriority.CommStatTyp.Name] = target.CommStatTyp;
                 row[Schemas.LotPriority.PortNm.Name] = target.PortNm;
                 row[Schemas.LotPriority.GoalPortNm.Name] = target.GoalPortNm;
+                row[Schemas.LotPriority.ChildEqpId.Name] = target.ChildEqpId;
                 row[Schemas.LotPriority.LotId.Name] = target.LotId;
                 row[Schemas.LotPriority.DurableId.Name] = target.DurableId;
                 row[Schemas.LotPriority.GoalDurableId.Name] = target.GoalDurableId;
