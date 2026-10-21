@@ -560,7 +560,7 @@ namespace Modern.Lab.Samples
                 return;
             }
 
-            this.LoadRequestWafers(lotId, this.logisticsSelectionSilent);
+            this.LoadRequestWafers(ActionRows.Copy(row.Row), this.logisticsSelectionSilent);
         }
 
         private void UpdatePipeline(DataRow row)
@@ -610,10 +610,11 @@ namespace Modern.Lab.Samples
             this.stepPipeline.DataSource = steps;
         }
 
-        private async void LoadRequestWafers(string lotId, bool silent)
+        private async void LoadRequestWafers(DataRow lot, bool silent)
         {
+            string lotId = Schemas.Logistics.LotId.Text(lot);
             LoadOutcome<DataTable> outcome = await this.FetchAsync(
-                    channelRequestWafers, () => this.GetRequestWafers(lotId), silent);
+                    channelRequestWafers, () => this.GetRequestWafers(lot), silent);
 
             if (!outcome.IsCurrent)
             {
