@@ -1,0 +1,86 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ============================================================= -->
+    <!-- SolarizedLight 테마 오버라이드 — Ethan Schoonover의 Solarized     -->
+    <!-- Light 정본 팔레트. 크림색 카드(base3 #FDF6E3) + 살짝 어두운       -->
+    <!-- 크림 배경(base2 #EEE8D5), 블루 액센트(#1A6598 — 정본 #268BD2를    -->
+    <!-- 채움 버튼 글자 대비 확보용으로 반 톤 어둡게). 시맨틱은            -->
+    <!-- Solarized 원색(green #859900 / yellow #B58900 / red #DC322F)을   -->
+    <!-- 라이트 면 기준으로 배치한다. 저채도·저대비 설계라 장시간          -->
+    <!-- 모니터링 화면에서 눈의 피로가 적다.                              -->
+    <!-- SharedResourceDictionary가 Mode == SolarizedLight일 때 병합.     -->
+    <!-- ============================================================= -->
+
+    <!-- Primary (액센트) — Solarized blue 계열 램프. 정본 #268BD2는 크림 글자와
+         3.4:1밖에 안 나와서(중간톤), 채움 버튼 기준 4.5:1을 넘도록 반 톤
+         어두운 #1A6598을 쓴다 (크림 OnAccent 5.8:1, 크림 배경 위 텍스트 5.1:1). -->
+    <SolidColorBrush x:Key="Brush.Accent" Color="#FF1A6598" />
+    <SolidColorBrush x:Key="Brush.AccentHover" Color="#FF2173AE" />
+    <SolidColorBrush x:Key="Brush.AccentPressed" Color="#FF144E75" />
+    <SolidColorBrush x:Key="Brush.OnAccent" Color="#FFFDF6E3" />
+    <SolidColorBrush x:Key="Brush.SelectedBackground" Color="#FFC5DEF0" />
+    <SolidColorBrush x:Key="Brush.SelectedText" Color="#FF175E92" />
+    <!-- 누름(pressed) 전용 짝 — 보조 버튼·토글·메뉴 항목을 누르는 순간. 선택 배경을 빌려 쓰지 않는다(2026-10-21). -->
+    <SolidColorBrush x:Key="Brush.PressedBackground" Color="#FFCBD6D2" />
+    <SolidColorBrush x:Key="Brush.PressedText" Color="#FF144E75" />
+    <SolidColorBrush x:Key="Brush.FocusBorder" Color="#FF1A6598" />
+    <SolidColorBrush x:Key="Brush.FocusRing" Color="#331A6598" />
+
+    <!-- Neutral — 크림 카드(base3) 위 크림 배경(base2), 테두리는 크림을 어둡게 -->
+    <SolidColorBrush x:Key="Brush.Background" Color="#FFEEE8D5" />
+    <SolidColorBrush x:Key="Brush.Surface" Color="#FFFDF6E3" />
+    <SolidColorBrush x:Key="Brush.SurfaceAlt" Color="#FFF7F1DE" />
+    <SolidColorBrush x:Key="Brush.HeaderBackground" Color="#FFF5EFDC" />
+    <SolidColorBrush x:Key="Brush.GridHeaderBackground" Color="#FFE6DFC8" />
+    <SolidColorBrush x:Key="Brush.GridRowAlt" Color="#FFF6F0DD" />
+    <SolidColorBrush x:Key="Brush.Border" Color="#FFD3CBB7" />
+    <SolidColorBrush x:Key="Brush.BorderSubtle" Color="#FFE4DDC9" />
+    <SolidColorBrush x:Key="Brush.BorderHover" Color="#FFB1A88F" />
+    <SolidColorBrush x:Key="Brush.HoverBackground" Color="#FFF3ECD9" />
+
+    <Color x:Key="Color.Accent">#FF1A6598</Color>
+    <Color x:Key="Color.AccentSoft">#FF6DB2E2</Color>
+    <!-- 코멧 테일 페이드 끝색 — 액센트와 같은 RGB의 알파 0. -->
+    <Color x:Key="Color.AccentFade">#001A6598</Color>
+
+    <!-- 텍스트 — Solarized 다크 뉴트럴: 본문 base02 #073642, 보조 base00 #657B83 -->
+    <SolidColorBrush x:Key="Brush.TextPrimary" Color="#FF073642" />
+    <SolidColorBrush x:Key="Brush.TextSecondary" Color="#FF4F646B" />
+    <SolidColorBrush x:Key="Brush.TextPlaceholder" Color="#FF7D8E8E" />
+    <SolidColorBrush x:Key="Brush.DisabledBackground" Color="#FFF0EAD8" />
+    <SolidColorBrush x:Key="Brush.DisabledText" Color="#FFA1998A" />
+
+    <!-- 시맨틱 — Solarized 원색을 라이트 크림 면 기준으로 -->
+    <SolidColorBrush x:Key="Brush.InfoBackground" Color="#FFE3EEF7" />
+    <SolidColorBrush x:Key="Brush.InfoBorder" Color="#FFB5D4EA" />
+    <SolidColorBrush x:Key="Brush.InfoText" Color="#FF1E6FA8" />
+    <SolidColorBrush x:Key="Brush.Success" Color="#FF5F6E00" />
+    <SolidColorBrush x:Key="Brush.SuccessHover" Color="#FF556300" />
+    <SolidColorBrush x:Key="Brush.SuccessPressed" Color="#FF4B5700" />
+    <SolidColorBrush x:Key="Brush.SuccessBackground" Color="#FFEFF0D4" />
+    <SolidColorBrush x:Key="Brush.SuccessBorder" Color="#FFCFD494" />
+    <SolidColorBrush x:Key="Brush.SuccessText" Color="#FF5A6800" />
+    <!-- Excel 내보내기 버튼(ButtonKind.Excel) — Solarized green 톤의 올리브 아웃라인. -->
+    <SolidColorBrush x:Key="Brush.ExcelText" Color="#FF556A00" />
+    <SolidColorBrush x:Key="Brush.ExcelBorderSoft" Color="#FFC9D191" />
+    <SolidColorBrush x:Key="Brush.ExcelBackground" Color="#FFEEF0D2" />
+    <SolidColorBrush x:Key="Brush.ExcelBorder" Color="#FF9AAB40" />
+    <SolidColorBrush x:Key="Brush.ExcelPressed" Color="#FF4A5C00" />
+    <SolidColorBrush x:Key="Brush.Warning" Color="#FFB58900" />
+    <SolidColorBrush x:Key="Brush.WarningBackground" Color="#FFF7EDCB" />
+    <SolidColorBrush x:Key="Brush.WarningBorder" Color="#FFE3D194" />
+    <SolidColorBrush x:Key="Brush.WarningText" Color="#FF7A5C00" />
+    <SolidColorBrush x:Key="Brush.StatusSuccess" Color="#FF859900" />
+    <SolidColorBrush x:Key="Brush.StatusWarning" Color="#FFB58900" />
+    <SolidColorBrush x:Key="Brush.ErrorBorder" Color="#FFDC322F" />
+    <SolidColorBrush x:Key="Brush.ErrorBorderSoft" Color="#FFF0BDB7" />
+    <SolidColorBrush x:Key="Brush.ErrorBackground" Color="#FFF9E3DD" />
+    <SolidColorBrush x:Key="Brush.ErrorText" Color="#FFB8292B" />
+    <SolidColorBrush x:Key="Brush.DangerPressed" Color="#FFA8221F" />
+    <SolidColorBrush x:Key="Brush.NeutralBackground" Color="#FFE9E2CD" />
+    <SolidColorBrush x:Key="Brush.NeutralText" Color="#FF4F646B" />
+
+    <Color x:Key="Color.TrackOff">#FFC9C1AB</Color>
+
+</ResourceDictionary>
