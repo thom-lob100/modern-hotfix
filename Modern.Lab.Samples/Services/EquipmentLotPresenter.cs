@@ -152,8 +152,8 @@ namespace Modern.Lab.Samples.Services
             row[DecisionRule.PortsFit.Name] = decision != null && PortsCompatible(decision.Port, decision.GoalPort) ? DecisionRule.PortsFit.Fit.Value : string.Empty;
             row[DecisionRule.ChildFit.Name] = ChildFits(decision) ? DecisionRule.ChildFit.Fit.Value : string.Empty;
             DataRow workSite = WorkSite(decision, decidedEquipment);
-            row[DecisionRule.ChildEqpMode.Name] = LiveText(workSite, Schemas.ChildEquipment.CommStatTyp.Name);
-            row[DecisionRule.ChildEqpStatus.Name] = LiveText(workSite, Schemas.ChildEquipment.MesEqpStatCd.Name);
+            row[DecisionRule.ChildEqpMode.Name] = LiveText(workSite, Schemas.EquipmentPriority.CommStatTyp.Name);
+            row[DecisionRule.ChildEqpStatus.Name] = LiveText(workSite, Schemas.EquipmentPriority.MesEqpStatCd.Name);
             table.Rows.Add(row);
             return row;
         }

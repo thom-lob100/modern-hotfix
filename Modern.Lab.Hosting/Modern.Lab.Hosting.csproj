@@ -146,7 +146,6 @@
     <Compile Include="Schema\Entities\LotHistoryEntity.cs" />
     <Compile Include="Schema\Fields\LotHoldStatField.cs" />
     <Compile Include="Schema\Entities\LotPriorityEntity.cs" />
-    <Compile Include="Schema\Entities\ChildEquipmentEntity.cs" />
     <Compile Include="Schema\Fields\LotStatTypField.cs" />
     <Compile Include="Schema\Entities\LotTreeEntity.cs" />
     <Compile Include="Schema\Fields\MesEqpStatField.cs" />

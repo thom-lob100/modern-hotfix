@@ -41,7 +41,7 @@ namespace Modern.Lab.Samples.Services
 
         public string ChildEqpId
         {
-            get { return Cell(this.ChildEquipment, Schemas.ChildEquipment.EqpId.Name); }
+            get { return Cell(this.ChildEquipment, Schemas.EquipmentPriority.EqpId.Name); }
         }
 
         public bool ChildRequired

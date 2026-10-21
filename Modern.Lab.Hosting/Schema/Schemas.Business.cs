@@ -49,8 +49,6 @@ namespace Modern.Lab.Hosting.Schema
 
         public static PortPriorityEntity PortPriority { get; } = new PortPriorityEntity();
 
-        public static ChildEquipmentEntity ChildEquipment { get; } = new ChildEquipmentEntity();
-
         public static LotPriorityEntity LotPriority { get; } = new LotPriorityEntity();
 
         public static DurablePriorityEntity DurablePriority { get; } = new DurablePriorityEntity();

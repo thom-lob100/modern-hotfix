@@ -52,10 +52,10 @@ namespace Modern.Lab.Samples.Contracts
         private static TableContract ChildEquipment()
         {
             return new TableContract(ChildEquipmentTable)
-                    .Key(Schemas.ChildEquipment.EqpId)
-                    .Status(Schemas.ChildEquipment.CommStatTyp)
-                    .Status(Schemas.ChildEquipment.MesEqpStatCd)
-                    .Numeric(Schemas.ChildEquipment.Priority);
+                    .Key(Schemas.EquipmentPriority.EqpId)
+                    .Status(Schemas.EquipmentPriority.CommStatTyp)
+                    .Status(Schemas.EquipmentPriority.MesEqpStatCd)
+                    .Numeric(Schemas.EquipmentPriority.Priority);
         }
 
         private static TableContract Lot()

@@ -1095,7 +1095,7 @@ namespace Modern.Lab.Samples
         {
             bool merged;
             this.childData = this.BindJudged(
-                    EquipmentLotContracts.ChildEquipmentTable, this.childData, ref this.childCurrent, children, Schemas.ChildEquipment.EqpId.Name, silent, silent, out merged);
+                    EquipmentLotContracts.ChildEquipmentTable, this.childData, ref this.childCurrent, children, Schemas.EquipmentPriority.EqpId.Name, silent, silent, out merged);
             this.decision.DropDetached();
 
             if (this.childEqpId == this.decision.EqpId)
@@ -1146,14 +1146,14 @@ namespace Modern.Lab.Samples
 
         private Modern.Lab.WinForms.Controls.Input.ModernChoiceChip ChildChip(DataRow child)
         {
-            string status = TableHelper.CellText(child, Schemas.ChildEquipment.MesEqpStatCd.Name).Trim();
+            string status = TableHelper.CellText(child, Schemas.EquipmentPriority.MesEqpStatCd.Name).Trim();
             string label = EquipmentLotPresenter.ChildLabel(
-                    TableHelper.CellText(child, Schemas.ChildEquipment.EqpId.Name),
-                    TableHelper.CellText(child, Schemas.ChildEquipment.EqpIdAlias.Name));
+                    TableHelper.CellText(child, Schemas.EquipmentPriority.EqpId.Name),
+                    TableHelper.CellText(child, Schemas.EquipmentPriority.EqpIdAlias.Name));
             Modern.Lab.WinForms.Controls.Input.ModernChoiceChip chip = new Modern.Lab.WinForms.Controls.Input.ModernChoiceChip();
             chip.Tag = child;
             chip.Text = status.Length == 0 ? label : label + " · " + status;
-            chip.Spinning = status == Schemas.ChildEquipment.MesEqpStatCd.Run.Value;
+            chip.Spinning = status == Schemas.EquipmentPriority.MesEqpStatCd.Run.Value;
             chip.Margin = new Padding(0, 0, ChildChipGap, ChildChipGap);
             chip.Height = ChildChipHeight;
             chip.Width = this.ChildChipWidth();
@@ -1201,7 +1201,7 @@ namespace Modern.Lab.Samples
                     }
 
                     DataRow child = chip.Tag as DataRow;
-                    string id = TableHelper.CellText(child, Schemas.ChildEquipment.EqpId.Name).Trim();
+                    string id = TableHelper.CellText(child, Schemas.EquipmentPriority.EqpId.Name).Trim();
                     chip.Checked = childId.Length > 0 && id == childId;
                     chip.Enabled = runMode ? chip.Checked : EquipmentLotPresenter.IsCandidate(child);
                 }
@@ -1239,12 +1239,12 @@ namespace Modern.Lab.Samples
             if (EquipmentLotPresenter.HasActiveJob(this.decision.Lot))
             {
                 this.decision.ChildEquipment = EquipmentLotPresenter.FindById(
-                        this.childData, Schemas.ChildEquipment.EqpId.Name,
+                        this.childData, Schemas.EquipmentPriority.EqpId.Name,
                         TableHelper.CellText(this.decision.Lot, Schemas.LotPriority.ChildEqpId.Name).Trim());
                 return;
             }
 
-            DataRow kept = EquipmentLotPresenter.FindById(this.childData, Schemas.ChildEquipment.EqpId.Name, this.decision.ChildEqpId);
+            DataRow kept = EquipmentLotPresenter.FindById(this.childData, Schemas.EquipmentPriority.EqpId.Name, this.decision.ChildEqpId);
             this.decision.ChildEquipment = kept ?? EquipmentLotPresenter.TopPriority(this.childData);
         }
 
@@ -2291,7 +2291,7 @@ namespace Modern.Lab.Samples
             DataRow childRow = this.decision.ChildEqpId == childEqpId ? this.decision.ChildEquipment : null;
             this.kpiEquipment.BottomLabel = EquipmentLotPresenter.ChildLabel(
                     childEqpId,
-                    JobDecision.IsLive(childRow) ? TableHelper.CellText(childRow, Schemas.ChildEquipment.EqpIdAlias.Name) : string.Empty);
+                    JobDecision.IsLive(childRow) ? TableHelper.CellText(childRow, Schemas.EquipmentPriority.EqpIdAlias.Name) : string.Empty);
             this.kpiPorts.Value = portNm.Length == 0 && goalPortNm.Length == 0
                     ? "-"
                     : ValueOrDash(portNm) + " → " + ValueOrDash(goalPortNm);
