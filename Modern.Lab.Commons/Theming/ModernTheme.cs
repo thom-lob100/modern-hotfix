@@ -28,6 +28,7 @@ namespace Modern.Lab.Theming
     ///   - Forest: Everforest Dark — 그린그레이(#2D353B/#343F44) 면 + 세이지 그린(#A7C080) 액센트 + 딥 그린(#3B5A47) 선택, 베이지 글자 (2026-10-22).
     ///   - TokyoNight: Tokyo Night — 딥 네이비(#1A1B26/#24283B) 면 + 블루(#7AA2F7) 액센트 + 블루(#3D59A1) 선택, 라벤더화이트 글자 (2026-10-22).
     ///   - TokyoDay: Tokyo Night Day — 페리윙클(#E1E2E7) 배경 + 흰 카드 + 블루 글자(#2F54B5) + 블루(#2468CF) 액센트, TokyoNight 의 라이트 짝 (2026-10-22).
+    ///   - Mint: Radix Teal 라이트 — 민트(#CCF3EA) 배경 + 흰 카드 + 딥 틸 글자(#0D3D38) + 틸(#00705F) 액센트 (2026-10-22).
     ///   - LightPink: LightPurple 과 같은 구조의 핑크 — 라즈베리(#BD1558) 액센트 + 핑크 파스텔(#F6D9E6) 뉴트럴 (2026-10-22).
     ///   - HighContrast: 접근성/현장 시인성 고대비 — 순검정 면 + 순백 텍스트/테두리,
     ///     밝은 시안(#6FE0FF) 액센트, 시맨틱은 고채도 밝은 색.
@@ -86,7 +87,10 @@ namespace Modern.Lab.Theming
             TokyoNight = 16,
 
             /// <summary>Tokyo Night Day — 페리윙클(#E1E2E7) 배경 + 흰 카드 + 블루 글자(#2F54B5) + 블루(#2468CF) 액센트 (라이트 기반).</summary>
-            TokyoDay = 17
+            TokyoDay = 17,
+
+            /// <summary>Radix Teal 라이트 — 민트(#CCF3EA) 배경 + 흰 카드 + 딥 틸 글자(#0D3D38) + 틸(#00705F) 액센트 (라이트 기반).</summary>
+            Mint = 18
         }
 
         /// <summary>현재 테마. 앱 시작 시 한 번 설정한다.</summary>
@@ -203,6 +207,7 @@ namespace Modern.Lab.Theming
                     case ThemeMode.LightPurple: return Rgb(239, 232, 248);
                     case ThemeMode.LightPink: return Rgb(246, 217, 230);
                     case ThemeMode.TokyoDay: return Rgb(225, 226, 231);
+                    case ThemeMode.Mint: return Rgb(204, 243, 234);
                     case ThemeMode.HighContrast: return Rgb(0, 0, 0);
                     case ThemeMode.DarkGold: return Rgb(26, 24, 20);
                     case ThemeMode.Mocha: return Rgb(30, 30, 46);
@@ -227,6 +232,7 @@ namespace Modern.Lab.Theming
                     case ThemeMode.LightPurple: return Rgb(211, 194, 236);
                     case ThemeMode.LightPink: return Rgb(230, 169, 198);
                     case ThemeMode.TokyoDay: return Rgb(180, 181, 185);
+                    case ThemeMode.Mint: return Rgb(131, 205, 193);
                     case ThemeMode.HighContrast: return Rgb(255, 255, 255);
                     case ThemeMode.DarkGold: return Rgb(68, 61, 48);
                     case ThemeMode.Mocha: return Rgb(88, 91, 112);
@@ -251,6 +257,7 @@ namespace Modern.Lab.Theming
                     case ThemeMode.LightPurple: return Rgb(226, 214, 243);
                     case ThemeMode.LightPink: return Rgb(242, 207, 223);
                     case ThemeMode.TokyoDay: return Rgb(200, 204, 218);
+                    case ThemeMode.Mint: return Rgb(161, 222, 210);
                     case ThemeMode.HighContrast: return Rgb(157, 157, 157);
                     case ThemeMode.DarkGold: return Rgb(54, 48, 42);
                     case ThemeMode.Mocha: return Rgb(69, 71, 90);
@@ -275,6 +282,7 @@ namespace Modern.Lab.Theming
                     case ThemeMode.LightPurple: return Rgb(27, 27, 27);
                     case ThemeMode.LightPink: return Rgb(27, 27, 27);
                     case ThemeMode.TokyoDay: return Rgb(47, 84, 181);
+                    case ThemeMode.Mint: return Rgb(13, 61, 56);
                     case ThemeMode.HighContrast: return Rgb(255, 255, 255);
                     case ThemeMode.DarkGold: return Rgb(243, 237, 224);
                     case ThemeMode.Mocha: return Rgb(205, 214, 244);
@@ -311,6 +319,7 @@ namespace Modern.Lab.Theming
                     case ThemeMode.LightPurple: return Rgb(196, 43, 28);
                     case ThemeMode.LightPink: return Rgb(196, 43, 28);
                     case ThemeMode.TokyoDay: return Rgb(200, 18, 75);
+                    case ThemeMode.Mint: return Rgb(196, 43, 28);
                     default: return Rgb(220, 38, 38);
                 }
             }
@@ -330,6 +339,7 @@ namespace Modern.Lab.Theming
                     case ThemeMode.LightPurple: return Rgb(93, 93, 93);
                     case ThemeMode.LightPink: return Rgb(93, 93, 93);
                     case ThemeMode.TokyoDay: return Rgb(78, 94, 158);
+                    case ThemeMode.Mint: return Rgb(47, 107, 99);
                     case ThemeMode.HighContrast: return Rgb(224, 224, 224);
                     case ThemeMode.DarkGold: return Rgb(201, 191, 168);
                     case ThemeMode.Mocha: return Rgb(186, 194, 222);
@@ -354,6 +364,7 @@ namespace Modern.Lab.Theming
                     case ThemeMode.LightPurple: return Rgb(157, 157, 157);
                     case ThemeMode.LightPink: return Rgb(157, 157, 157);
                     case ThemeMode.TokyoDay: return Rgb(154, 160, 188);
+                    case ThemeMode.Mint: return Rgb(143, 177, 171);
                     case ThemeMode.HighContrast: return Rgb(141, 141, 141);
                     case ThemeMode.DarkGold: return Rgb(126, 116, 98);
                     case ThemeMode.Mocha: return Rgb(108, 112, 134);
@@ -386,6 +397,7 @@ namespace Modern.Lab.Theming
                 case ThemeMode.LightPurple: return Rgb(92, 46, 145);
                 case ThemeMode.LightPink: return Rgb(189, 21, 88);
                 case ThemeMode.TokyoDay: return Rgb(36, 104, 207);
+                case ThemeMode.Mint: return Rgb(0, 112, 95);
                 case ThemeMode.HighContrast: return Rgb(111, 224, 255);
                 case ThemeMode.DarkGold: return Rgb(224, 180, 90);
                 case ThemeMode.Mocha: return Rgb(203, 166, 247);
@@ -409,6 +421,7 @@ namespace Modern.Lab.Theming
                     case ThemeMode.LightPurple: return Rgb(196, 43, 28);
                     case ThemeMode.LightPink: return Rgb(196, 43, 28);
                     case ThemeMode.TokyoDay: return Rgb(200, 18, 75);
+                    case ThemeMode.Mint: return Rgb(196, 43, 28);
                     case ThemeMode.HighContrast: return Rgb(255, 80, 80);
                     case ThemeMode.DarkGold: return Rgb(255, 138, 138);
                     case ThemeMode.Mocha: return Rgb(243, 139, 168);
@@ -441,6 +454,7 @@ namespace Modern.Lab.Theming
                 case ThemeMode.LightPurple: return Rgb(240, 240, 240);
                 case ThemeMode.LightPink: return Rgb(240, 240, 240);
                 case ThemeMode.TokyoDay: return Rgb(228, 231, 240);
+                case ThemeMode.Mint: return Rgb(230, 241, 238);
                 case ThemeMode.HighContrast: return Rgb(30, 30, 30);
                 case ThemeMode.DarkGold: return Rgb(58, 53, 43);
                 case ThemeMode.Mocha: return Rgb(69, 71, 90);
@@ -464,6 +478,7 @@ namespace Modern.Lab.Theming
                     case ThemeMode.LightPurple: return Rgb(59, 59, 59);
                     case ThemeMode.LightPink: return Rgb(59, 59, 59);
                     case ThemeMode.TokyoDay: return Rgb(59, 74, 122);
+                    case ThemeMode.Mint: return Rgb(47, 76, 71);
                     case ThemeMode.HighContrast: return Rgb(255, 255, 255);
                     case ThemeMode.DarkGold: return Rgb(230, 223, 208);
                     case ThemeMode.Mocha: return Rgb(226, 230, 245);
@@ -488,6 +503,7 @@ namespace Modern.Lab.Theming
                     case ThemeMode.LightPurple: return Rgb(220, 204, 240);
                     case ThemeMode.LightPink: return Rgb(246, 193, 214);
                     case ThemeMode.TokyoDay: return Rgb(61, 89, 161);
+                    case ThemeMode.Mint: return Rgb(14, 95, 85);
                     case ThemeMode.HighContrast: return Rgb(111, 224, 255);
                     case ThemeMode.DarkGold: return Rgb(31, 79, 90);
                     case ThemeMode.Mocha: return Rgb(91, 74, 140);
@@ -512,6 +528,7 @@ namespace Modern.Lab.Theming
                     case ThemeMode.LightPurple: return Rgb(246, 241, 251);
                     case ThemeMode.LightPink: return Rgb(251, 237, 243);
                     case ThemeMode.TokyoDay: return Rgb(244, 245, 249);
+                    case ThemeMode.Mint: return Rgb(243, 251, 249);
                     case ThemeMode.HighContrast: return Rgb(16, 16, 16);
                     case ThemeMode.DarkGold: return Rgb(43, 39, 32);
                     case ThemeMode.Mocha: return Rgb(56, 58, 78);
@@ -536,6 +553,7 @@ namespace Modern.Lab.Theming
                     case ThemeMode.LightPurple: return Rgb(227, 216, 244);
                     case ThemeMode.LightPink: return Rgb(240, 196, 216);
                     case ThemeMode.TokyoDay: return Rgb(216, 220, 232);
+                    case ThemeMode.Mint: return Rgb(184, 234, 224);
                     case ThemeMode.HighContrast: return Rgb(20, 20, 20);
                     case ThemeMode.DarkGold: return Rgb(46, 42, 34);
                     case ThemeMode.Mocha: return Rgb(69, 71, 90);
@@ -560,6 +578,7 @@ namespace Modern.Lab.Theming
                     case ThemeMode.LightPurple: return Rgb(248, 245, 252);
                     case ThemeMode.LightPink: return Rgb(252, 243, 247);
                     case ThemeMode.TokyoDay: return Rgb(246, 247, 250);
+                    case ThemeMode.Mint: return Rgb(246, 252, 250);
                     case ThemeMode.HighContrast: return Rgb(10, 10, 10);
                     case ThemeMode.DarkGold: return Rgb(40, 36, 30);
                     case ThemeMode.Mocha: return Rgb(53, 54, 73);
@@ -584,6 +603,7 @@ namespace Modern.Lab.Theming
                     case ThemeMode.LightPurple: return Rgb(70, 34, 110);
                     case ThemeMode.LightPink: return Rgb(122, 16, 56);
                     case ThemeMode.TokyoDay: return Rgb(255, 255, 255);
+                    case ThemeMode.Mint: return Rgb(255, 255, 255);
                     case ThemeMode.HighContrast: return Rgb(0, 0, 0);
                     case ThemeMode.DarkGold: return Rgb(255, 255, 255);
                     case ThemeMode.Mocha: return Rgb(255, 255, 255);
@@ -609,6 +629,7 @@ namespace Modern.Lab.Theming
                     case ThemeMode.LightPurple: return Rgb(219, 209, 231);
                     case ThemeMode.LightPink: return Rgb(235, 201, 216);
                     case ThemeMode.TokyoDay: return Rgb(208, 213, 227);
+                    case ThemeMode.Mint: return Rgb(161, 222, 210);
                     case ThemeMode.HighContrast: return Rgb(50, 101, 115);
                     case ThemeMode.DarkGold: return Rgb(58, 53, 43);
                     case ThemeMode.Mocha: return Rgb(69, 71, 90);
@@ -633,6 +654,7 @@ namespace Modern.Lab.Theming
                     case ThemeMode.LightPurple: return Rgb(75, 37, 120);
                     case ThemeMode.LightPink: return Rgb(142, 21, 68);
                     case ThemeMode.TokyoDay: return Rgb(42, 74, 153);
+                    case ThemeMode.Mint: return Rgb(13, 61, 56);
                     case ThemeMode.HighContrast: return Rgb(255, 255, 255);
                     case ThemeMode.DarkGold: return Rgb(243, 237, 224);
                     case ThemeMode.Mocha: return Rgb(205, 214, 244);

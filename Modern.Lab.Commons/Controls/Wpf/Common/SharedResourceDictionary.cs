@@ -43,6 +43,7 @@ namespace Modern.Lab.Controls.Wpf.Common
                 case ModernTheme.ThemeMode.Forest: name = "Tokens.Forest.xaml"; break;
                 case ModernTheme.ThemeMode.TokyoNight: name = "Tokens.TokyoNight.xaml"; break;
                 case ModernTheme.ThemeMode.TokyoDay: name = "Tokens.TokyoDay.xaml"; break;
+                case ModernTheme.ThemeMode.Mint: name = "Tokens.Mint.xaml"; break;
                 default: return null;
             }
             return new Uri("/Modern.Lab.Commons;component/Themes/" + name, UriKind.Relative);
