@@ -79,8 +79,8 @@ namespace Modern.Lab.Samples
             }
 
             this.txtDescription.Text = this.cancelMode
-                    ? Services.DefaultDescriptions.ChangeLotSpecCancel
-                    : Services.DefaultDescriptions.ChangeLotSpec;
+                    ? Services.DefaultDescriptions.ChangeSpecLotCancel
+                    : Services.DefaultDescriptions.ChangeSpecLot;
             this.cboProd.DisplayMember = Schemas.Product.DisplayField.Name;
             this.cboProd.ValueMember = Schemas.Product.ValueField.Name;
             this.cboFlow.DisplayMember = Schemas.Flow.DisplayField.Name;

@@ -830,7 +830,7 @@ namespace Modern.Lab.Samples
 
             this.Process(
                     LotManagementPresenter.ActionChangeSpec, lotId,
-                    () => this.ChangeLotSpec(lot, prodId, flowId, operId, description),
+                    () => this.ChangeSpecLot(lot, prodId, flowId, operId, description),
                     "Changing spec of " + lotId + "…",
                     reply => this.ExecuteSearch(true));
         }

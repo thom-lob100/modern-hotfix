@@ -118,10 +118,10 @@ namespace Modern.Lab.Samples
             return this.Request(request.ToString());
         }
 
-        private DataActionResult ChangeLotSpec(
+        private DataActionResult ChangeSpecLot(
                 DataRow lot, string prodId, string flowId, string operId, string description)
         {
-            return this.RequestFields("ChangeLotSpec", "LOT_ID", TableHelper.CellText(lot, "LOT_ID").Trim(),
+            return this.RequestFields("ChangeSpecLot", "LOT_ID", TableHelper.CellText(lot, "LOT_ID").Trim(),
                     "PROD_ID", prodId, "FLOW_ID", flowId, "OPER_ID", operId,
                     "currentOperId", TableHelper.CellText(lot, "OPER_ID").Trim(), "description", description, "USER_ID", this.CurrentUserId);
         }

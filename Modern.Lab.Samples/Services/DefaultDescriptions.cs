@@ -15,8 +15,8 @@ namespace Modern.Lab.Samples.Services
         public const string HoldLot = "Manual Hold Lot";
         public const string ReleaseLot = "Manual Release Lot";
         public const string ScrapLot = "Manual Scrap Lot";
-        public const string ChangeLotSpec = "Manual Change Lot Spec";
-        public const string ChangeLotSpecCancel = "Manual ChangeSpec Cancel";
+        public const string ChangeSpecLot = "Manual Change Lot Spec";
+        public const string ChangeSpecLotCancel = "Manual ChangeSpec Cancel";
         public const string ScrapLotCancel = "Manual Scrap Cancel";
         public const string ReceiveLot = "Manual Receive Lot";
         public const string CreateDurable = "Manual Create Durable";
