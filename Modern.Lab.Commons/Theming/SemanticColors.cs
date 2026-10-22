@@ -16,7 +16,7 @@ namespace Modern.Lab.Theming
     /// 테마 인식:
     ///   - 라이트 계열(Light·파스텔): 화면들이 관행으로 쓰던 파스텔 틴트 그대로
     ///     (기존 화면의 외관이 바뀌지 않는다).
-    ///   - Dark·DarkGold·Mocha·Forest: 어두운 칩 — Palette의 같은 테마 칩과 같은 채도/명도.
+    ///   - Dark·DarkGold·Mocha·Forest·TokyoNight: 어두운 칩 — Palette의 같은 테마 칩과 같은 채도/명도.
     ///   - CrimsonGray(미드 그레이): 뮤트한 밝은 칩. OrangeBlue·GreenTomato 는 라이트 틴트.
     ///   - HighContrast: 검정 위 밝은 고채도 칩.
     ///
@@ -54,6 +54,8 @@ namespace Modern.Lab.Theming
         private const double mochaChipLightness = 0.36;
         private const double forestChipSaturation = 0.36;
         private const double forestChipLightness = 0.36;
+        private const double tokyoNightChipSaturation = 0.42;
+        private const double tokyoNightChipLightness = 0.33;
 
         /// <summary>정상·완료·가능 (현재 테마 기준).</summary>
         public static string Success
@@ -269,6 +271,9 @@ namespace Modern.Lab.Theming
                     return Palette.ToHex(hue / 360.0, mochaChipSaturation, mochaChipLightness);
                 case ModernTheme.ThemeMode.Forest:
                     return Palette.ToHex(hue / 360.0, forestChipSaturation, forestChipLightness);
+                case ModernTheme.ThemeMode.TokyoNight:
+                    return Palette.ToHex(
+                            hue / 360.0, tokyoNightChipSaturation, tokyoNightChipLightness);
                 default:
                     return lightTint;
             }

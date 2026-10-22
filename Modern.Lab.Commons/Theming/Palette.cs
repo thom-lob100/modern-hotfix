@@ -18,7 +18,7 @@ namespace Modern.Lab.Theming
     ///     연속 색이 서로 최대한 벌어지고, 종류 수가 늘어도 앞쪽 색이 바뀌지 않는다
     ///     (prefix 안정 — 상태 종류가 추가돼도 기존 상태의 색이 유지된다).
     ///     채도/명도는 테마 성격을 따른다: 라이트 계열은 파스텔,
-    ///     Dark·DarkGold·Mocha·Forest는 어두운 칩, CrimsonGray(미드 그레이
+    ///     Dark·DarkGold·Mocha·Forest·TokyoNight는 어두운 칩, CrimsonGray(미드 그레이
     ///     표면)는 뮤트한 밝은 칩, OrangeBlue·GreenTomato 는 라이트 틴트, HighContrast는 검정 위 밝은 고채도 칩.
     ///   - 값 유도색(<see cref="FromValue(string)"/>): 값 글자의 해시가 색상 9 × 톤 2 = 18칸 중
     ///     하나를 고른다. 색은 값에서만 나오므로 화면·컬럼이 달라도 같은 값은 같은 색이고,
@@ -181,6 +181,7 @@ namespace Modern.Lab.Theming
                 case ModernTheme.ThemeMode.DarkGold:
                 case ModernTheme.ThemeMode.Mocha:
                 case ModernTheme.ThemeMode.Forest:
+                case ModernTheme.ThemeMode.TokyoNight:
                     return false;
                 default:
                     return true;
@@ -280,6 +281,11 @@ namespace Modern.Lab.Theming
                     // 그린그레이 표면(#343F44) 위 어두운 칩 — Mocha 와 같은 단, 채도는 Everforest 처럼 낮춘다.
                     saturation = 0.36;
                     lightness = 0.36;
+                    return;
+                case ModernTheme.ThemeMode.TokyoNight:
+                    // 딥 네이비 표면(#24283B) 위 어두운 칩 — Dark 와 같은 레시피에 반 톤 밝게.
+                    saturation = 0.42;
+                    lightness = 0.33;
                     return;
                 default:
                     // Light·파스텔 계열 — 액센트 Hue에서 시작하는 파스텔.
