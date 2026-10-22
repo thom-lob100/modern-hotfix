@@ -8,7 +8,7 @@ namespace Modern.Lab.Samples.Services
         public const string JobPrepareCancel = "Manual JobPrepare Cancel";
         public const string JobStartCancel = "Manual JobStart Cancel";
         public const string BackToPrevOper = "Manual Back to Prev Oper";
-        public const string CancelOper = "Manual Cancel Oper";
+        public const string SkipOper = "Manual Skip Oper";
         public const string CreateLot = "Manual Create Lot";
         public const string CreateChip = "Manual Create Chip";
         public const string CreateLamella = "Manual Create Lamella";
@@ -51,8 +51,8 @@ namespace Modern.Lab.Samples.Services
                 case EquipmentLotPresenter.ActionJobStartCancel:
                     return JobStartCancel;
 
-                case EquipmentLotPresenter.ActionCancelOper:
-                    return CancelOper;
+                case EquipmentLotPresenter.ActionSkipOper:
+                    return SkipOper;
 
                 case EquipmentLotPresenter.ActionBackToPrevOper:
                     return BackToPrevOper;
