@@ -39,6 +39,7 @@ namespace Modern.Lab.Controls.Wpf.Common
                 case ModernTheme.ThemeMode.HighContrast: name = "Tokens.HighContrast.xaml"; break;
                 case ModernTheme.ThemeMode.DarkGold: name = "Tokens.DarkGold.xaml"; break;
                 case ModernTheme.ThemeMode.LightPink: name = "Tokens.LightPink.xaml"; break;
+                case ModernTheme.ThemeMode.Mocha: name = "Tokens.Mocha.xaml"; break;
                 default: return null;
             }
             return new Uri("/Modern.Lab.Commons;component/Themes/" + name, UriKind.Relative);

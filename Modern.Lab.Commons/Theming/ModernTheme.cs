@@ -24,6 +24,7 @@ namespace Modern.Lab.Theming
     ///   - DarkGold: 웜 차콜(#1A1814/#24211B) 면 + 골드(#E0B45A) 액센트 + 딥 틸(#1F4F5A) 선택,
     ///     경고는 골드와 겹치지 않게 오렌지 (2026-10-21).
     ///   - LightPurple: Fluent 퍼플(#5C2E91) 액센트 + 라벤더 파스텔 뉴트럴.
+    ///   - Mocha: Catppuccin Mocha — 네이비퍼플(#1E1E2E/#313244) 면 + 라벤더(#CBA6F7) 액센트 + 딥 모브(#5B4A8C) 선택 (2026-10-22).
     ///   - LightPink: LightPurple 과 같은 구조의 핑크 — 라즈베리(#BD1558) 액센트 + 핑크 파스텔(#F6D9E6) 뉴트럴 (2026-10-22).
     ///   - HighContrast: 접근성/현장 시인성 고대비 — 순검정 면 + 순백 텍스트/테두리,
     ///     밝은 시안(#6FE0FF) 액센트, 시맨틱은 고채도 밝은 색.
@@ -70,7 +71,10 @@ namespace Modern.Lab.Theming
             DarkGold = 12,
 
             /// <summary>라즈베리 핑크(#BD1558) 액센트 + 핑크 파스텔(#F6D9E6) 테마 — LightPurple 과 같은 구조 (라이트 기반).</summary>
-            LightPink = 13
+            LightPink = 13,
+
+            /// <summary>Catppuccin Mocha — 네이비퍼플(#1E1E2E/#313244) 면 + 라벤더(#CBA6F7) 액센트 + 딥 모브 선택 (어두운 계열).</summary>
+            Mocha = 14
         }
 
         /// <summary>현재 테마. 앱 시작 시 한 번 설정한다.</summary>
@@ -134,7 +138,7 @@ namespace Modern.Lab.Theming
 
         /// <summary>
         /// 어두운 표면 계열 테마 여부 (Dark, CrimsonGray, HighContrast,
-        /// DarkGold) — 다크 타이틀바, 밝은 텍스트 등 "어두운 화면" 공통 처리가 걸리는 기준.
+        /// DarkGold, Mocha) — 다크 타이틀바, 밝은 텍스트 등 "어두운 화면" 공통 처리가 걸리는 기준.
         /// </summary>
         public static bool IsDarkBased
         {
@@ -143,7 +147,8 @@ namespace Modern.Lab.Theming
                 return Mode == ThemeMode.Dark
                         || Mode == ThemeMode.CrimsonGray
                         || Mode == ThemeMode.HighContrast
-                        || Mode == ThemeMode.DarkGold;
+                        || Mode == ThemeMode.DarkGold
+                        || Mode == ThemeMode.Mocha;
             }
         }
 
@@ -162,6 +167,7 @@ namespace Modern.Lab.Theming
                     case ThemeMode.CrimsonGray: return Rgb(88, 88, 88);
                     case ThemeMode.HighContrast: return Rgb(0, 0, 0);
                     case ThemeMode.DarkGold: return Rgb(36, 33, 27);
+                    case ThemeMode.Mocha: return Rgb(49, 50, 68);
                     default: return Rgb(255, 255, 255);
                 }
             }
@@ -182,6 +188,7 @@ namespace Modern.Lab.Theming
                     case ThemeMode.LightPink: return Rgb(246, 217, 230);
                     case ThemeMode.HighContrast: return Rgb(0, 0, 0);
                     case ThemeMode.DarkGold: return Rgb(26, 24, 20);
+                    case ThemeMode.Mocha: return Rgb(30, 30, 46);
                     default: return Rgb(243, 244, 246);
                 }
             }
@@ -202,6 +209,7 @@ namespace Modern.Lab.Theming
                     case ThemeMode.LightPink: return Rgb(230, 169, 198);
                     case ThemeMode.HighContrast: return Rgb(255, 255, 255);
                     case ThemeMode.DarkGold: return Rgb(68, 61, 48);
+                    case ThemeMode.Mocha: return Rgb(88, 91, 112);
                     default: return Rgb(209, 213, 219);
                 }
             }
@@ -222,6 +230,7 @@ namespace Modern.Lab.Theming
                     case ThemeMode.LightPink: return Rgb(242, 207, 223);
                     case ThemeMode.HighContrast: return Rgb(157, 157, 157);
                     case ThemeMode.DarkGold: return Rgb(54, 48, 42);
+                    case ThemeMode.Mocha: return Rgb(69, 71, 90);
                     default: return Rgb(229, 231, 235);
                 }
             }
@@ -242,6 +251,7 @@ namespace Modern.Lab.Theming
                     case ThemeMode.LightPink: return Rgb(27, 27, 27);
                     case ThemeMode.HighContrast: return Rgb(255, 255, 255);
                     case ThemeMode.DarkGold: return Rgb(243, 237, 224);
+                    case ThemeMode.Mocha: return Rgb(205, 214, 244);
                     default: return Rgb(17, 24, 39);
                 }
             }
@@ -267,6 +277,7 @@ namespace Modern.Lab.Theming
                     case ThemeMode.CrimsonGray: return Rgb(255, 151, 160);
                     case ThemeMode.HighContrast: return Rgb(255, 80, 80);
                     case ThemeMode.DarkGold: return Rgb(255, 138, 138);
+                    case ThemeMode.Mocha: return Rgb(243, 139, 168);
                     case ThemeMode.LightPurple: return Rgb(196, 43, 28);
                     case ThemeMode.LightPink: return Rgb(196, 43, 28);
                     default: return Rgb(220, 38, 38);
@@ -289,6 +300,7 @@ namespace Modern.Lab.Theming
                     case ThemeMode.LightPink: return Rgb(93, 93, 93);
                     case ThemeMode.HighContrast: return Rgb(224, 224, 224);
                     case ThemeMode.DarkGold: return Rgb(201, 191, 168);
+                    case ThemeMode.Mocha: return Rgb(186, 194, 222);
                     default: return Rgb(107, 114, 128);
                 }
             }
@@ -309,6 +321,7 @@ namespace Modern.Lab.Theming
                     case ThemeMode.LightPink: return Rgb(157, 157, 157);
                     case ThemeMode.HighContrast: return Rgb(141, 141, 141);
                     case ThemeMode.DarkGold: return Rgb(126, 116, 98);
+                    case ThemeMode.Mocha: return Rgb(108, 112, 134);
                     default: return Rgb(156, 163, 175);
                 }
             }
@@ -337,6 +350,7 @@ namespace Modern.Lab.Theming
                 case ThemeMode.LightPink: return Rgb(189, 21, 88);
                 case ThemeMode.HighContrast: return Rgb(111, 224, 255);
                 case ThemeMode.DarkGold: return Rgb(224, 180, 90);
+                case ThemeMode.Mocha: return Rgb(203, 166, 247);
                 default: return Rgb(0, 120, 212);
             }
         }
@@ -356,6 +370,7 @@ namespace Modern.Lab.Theming
                     case ThemeMode.LightPink: return Rgb(196, 43, 28);
                     case ThemeMode.HighContrast: return Rgb(255, 80, 80);
                     case ThemeMode.DarkGold: return Rgb(255, 138, 138);
+                    case ThemeMode.Mocha: return Rgb(243, 139, 168);
                     default: return Rgb(220, 38, 38);
                 }
             }
@@ -384,6 +399,7 @@ namespace Modern.Lab.Theming
                 case ThemeMode.LightPink: return Rgb(240, 240, 240);
                 case ThemeMode.HighContrast: return Rgb(30, 30, 30);
                 case ThemeMode.DarkGold: return Rgb(58, 53, 43);
+                case ThemeMode.Mocha: return Rgb(69, 71, 90);
                 default: return Rgb(243, 244, 246);
             }
         }
@@ -403,6 +419,7 @@ namespace Modern.Lab.Theming
                     case ThemeMode.LightPink: return Rgb(59, 59, 59);
                     case ThemeMode.HighContrast: return Rgb(255, 255, 255);
                     case ThemeMode.DarkGold: return Rgb(230, 223, 208);
+                    case ThemeMode.Mocha: return Rgb(226, 230, 245);
                     default: return Rgb(55, 65, 81);
                 }
             }
@@ -423,6 +440,7 @@ namespace Modern.Lab.Theming
                     case ThemeMode.LightPink: return Rgb(246, 193, 214);
                     case ThemeMode.HighContrast: return Rgb(111, 224, 255);
                     case ThemeMode.DarkGold: return Rgb(31, 79, 90);
+                    case ThemeMode.Mocha: return Rgb(91, 74, 140);
                     default: return Rgb(182, 217, 242);
                 }
             }
@@ -443,6 +461,7 @@ namespace Modern.Lab.Theming
                     case ThemeMode.LightPink: return Rgb(251, 237, 243);
                     case ThemeMode.HighContrast: return Rgb(16, 16, 16);
                     case ThemeMode.DarkGold: return Rgb(43, 39, 32);
+                    case ThemeMode.Mocha: return Rgb(56, 58, 78);
                     default: return Rgb(249, 250, 251);
                 }
             }
@@ -463,6 +482,7 @@ namespace Modern.Lab.Theming
                     case ThemeMode.LightPink: return Rgb(240, 196, 216);
                     case ThemeMode.HighContrast: return Rgb(20, 20, 20);
                     case ThemeMode.DarkGold: return Rgb(46, 42, 34);
+                    case ThemeMode.Mocha: return Rgb(69, 71, 90);
                     default: return Rgb(239, 243, 250);
                 }
             }
@@ -483,6 +503,7 @@ namespace Modern.Lab.Theming
                     case ThemeMode.LightPink: return Rgb(252, 243, 247);
                     case ThemeMode.HighContrast: return Rgb(10, 10, 10);
                     case ThemeMode.DarkGold: return Rgb(40, 36, 30);
+                    case ThemeMode.Mocha: return Rgb(53, 54, 73);
                     default: return Rgb(246, 247, 249);
                 }
             }
@@ -503,6 +524,7 @@ namespace Modern.Lab.Theming
                     case ThemeMode.LightPink: return Rgb(122, 16, 56);
                     case ThemeMode.HighContrast: return Rgb(0, 0, 0);
                     case ThemeMode.DarkGold: return Rgb(255, 255, 255);
+                    case ThemeMode.Mocha: return Rgb(255, 255, 255);
                     default: return Rgb(0, 90, 158);
                 }
             }
@@ -524,6 +546,7 @@ namespace Modern.Lab.Theming
                     case ThemeMode.LightPink: return Rgb(235, 201, 216);
                     case ThemeMode.HighContrast: return Rgb(50, 101, 115);
                     case ThemeMode.DarkGold: return Rgb(58, 53, 43);
+                    case ThemeMode.Mocha: return Rgb(69, 71, 90);
                     default: return Rgb(199, 225, 246);
                 }
             }
@@ -544,6 +567,7 @@ namespace Modern.Lab.Theming
                     case ThemeMode.LightPink: return Rgb(142, 21, 68);
                     case ThemeMode.HighContrast: return Rgb(255, 255, 255);
                     case ThemeMode.DarkGold: return Rgb(243, 237, 224);
+                    case ThemeMode.Mocha: return Rgb(205, 214, 244);
                     default: return Rgb(0, 90, 158);
                 }
             }
