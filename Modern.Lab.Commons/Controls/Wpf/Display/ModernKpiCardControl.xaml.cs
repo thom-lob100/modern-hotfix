@@ -140,6 +140,8 @@ namespace Modern.Lab.Controls.Wpf.Display
         private const double sweepShineMix = 0.8d;
         // 강조 재생 전의 값 글자 전경 — 재생이 끝나면 이 브러시로 되돌린다.
         private Brush valueRestBrush;
+        // 아래 줄(BottomLabel) 강조 재생 전의 전경 — 자식 장비 줄처럼 값은 그대로인데 아래 줄만 바뀐 때 돌린다(2026-10-22).
+        private Brush bottomLabelRestBrush;
 
         public ModernKpiCardControl()
         {
@@ -212,6 +214,9 @@ namespace Modern.Lab.Controls.Wpf.Display
         /// <summary>지금까지 값 변경 강조가 재생된 횟수 — 자체 검사가 "언제 재생되는가"를 확인하는 데 쓴다.</summary>
         public int ValueSweepCount { get; private set; }
 
+        /// <summary>아래 줄(BottomLabel) 강조가 재생된 횟수.</summary>
+        public int BottomLabelSweepCount { get; private set; }
+
         private static void OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             ModernKpiCardControl card = (ModernKpiCardControl)d;
@@ -245,7 +250,7 @@ namespace Modern.Lab.Controls.Wpf.Display
         //   ① 값 글자가 액센트색으로 바뀌고 그 위로 밝은 띠가 왼쪽에서 오른쪽으로 두 번 지나간다.
         //   ② 띠가 끝나면 글자가 액센트색에서 원래 색으로 서서히 돌아온다.
         // 처음 넣은 것(본문색 글자 위로 액센트 띠 한 번)은 눈에 띄지 않았고, 카드 배경까지 켜는 것은 뺐다(2026-10-03 사용자 확인).
-        /// <summary>값 글자 위로 빛띠를 한 번 돌린다 — 값은 같지만 딸린 줄(자식 장비 등)이 바뀌어 눈에 띄게 할 때 호출한다.</summary>
+        /// <summary>값 글자 위로 빛띠를 한 번 돌린다 — 값이 바뀌었을 때(자동) 또는 화면이 직접 부를 때.</summary>
         public void PlayValueSweep()
         {
             this.ValueSweepCount = this.ValueSweepCount + 1;
@@ -255,7 +260,25 @@ namespace Modern.Lab.Controls.Wpf.Display
                 this.valueRestBrush = this.ValueText.Foreground;
             }
 
-            int serial = this.ValueSweepCount;
+            this.PlaySweep(this.ValueText, this.ValueSweepCount, this.valueRestBrush, true);
+        }
+
+        /// <summary>아래 줄(BottomLabel) 글자 위로 빛띠를 한 번 돌린다 — 값은 그대로인데 아래 줄(자식 장비 등)만 바뀐 때 화면이 부른다(2026-10-22).</summary>
+        public void PlayBottomLabelSweep()
+        {
+            this.BottomLabelSweepCount = this.BottomLabelSweepCount + 1;
+
+            if (this.bottomLabelRestBrush == null)
+            {
+                this.bottomLabelRestBrush = this.BottomLabelText.Foreground;
+            }
+
+            this.PlaySweep(this.BottomLabelText, this.BottomLabelSweepCount, this.bottomLabelRestBrush, false);
+        }
+
+        // 값 줄과 아래 줄이 같은 빛띠를 쓴다 — serial 은 재생 중에 같은 줄이 또 재생됐는지 가리는 번호(isValue 가 어느 줄의 번호인지 고른다).
+        private void PlaySweep(TextBlock text, int serial, Brush restBrush, bool isValue)
+        {
             Color rest = this.ResourceColor("Brush.TextPrimary", Colors.Black);
             Color accent = this.ResourceColor("Brush.Accent", Colors.DodgerBlue);
             Color shine = ChipColorHelper.Blend(accent, Colors.White, sweepShineMix);
@@ -270,7 +293,7 @@ namespace Modern.Lab.Controls.Wpf.Display
             sweep.GradientStops.Add(before);
             sweep.GradientStops.Add(peak);
             sweep.GradientStops.Add(after);
-            this.ValueText.Foreground = sweep;
+            text.Foreground = sweep;
 
             double travel = 1d + sweepBandWidth * 2d;
             Duration pass = new Duration(TimeSpan.FromMilliseconds(sweepMilliseconds));
@@ -287,24 +310,24 @@ namespace Modern.Lab.Controls.Wpf.Display
             middle.RepeatBehavior = twice;
             tail.RepeatBehavior = twice;
 
-            // 띠가 끝나면 액센트색에서 원래 색으로 서서히 — 재생 중에 값이 또 바뀌어 새 강조가 시작됐으면 건드리지 않는다.
+            // 띠가 끝나면 액센트색에서 원래 색으로 서서히 — 재생 중에 또 바뀌어 새 강조가 시작됐으면 건드리지 않는다.
             tail.Completed += delegate
             {
-                if (serial != this.ValueSweepCount)
+                if (serial != (isValue ? this.ValueSweepCount : this.BottomLabelSweepCount))
                 {
                     return;
                 }
 
                 SolidColorBrush settle = new SolidColorBrush(accent);
-                this.ValueText.Foreground = settle;
+                text.Foreground = settle;
 
                 System.Windows.Media.Animation.ColorAnimation fade = new System.Windows.Media.Animation.ColorAnimation(
                         rest, new Duration(TimeSpan.FromMilliseconds(settleMilliseconds)));
                 fade.Completed += delegate
                 {
-                    if (serial == this.ValueSweepCount)
+                    if (serial == (isValue ? this.ValueSweepCount : this.BottomLabelSweepCount))
                     {
-                        this.ValueText.Foreground = this.valueRestBrush;
+                        text.Foreground = restBrush;
                     }
                 };
                 settle.BeginAnimation(SolidColorBrush.ColorProperty, fade);

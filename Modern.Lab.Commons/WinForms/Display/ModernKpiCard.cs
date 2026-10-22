@@ -218,6 +218,15 @@ namespace Modern.Lab.WinForms.Controls.Display
             }
         }
 
+        /// <summary>아래 줄(<see cref="BottomLabel"/>) 글자 위로 빛띠를 한 번 돌린다 — 값은 그대로인데 아래 줄(자식 장비 등)만 바뀐 때 화면이 부른다(2026-10-22).</summary>
+        public void PlayBottomLabelSweep()
+        {
+            if (this.Wpf != null)
+            {
+                this.Wpf.PlayBottomLabelSweep();
+            }
+        }
+
         /// <summary>값 위에 표시되는 캡션.</summary>
         [Category("Modern")]
         [Description("Title shown above the value")]

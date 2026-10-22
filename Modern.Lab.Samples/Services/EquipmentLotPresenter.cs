@@ -588,7 +588,6 @@ namespace Modern.Lab.Samples.Services
             }
         }
 
-        public const int LotIdSingleLineLength = 13;
 
         public static void LotIdCardLines(string lotId, out string value, out string bottomLabel)
         {
@@ -596,20 +595,6 @@ namespace Modern.Lab.Samples.Services
             value = id;
             bottomLabel = string.Empty;
 
-            if (id.Length <= LotIdSingleLineLength)
-            {
-                return;
-            }
-
-            int dash = id.IndexOf('-');
-
-            if (dash <= 0)
-            {
-                return;
-            }
-
-            value = id.Substring(0, dash);
-            bottomLabel = id.Substring(dash);
         }
 
         public static string LotFlowOper(DataRow lot)
