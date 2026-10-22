@@ -80,6 +80,14 @@
     <Compile Include="ModernFormBase.Messaging.cs" />
     <Compile Include="ModernFormBase.RequestInfo.cs" />
     <Compile Include="ModernFormBase.RuleGuide.cs" />
+    <Compile Include="ModernFormBase.Theme.cs" />
+    <Compile Include="Theming\ModernThemeSetting.cs" />
+    <Compile Include="Theming\ModernThemeDialogForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Theming\ModernThemeDialogForm.Designer.cs">
+      <DependentUpon>ModernThemeDialogForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="ModernLoadCover.cs" />
     <Compile Include="ResponseContracts\TableReception.cs" />
     <Compile Include="NewItems\NewItemTracker.cs" />

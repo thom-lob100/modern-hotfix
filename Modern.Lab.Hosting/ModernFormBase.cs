@@ -147,6 +147,13 @@ namespace Modern.Lab.Hosting
             return null;
         }
 
+        /// <summary>테마 설정 창(<c>ModernThemeDialogForm</c>)을 여는 단축키 — 기본 Ctrl+Shift+T, <see cref="Keys.None"/> 이면 없음(2026-10-23).
+        /// 회사는 <c>ModernFormBase.Host.cs</c> 의 <c>AdaptToHost()</c> 에서 겹치지 않는 키로 바꾼다. 테마는 정적 값이라 저장 뒤 다음 실행부터 적용된다.</summary>
+        public static Keys ThemeDialogShortcut { get; set; } = Keys.Control | Keys.Shift | Keys.T;
+
+        // 테마 설정 창 연결(ModernFormBase.Theme.cs) — 그 파일을 함께 컴파일하지 않는 프로젝트(갤러리)에서는 빈 호출이다.
+        partial void ThemeDialogProcessCmdKey(Keys keyData, ref bool handled);
+
         // 규칙 안내 창 연결(ModernFormBase.RuleGuide.cs) — 그 파일을 함께 컴파일하지 않는 프로젝트(갤러리)에서는 빈 호출이다.
         partial void RuleGuideProcessCmdKey(Keys keyData, ref bool handled);
 
@@ -162,6 +169,13 @@ namespace Modern.Lab.Hosting
         {
             bool handled = false;
             this.RuleGuideProcessCmdKey(keyData, ref handled);
+
+            if (handled)
+            {
+                return true;
+            }
+
+            this.ThemeDialogProcessCmdKey(keyData, ref handled);
 
             if (handled)
             {
