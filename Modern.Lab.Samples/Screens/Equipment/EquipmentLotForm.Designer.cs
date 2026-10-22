@@ -798,6 +798,7 @@ namespace Modern.Lab.Samples
             this.kpiEquipment.Location = new System.Drawing.Point(4, 4);
             this.kpiEquipment.Margin = new System.Windows.Forms.Padding(4);
             this.kpiEquipment.HighlightValueChange = true;
+            this.kpiEquipment.BottomLabelEmphasis = true;
             this.kpiEquipment.Name = "kpiEquipment";
             this.kpiEquipment.Size = new System.Drawing.Size(246, 96);
             this.kpiEquipment.TabIndex = 0;

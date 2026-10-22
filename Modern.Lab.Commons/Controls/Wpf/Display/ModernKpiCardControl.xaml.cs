@@ -68,6 +68,14 @@ namespace Modern.Lab.Controls.Wpf.Display
                 typeof(ModernKpiCardControl),
                 new PropertyMetadata(string.Empty));
 
+        /// <summary>값 아래 줄을 강조할지 — 참이면 BodyLg(14) 세미볼드 본문색으로 그린다(결정 패널의 자식 장비 줄, 2026-10-22). 기본 false.</summary>
+        public static readonly DependencyProperty BottomLabelEmphasisProperty =
+            DependencyProperty.Register(
+                "BottomLabelEmphasis",
+                typeof(bool),
+                typeof(ModernKpiCardControl),
+                new PropertyMetadata(false));
+
         /// <summary>카드 색조("#RRGGBB"). 빈 문자열이면 기본 카드 표면 그대로.</summary>
         public static readonly DependencyProperty ToneProperty =
             DependencyProperty.Register(
@@ -171,6 +179,13 @@ namespace Modern.Lab.Controls.Wpf.Display
         {
             get { return (string)this.GetValue(BottomLabelProperty); }
             set { this.SetValue(BottomLabelProperty, value); }
+        }
+
+        /// <summary>값 아래 줄을 강조할지(BodyLg 세미볼드 본문색). 기본 false.</summary>
+        public bool BottomLabelEmphasis
+        {
+            get { return (bool)this.GetValue(BottomLabelEmphasisProperty); }
+            set { this.SetValue(BottomLabelEmphasisProperty, value); }
         }
 
         /// <summary>카드 색조("#RRGGBB"). 빈 문자열이면 기본 카드 표면 그대로.</summary>

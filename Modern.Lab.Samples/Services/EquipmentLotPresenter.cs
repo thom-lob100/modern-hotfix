@@ -588,7 +588,7 @@ namespace Modern.Lab.Samples.Services
             }
         }
 
-        public const int LotIdSingleLineLength = 12;
+        public const int LotIdSingleLineLength = 13;
 
         public static void LotIdCardLines(string lotId, out string value, out string bottomLabel)
         {

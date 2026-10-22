@@ -23,6 +23,7 @@ namespace Modern.Lab.WinForms.Controls.Display
         private string fallbackBottomLabel;
         private string fallbackTone;
         private bool fallbackHighlightValueChange;
+        private bool fallbackBottomLabelEmphasis;
 
         /// <summary>적절한 기본 크기로 컨트롤을 생성한다.</summary>
         public ModernKpiCard()
@@ -178,6 +179,32 @@ namespace Modern.Lab.WinForms.Controls.Display
                 if (this.Wpf != null)
                 {
                     this.Wpf.HighlightValueChange = value;
+                }
+            }
+        }
+
+        /// <summary>값 아래 줄(<see cref="BottomLabel"/>)을 강조할지 — 참이면 BodyLg(14) 세미볼드 본문색(기본 false, 보조 글씨 10).</summary>
+        [Category("Modern")]
+        [Description("Draw the bottom label as a second value line (larger, semibold) instead of a small caption")]
+        [DefaultValue(false)]
+        public bool BottomLabelEmphasis
+        {
+            get
+            {
+                if (this.Wpf != null)
+                {
+                    return this.Wpf.BottomLabelEmphasis;
+                }
+
+                return this.fallbackBottomLabelEmphasis;
+            }
+            set
+            {
+                this.fallbackBottomLabelEmphasis = value;
+
+                if (this.Wpf != null)
+                {
+                    this.Wpf.BottomLabelEmphasis = value;
                 }
             }
         }
