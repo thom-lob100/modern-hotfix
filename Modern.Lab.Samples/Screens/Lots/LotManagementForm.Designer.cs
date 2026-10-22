@@ -549,9 +549,9 @@ namespace Modern.Lab.Samples
             //
             this.ddbScrap.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.ddbScrap.Kind = Modern.Lab.Controls.Wpf.Input.ButtonKind.Execute;
-            this.ddbScrap.Location = new System.Drawing.Point(1664, 12);
+            this.ddbScrap.Location = new System.Drawing.Point(1652, 12);
             this.ddbScrap.Name = "ddbScrap";
-            this.ddbScrap.Size = new System.Drawing.Size(100, 32);
+            this.ddbScrap.Size = new System.Drawing.Size(112, 32);
             this.ddbScrap.TabIndex = 4;
             this.ddbScrap.Text = "Scrap";
             this.ddbScrap.ItemClicked += new System.EventHandler<Modern.Lab.Controls.Wpf.Input.DropDownItemClickedEventArgs>(this.OnActionClicked);
@@ -561,7 +561,7 @@ namespace Modern.Lab.Samples
             //
             this.ddbChangeSpec.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.ddbChangeSpec.Kind = Modern.Lab.Controls.Wpf.Input.ButtonKind.Execute;
-            this.ddbChangeSpec.Location = new System.Drawing.Point(1532, 12);
+            this.ddbChangeSpec.Location = new System.Drawing.Point(1520, 12);
             this.ddbChangeSpec.Name = "ddbChangeSpec";
             this.ddbChangeSpec.Size = new System.Drawing.Size(124, 32);
             this.ddbChangeSpec.TabIndex = 3;
@@ -573,9 +573,9 @@ namespace Modern.Lab.Samples
             //
             this.ddbHold.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.ddbHold.Kind = Modern.Lab.Controls.Wpf.Input.ButtonKind.Execute;
-            this.ddbHold.Location = new System.Drawing.Point(1428, 12);
+            this.ddbHold.Location = new System.Drawing.Point(1400, 12);
             this.ddbHold.Name = "ddbHold";
-            this.ddbHold.Size = new System.Drawing.Size(96, 32);
+            this.ddbHold.Size = new System.Drawing.Size(112, 32);
             this.ddbHold.TabIndex = 2;
             this.ddbHold.Text = "Hold";
             this.ddbHold.ItemClicked += new System.EventHandler<Modern.Lab.Controls.Wpf.Input.DropDownItemClickedEventArgs>(this.OnActionClicked);
@@ -585,9 +585,9 @@ namespace Modern.Lab.Samples
             //
             this.ddbCreate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.ddbCreate.Kind = Modern.Lab.Controls.Wpf.Input.ButtonKind.Execute;
-            this.ddbCreate.Location = new System.Drawing.Point(1316, 12);
+            this.ddbCreate.Location = new System.Drawing.Point(1280, 12);
             this.ddbCreate.Name = "ddbCreate";
-            this.ddbCreate.Size = new System.Drawing.Size(104, 32);
+            this.ddbCreate.Size = new System.Drawing.Size(112, 32);
             this.ddbCreate.TabIndex = 1;
             this.ddbCreate.Text = "Create";
             this.ddbCreate.ItemClicked += new System.EventHandler<Modern.Lab.Controls.Wpf.Input.DropDownItemClickedEventArgs>(this.OnActionClicked);

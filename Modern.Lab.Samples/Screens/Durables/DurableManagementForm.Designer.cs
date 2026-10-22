@@ -649,7 +649,7 @@ namespace Modern.Lab.Samples
             //
             this.ddbRegister.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.ddbRegister.Kind = Modern.Lab.Controls.Wpf.Input.ButtonKind.Execute;
-            this.ddbRegister.Location = new System.Drawing.Point(1192, 12);
+            this.ddbRegister.Location = new System.Drawing.Point(1160, 12);
             this.ddbRegister.Name = "ddbRegister";
             this.ddbRegister.Size = new System.Drawing.Size(112, 32);
             this.ddbRegister.TabIndex = 1;
@@ -661,9 +661,9 @@ namespace Modern.Lab.Samples
             //
             this.ddbHold.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.ddbHold.Kind = Modern.Lab.Controls.Wpf.Input.ButtonKind.Execute;
-            this.ddbHold.Location = new System.Drawing.Point(1312, 12);
+            this.ddbHold.Location = new System.Drawing.Point(1280, 12);
             this.ddbHold.Name = "ddbHold";
-            this.ddbHold.Size = new System.Drawing.Size(96, 32);
+            this.ddbHold.Size = new System.Drawing.Size(112, 32);
             this.ddbHold.TabIndex = 2;
             this.ddbHold.Text = "Hold";
             this.ddbHold.ItemClicked += new System.EventHandler<Modern.Lab.Controls.Wpf.Input.DropDownItemClickedEventArgs>(this.OnActionClicked);
@@ -673,7 +673,7 @@ namespace Modern.Lab.Samples
             //
             this.ddbMoveWafer.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.ddbMoveWafer.Kind = Modern.Lab.Controls.Wpf.Input.ButtonKind.Execute;
-            this.ddbMoveWafer.Location = new System.Drawing.Point(1416, 12);
+            this.ddbMoveWafer.Location = new System.Drawing.Point(1400, 12);
             this.ddbMoveWafer.Name = "ddbMoveWafer";
             this.ddbMoveWafer.Size = new System.Drawing.Size(124, 32);
             this.ddbMoveWafer.TabIndex = 3;
@@ -684,10 +684,10 @@ namespace Modern.Lab.Samples
             // btnTransport
             //
             this.btnTransport.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnTransport.Location = new System.Drawing.Point(1548, 12);
+            this.btnTransport.Location = new System.Drawing.Point(1532, 12);
             this.btnTransport.Kind = Modern.Lab.Controls.Wpf.Input.ButtonKind.Execute;
             this.btnTransport.Name = "btnTransport";
-            this.btnTransport.Size = new System.Drawing.Size(108, 32);
+            this.btnTransport.Size = new System.Drawing.Size(112, 32);
             this.btnTransport.TabIndex = 4;
             this.btnTransport.Text = "Transport";
             this.btnTransport.Click += new System.EventHandler(this.OnTransportClick);
@@ -697,9 +697,9 @@ namespace Modern.Lab.Samples
             //
             this.ddbScrap.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.ddbScrap.Kind = Modern.Lab.Controls.Wpf.Input.ButtonKind.Execute;
-            this.ddbScrap.Location = new System.Drawing.Point(1664, 12);
+            this.ddbScrap.Location = new System.Drawing.Point(1652, 12);
             this.ddbScrap.Name = "ddbScrap";
-            this.ddbScrap.Size = new System.Drawing.Size(100, 32);
+            this.ddbScrap.Size = new System.Drawing.Size(112, 32);
             this.ddbScrap.TabIndex = 5;
             this.ddbScrap.Text = "Scrap";
             this.ddbScrap.ItemClicked += new System.EventHandler<Modern.Lab.Controls.Wpf.Input.DropDownItemClickedEventArgs>(this.OnActionClicked);
