@@ -16,10 +16,7 @@ namespace Modern.Lab.Theming
     /// 테마 인식:
     ///   - 라이트 계열(Light·파스텔): 화면들이 관행으로 쓰던 파스텔 틴트 그대로
     ///     (기존 화면의 외관이 바뀌지 않는다).
-    ///   - SolarizedLight: Solarized 원색 계열(olive/amber/red/blue)의 크림 틴트 —
-    ///     Tokens.SolarizedLight.xaml의 상태 배너 배경과 같은 값이라, 배지와
-    ///     배너가 한 색 계열로 보인다.
-    ///   - Dark·SolarizedDark·Nord·DarkGold: 어두운 칩 — Palette의 같은 테마 칩과 같은 채도/명도.
+    ///   - Dark·DarkGold: 어두운 칩 — Palette의 같은 테마 칩과 같은 채도/명도.
     ///   - CrimsonGray(미드 그레이): 뮤트한 밝은 칩. OrangeBlue·GreenTomato 는 라이트 틴트.
     ///   - HighContrast: 검정 위 밝은 고채도 칩.
     ///
@@ -44,15 +41,6 @@ namespace Modern.Lab.Theming
         private const string lightInfo = "#DBEAFE";
         private const string lightAgingOrange = "#FFE0CC";
 
-        // SolarizedLight 전용 틴트 — Tokens.SolarizedLight.xaml의 상태 배너 배경
-        // (Success/Warning/Error/Info Background)과 같은 값. 일반 파스텔로 두면
-        // 다이얼로그/배너(Solarized 원색)와 배지가 다른 색 계열로 갈라진다.
-        private const string solarizedLightSuccess = "#EFF0D4";
-        private const string solarizedLightWarning = "#F7EDCB";
-        private const string solarizedLightError = "#F9E3DD";
-        private const string solarizedLightInfo = "#E3EEF7";
-        private const string solarizedLightAgingOrange = "#F8E3D4";
-
         // Palette의 칩 레시피와 같은 채도/명도 — 두 API의 칩이 한 식구로 보인다.
         private const double darkChipSaturation = 0.42;
         private const double darkChipLightness = 0.30;
@@ -60,10 +48,6 @@ namespace Modern.Lab.Theming
         private const double crimsonChipLightness = 0.80;
         private const double highContrastChipSaturation = 0.85;
         private const double highContrastChipLightness = 0.66;
-        private const double solarizedDarkChipSaturation = 0.35;
-        private const double solarizedDarkChipLightness = 0.28;
-        private const double nordChipSaturation = 0.30;
-        private const double nordChipLightness = 0.32;
         private const double darkGoldChipSaturation = 0.40;
         private const double darkGoldChipLightness = 0.32;
 
@@ -100,25 +84,25 @@ namespace Modern.Lab.Theming
         /// <summary>지정 테마의 정상·완료·가능 색.</summary>
         public static string SuccessOf(ModernTheme.ThemeMode mode)
         {
-            return Chip(mode, successHue, lightSuccess, solarizedLightSuccess);
+            return Chip(mode, successHue, lightSuccess);
         }
 
         /// <summary>지정 테마의 주의·개입 중·대기 색.</summary>
         public static string WarningOf(ModernTheme.ThemeMode mode)
         {
-            return Chip(mode, warningHue, lightWarning, solarizedLightWarning);
+            return Chip(mode, warningHue, lightWarning);
         }
 
         /// <summary>지정 테마의 불가·실패·위험 색.</summary>
         public static string ErrorOf(ModernTheme.ThemeMode mode)
         {
-            return Chip(mode, errorHue, lightError, solarizedLightError);
+            return Chip(mode, errorHue, lightError);
         }
 
         /// <summary>지정 테마의 진행·정보 색.</summary>
         public static string InfoOf(ModernTheme.ThemeMode mode)
         {
-            return Chip(mode, infoHue, lightInfo, solarizedLightInfo);
+            return Chip(mode, infoHue, lightInfo);
         }
 
         /// <summary>지정 테마의 무상태·해당없음 색 — 중립 배지 배경 토큰 그대로.</summary>
@@ -171,7 +155,7 @@ namespace Modern.Lab.Theming
             {
                 InfoOf(mode),
                 WarningOf(mode),
-                Chip(mode, agingOrangeHue, lightAgingOrange, solarizedLightAgingOrange),
+                Chip(mode, agingOrangeHue, lightAgingOrange),
                 ErrorOf(mode)
             };
         }
@@ -260,11 +244,10 @@ namespace Modern.Lab.Theming
             return yes ? SuccessOf(mode) : ErrorOf(mode);
         }
 
-        // 테마 성격에 맞는 칩 하나 — 라이트 계열은 관행 틴트, SolarizedLight는
-        // 전용 크림 틴트, 어두운 계열은 Palette의 같은 테마 칩과 같은
-        // 채도/명도의 HSL 생성.
+        // 테마 성격에 맞는 칩 하나 — 라이트 계열은 관행 틴트, 어두운 계열은
+        // Palette의 같은 테마 칩과 같은 채도/명도의 HSL 생성.
         private static string Chip(
-            ModernTheme.ThemeMode mode, double hue, string lightTint, string solarizedLightTint)
+            ModernTheme.ThemeMode mode, double hue, string lightTint)
         {
             switch (mode)
             {
@@ -275,16 +258,9 @@ namespace Modern.Lab.Theming
                 case ModernTheme.ThemeMode.HighContrast:
                     return Palette.ToHex(
                             hue / 360.0, highContrastChipSaturation, highContrastChipLightness);
-                case ModernTheme.ThemeMode.SolarizedDark:
-                    return Palette.ToHex(
-                            hue / 360.0, solarizedDarkChipSaturation, solarizedDarkChipLightness);
-                case ModernTheme.ThemeMode.Nord:
-                    return Palette.ToHex(hue / 360.0, nordChipSaturation, nordChipLightness);
                 case ModernTheme.ThemeMode.DarkGold:
                     return Palette.ToHex(
                             hue / 360.0, darkGoldChipSaturation, darkGoldChipLightness);
-                case ModernTheme.ThemeMode.SolarizedLight:
-                    return solarizedLightTint;
                 default:
                     return lightTint;
             }

@@ -17,8 +17,8 @@ namespace Modern.Lab.Theming
     ///   - 유채색 테마: 테마 액센트의 색상(Hue)에서 시작해 황금각(137.508°)씩 회전한다 —
     ///     연속 색이 서로 최대한 벌어지고, 종류 수가 늘어도 앞쪽 색이 바뀌지 않는다
     ///     (prefix 안정 — 상태 종류가 추가돼도 기존 상태의 색이 유지된다).
-    ///     채도/명도는 테마 성격을 따른다: 라이트 계열은 파스텔(Solarized Light는
-    ///     뮤트 파스텔), Dark·SolarizedDark·Nord·DarkGold는 어두운 칩, CrimsonGray(미드 그레이
+    ///     채도/명도는 테마 성격을 따른다: 라이트 계열은 파스텔,
+    ///     Dark·DarkGold는 어두운 칩, CrimsonGray(미드 그레이
     ///     표면)는 뮤트한 밝은 칩, OrangeBlue·GreenTomato 는 라이트 틴트, HighContrast는 검정 위 밝은 고채도 칩.
     ///   - 값 유도색(<see cref="FromValue(string)"/>): 값 글자의 해시가 색상 9 × 톤 2 = 18칸 중
     ///     하나를 고른다. 색은 값에서만 나오므로 화면·컬럼이 달라도 같은 값은 같은 색이고,
@@ -118,7 +118,7 @@ namespace Modern.Lab.Theming
         /// (hueSlotCount · lightSlotChips 주석).
         ///
         /// 색 자체는 테마에 따라 두 경로다: 라이트 계열은 **큐레이션 파스텔 표**
-        /// (<see cref="lightSlotChips"/>), 다크 계열·Solarized는 테마 레시피 공식(색상은 40° 간격).
+        /// (<see cref="lightSlotChips"/>), 다크 계열은 테마 레시피 공식(색상은 40° 간격).
         /// 칸 번호는 테마와 무관하므로 테마를 바꿔도 값-색 대응은 유지된다.
         ///
         /// 정규화: 앞뒤 공백 제거 + 대소문자 무시("run" == "RUN" == " Run ").
@@ -170,8 +170,7 @@ namespace Modern.Lab.Theming
         }
 
         // 라이트 계열(파스텔 변형 포함)인가 — 이 테마들의 칩은 큐레이션 표에서
-        // 나온다. 다크 계열과 Solarized는 각자의 레시피 공식을 유지한다
-        // (다크 칩은 공식으로도 탁해 보이지 않고, SolarizedLight는 뮤트가 정체성).
+        // 나온다. 다크 계열은 각자의 레시피 공식을 유지한다(다크 칩은 공식으로도 탁해 보이지 않는다).
         private static bool UsesCuratedChips(ModernTheme.ThemeMode mode)
         {
             switch (mode)
@@ -179,9 +178,6 @@ namespace Modern.Lab.Theming
                 case ModernTheme.ThemeMode.Dark:
                 case ModernTheme.ThemeMode.CrimsonGray:
                 case ModernTheme.ThemeMode.HighContrast:
-                case ModernTheme.ThemeMode.SolarizedDark:
-                case ModernTheme.ThemeMode.SolarizedLight:
-                case ModernTheme.ThemeMode.Nord:
                 case ModernTheme.ThemeMode.DarkGold:
                     return false;
                 default:
@@ -268,25 +264,10 @@ namespace Modern.Lab.Theming
                     saturation = 0.85;
                     lightness = 0.66;
                     return;
-                case ModernTheme.ThemeMode.SolarizedDark:
-                    // 딥 틸 표면(#002B36) 위 어두운 칩 (Dark보다 반 톤 낮은 채도).
-                    saturation = 0.35;
-                    lightness = 0.28;
-                    return;
-                case ModernTheme.ThemeMode.Nord:
-                    // 청회색 표면(#2E3440) 위 뮤트한 어두운 칩 — Aurora의 저채도 성격.
-                    saturation = 0.30;
-                    lightness = 0.32;
-                    return;
                 case ModernTheme.ThemeMode.DarkGold:
                     // 웜 차콜 표면(#24211B) 위 어두운 칩 — Dark 와 같은 레시피.
                     saturation = 0.40;
                     lightness = 0.32;
-                    return;
-                case ModernTheme.ThemeMode.SolarizedLight:
-                    // 크림 표면(#FDF6E3) 위 뮤트 파스텔 — Solarized의 저채도 성격.
-                    saturation = 0.45;
-                    lightness = 0.88;
                     return;
                 default:
                     // Light·파스텔 계열 — 액센트 Hue에서 시작하는 파스텔.
