@@ -504,6 +504,7 @@
     <Compile Include="WinForms\Display\ModernToolTip.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="WinForms\Display\ModernToolTipCard.cs" />
     <Compile Include="WinForms\Display\ModernBarcode.cs" />
     <Compile Include="WinForms\Data\IExcelExportGrid.cs" />
     <Compile Include="WinForms\Data\GridColumns.cs" />
