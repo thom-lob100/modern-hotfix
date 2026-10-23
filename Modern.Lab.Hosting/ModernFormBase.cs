@@ -22,6 +22,7 @@ namespace Modern.Lab.Hosting
         protected ModernFormBase()
         {
             this.AdaptToHost();
+            this.ThemeShortcutInstall();
         }
 
         // 호스트 맞춤 자리 — 구현은 ModernFormBase.Host.cs 에만 둔다. 홈은 구현이 없어 컴파일러가 호출을 지운다.
@@ -153,6 +154,8 @@ namespace Modern.Lab.Hosting
 
         // 테마 설정 창 연결(ModernFormBase.Theme.cs) — 그 파일을 함께 컴파일하지 않는 프로젝트(갤러리)에서는 빈 호출이다.
         partial void ThemeDialogProcessCmdKey(Keys keyData, ref bool handled);
+
+        partial void ThemeShortcutInstall();
 
         // 규칙 안내 창 연결(ModernFormBase.RuleGuide.cs) — 그 파일을 함께 컴파일하지 않는 프로젝트(갤러리)에서는 빈 호출이다.
         partial void RuleGuideProcessCmdKey(Keys keyData, ref bool handled);

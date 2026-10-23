@@ -264,11 +264,14 @@ namespace Modern.Lab.Samples
             this.ExecuteSearch();
         }
 
+        private bool decisionFollowsPriority;
+
         private void AfterJobAction(string lotId)
         {
             this.jobStateTimer.Stop();
             this.trackedLotId = (lotId ?? string.Empty).Trim();
             this.trackedUntil = DateTime.Now.AddMilliseconds(JobStateTrackLimitMs);
+            this.decisionFollowsPriority = true;
             this.ExecuteSearch(true);
         }
 
@@ -1537,8 +1540,13 @@ namespace Modern.Lab.Samples
 
             this.RefreshDecisionTitles();
 
-            this.decision.Lot = EquipmentLotPresenter.FindById(this.lotData, Schemas.LotPriority.RowKey, previousLotId)
-                    ?? EquipmentLotPresenter.TopPriority(this.lotData);
+            DataRow previousLot = EquipmentLotPresenter.FindById(this.lotData, Schemas.LotPriority.RowKey, previousLotId);
+            bool followPriority = this.decisionFollowsPriority;
+            this.decisionFollowsPriority = false;
+            bool decisionMoved = followPriority && previousLot != null
+                    && !EquipmentLotPresenter.IsCandidate(previousLot) && !EquipmentLotPresenter.HasActiveJob(previousLot);
+
+            this.decision.Lot = (decisionMoved ? null : previousLot) ?? EquipmentLotPresenter.TopPriority(this.lotData);
 
             this.ResolveDecisionPortsIfEmpty();
             this.cycleLotsReflected = true;
@@ -1548,7 +1556,7 @@ namespace Modern.Lab.Samples
 
             try
             {
-                if (!silent || this.gridLotPriorities.SelectedItem == null)
+                if (!silent || decisionMoved || this.gridLotPriorities.SelectedItem == null)
                 {
                     this.SelectRow(this.gridLotPriorities, this.lotData, Schemas.LotPriority.RowKey, this.decision.LotId);
                 }
