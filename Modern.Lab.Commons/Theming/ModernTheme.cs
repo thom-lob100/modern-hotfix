@@ -162,17 +162,20 @@ namespace Modern.Lab.Theming
         /// </summary>
         public static bool IsDarkBased
         {
-            get
-            {
-                return Mode == ThemeMode.Dark
-                        || Mode == ThemeMode.CrimsonGray
-                        || Mode == ThemeMode.HighContrast
-                        || Mode == ThemeMode.DarkGold
-                        || Mode == ThemeMode.Mocha
-                        || Mode == ThemeMode.Forest
-                        || Mode == ThemeMode.TokyoNight
-                        || Mode == ThemeMode.Kanagawa;
-            }
+            get { return IsDarkBasedOf(Mode); }
+        }
+
+        /// <summary>지정 테마가 어두운 표면 계열인지 — 현재 테마와 무관하게 조회한다(테마 설정 창의 Light/Dark 묶음 기준, 2026-10-23).</summary>
+        public static bool IsDarkBasedOf(ThemeMode mode)
+        {
+            return mode == ThemeMode.Dark
+                    || mode == ThemeMode.CrimsonGray
+                    || mode == ThemeMode.HighContrast
+                    || mode == ThemeMode.DarkGold
+                    || mode == ThemeMode.Mocha
+                    || mode == ThemeMode.Forest
+                    || mode == ThemeMode.TokyoNight
+                    || mode == ThemeMode.Kanagawa;
         }
 
         // ---- GDI+ 팔레트 (Themes/Tokens.xaml의 색을 미러링; 테마별 대응 값) ----
@@ -180,48 +183,54 @@ namespace Modern.Lab.Theming
         /// <summary>카드/입력 표면 (Brush.Surface)</summary>
         public static Color Surface
         {
-            get
+            get { return SurfaceOf(Mode); }
+        }
+
+        /// <summary>지정 테마의 카드/입력 표면 — 현재 테마와 무관하게 조회한다(테마 설정 창이 타일마다 그 테마의 색을 미리 보이는 데 쓴다, 2026-10-23).</summary>
+        public static Color SurfaceOf(ThemeMode mode)
+        {
+            switch (mode)
             {
-                switch (Mode)
-                {
-                    case ThemeMode.Dark: return Rgb(43, 43, 43);
-                    case ThemeMode.OrangeBlue: return Rgb(255, 255, 255);
-                    case ThemeMode.GreenTomato: return Rgb(255, 255, 255);
-                    case ThemeMode.CrimsonGray: return Rgb(88, 88, 88);
-                    case ThemeMode.HighContrast: return Rgb(0, 0, 0);
-                    case ThemeMode.DarkGold: return Rgb(36, 33, 27);
-                    case ThemeMode.Mocha: return Rgb(49, 50, 68);
-                    case ThemeMode.Forest: return Rgb(52, 63, 68);
-                    case ThemeMode.TokyoNight: return Rgb(36, 40, 59);
-                    case ThemeMode.Kanagawa: return Rgb(42, 42, 55);
-                    default: return Rgb(255, 255, 255);
-                }
+                case ThemeMode.Dark: return Rgb(43, 43, 43);
+                case ThemeMode.OrangeBlue: return Rgb(255, 255, 255);
+                case ThemeMode.GreenTomato: return Rgb(255, 255, 255);
+                case ThemeMode.CrimsonGray: return Rgb(88, 88, 88);
+                case ThemeMode.HighContrast: return Rgb(0, 0, 0);
+                case ThemeMode.DarkGold: return Rgb(36, 33, 27);
+                case ThemeMode.Mocha: return Rgb(49, 50, 68);
+                case ThemeMode.Forest: return Rgb(52, 63, 68);
+                case ThemeMode.TokyoNight: return Rgb(36, 40, 59);
+                case ThemeMode.Kanagawa: return Rgb(42, 42, 55);
+                default: return Rgb(255, 255, 255);
             }
         }
 
         /// <summary>폼/페이지 바탕 (Brush.Background) — 테마 톤이 가장 크게 갈리는 곳.</summary>
         public static Color Background
         {
-            get
+            get { return BackgroundOf(Mode); }
+        }
+
+        /// <summary>지정 테마의 폼/페이지 바탕 — 현재 테마와 무관하게 조회한다(테마 설정 창이 타일마다 그 테마의 색을 미리 보이는 데 쓴다, 2026-10-23).</summary>
+        public static Color BackgroundOf(ThemeMode mode)
+        {
+            switch (mode)
             {
-                switch (Mode)
-                {
-                    case ThemeMode.Dark: return Rgb(32, 32, 32);
-                    case ThemeMode.CrimsonGray: return Rgb(74, 74, 74);
-                    case ThemeMode.OrangeBlue: return Rgb(247, 217, 194);
-                    case ThemeMode.GreenTomato: return Rgb(216, 239, 224);
-                    case ThemeMode.LightPurple: return Rgb(239, 232, 248);
-                    case ThemeMode.LightPink: return Rgb(246, 217, 230);
-                    case ThemeMode.Mint: return Rgb(204, 243, 234);
-                    case ThemeMode.Honey: return Rgb(255, 247, 194);
-                    case ThemeMode.HighContrast: return Rgb(0, 0, 0);
-                    case ThemeMode.DarkGold: return Rgb(26, 24, 20);
-                    case ThemeMode.Mocha: return Rgb(30, 30, 46);
-                    case ThemeMode.Forest: return Rgb(45, 53, 59);
-                    case ThemeMode.TokyoNight: return Rgb(26, 27, 38);
-                    case ThemeMode.Kanagawa: return Rgb(31, 31, 40);
-                    default: return Rgb(243, 244, 246);
-                }
+                case ThemeMode.Dark: return Rgb(32, 32, 32);
+                case ThemeMode.CrimsonGray: return Rgb(74, 74, 74);
+                case ThemeMode.OrangeBlue: return Rgb(247, 217, 194);
+                case ThemeMode.GreenTomato: return Rgb(216, 239, 224);
+                case ThemeMode.LightPurple: return Rgb(239, 232, 248);
+                case ThemeMode.LightPink: return Rgb(246, 217, 230);
+                case ThemeMode.Mint: return Rgb(204, 243, 234);
+                case ThemeMode.Honey: return Rgb(255, 247, 194);
+                case ThemeMode.HighContrast: return Rgb(0, 0, 0);
+                case ThemeMode.DarkGold: return Rgb(26, 24, 20);
+                case ThemeMode.Mocha: return Rgb(30, 30, 46);
+                case ThemeMode.Forest: return Rgb(45, 53, 59);
+                case ThemeMode.TokyoNight: return Rgb(26, 27, 38);
+                case ThemeMode.Kanagawa: return Rgb(31, 31, 40);
+                default: return Rgb(243, 244, 246);
             }
         }
 
@@ -280,26 +289,29 @@ namespace Modern.Lab.Theming
         /// <summary>본문/제목 텍스트 (Brush.TextPrimary)</summary>
         public static Color TextPrimary
         {
-            get
+            get { return TextPrimaryOf(Mode); }
+        }
+
+        /// <summary>지정 테마의 기본 글자색 — 현재 테마와 무관하게 조회한다(테마 설정 창이 타일마다 그 테마의 색을 미리 보이는 데 쓴다, 2026-10-23).</summary>
+        public static Color TextPrimaryOf(ThemeMode mode)
+        {
+            switch (mode)
             {
-                switch (Mode)
-                {
-                    case ThemeMode.Dark: return Rgb(240, 240, 240);
-                    case ThemeMode.CrimsonGray: return Rgb(245, 245, 245);
-                    case ThemeMode.OrangeBlue: return Rgb(27, 27, 27);
-                    case ThemeMode.GreenTomato: return Rgb(27, 27, 27);
-                    case ThemeMode.LightPurple: return Rgb(27, 27, 27);
-                    case ThemeMode.LightPink: return Rgb(27, 27, 27);
-                    case ThemeMode.Mint: return Rgb(13, 61, 56);
-                    case ThemeMode.Honey: return Rgb(79, 52, 34);
-                    case ThemeMode.HighContrast: return Rgb(255, 255, 255);
-                    case ThemeMode.DarkGold: return Rgb(243, 237, 224);
-                    case ThemeMode.Mocha: return Rgb(205, 214, 244);
-                    case ThemeMode.Forest: return Rgb(211, 198, 170);
-                    case ThemeMode.TokyoNight: return Rgb(192, 202, 245);
-                    case ThemeMode.Kanagawa: return Rgb(220, 215, 186);
-                    default: return Rgb(17, 24, 39);
-                }
+                case ThemeMode.Dark: return Rgb(240, 240, 240);
+                case ThemeMode.CrimsonGray: return Rgb(245, 245, 245);
+                case ThemeMode.OrangeBlue: return Rgb(27, 27, 27);
+                case ThemeMode.GreenTomato: return Rgb(27, 27, 27);
+                case ThemeMode.LightPurple: return Rgb(27, 27, 27);
+                case ThemeMode.LightPink: return Rgb(27, 27, 27);
+                case ThemeMode.Mint: return Rgb(13, 61, 56);
+                case ThemeMode.Honey: return Rgb(79, 52, 34);
+                case ThemeMode.HighContrast: return Rgb(255, 255, 255);
+                case ThemeMode.DarkGold: return Rgb(243, 237, 224);
+                case ThemeMode.Mocha: return Rgb(205, 214, 244);
+                case ThemeMode.Forest: return Rgb(211, 198, 170);
+                case ThemeMode.TokyoNight: return Rgb(192, 202, 245);
+                case ThemeMode.Kanagawa: return Rgb(220, 215, 186);
+                default: return Rgb(17, 24, 39);
             }
         }
 
@@ -395,11 +407,11 @@ namespace Modern.Lab.Theming
         }
 
         /// <summary>
-        /// 지정 테마의 액센트 — 현재 테마와 무관하게 조회한다.
+        /// 지정 테마의 액센트 — 현재 테마와 무관하게 조회한다(테마 설정 창의 타일 미리보기도 쓴다, 2026-10-23).
         /// Palette가 시작 색상(Hue)을 여기서 유도하므로, 테마 액센트를 바꾸면
         /// 배지 팔레트의 시작색도 자동으로 따라온다 (값 이중 관리 금지).
         /// </summary>
-        internal static Color AccentOf(ThemeMode mode)
+        public static Color AccentOf(ThemeMode mode)
         {
             switch (mode)
             {
