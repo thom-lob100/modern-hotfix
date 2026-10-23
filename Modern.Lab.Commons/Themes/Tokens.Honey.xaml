@@ -1,0 +1,84 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ============================================================= -->
+    <!-- Honey 테마 오버라이드 — Radix Colors Amber 라이트 스케일(radix-ui.com). -->
+    <!-- 버터 노랑 면(#FFF7C2 배경 = amber-3 · #FFEE9C 표 머리글 = amber-4 ·   -->
+    <!-- #E9C162 테두리 = amber-7) + 흰 카드 + 다크 브라운 글자(#4F3422 =       -->
+    <!-- amber-12) + 딥 앰버 액센트(#8F5400, amber-11 보다 한 단 진하게 —      -->
+    <!-- 원본 #AB6400 은 배경 위 4.3:1) + 금빛 선택(#FFC53D = amber-9, 다크    -->
+    <!-- 브라운 글자 — Radix 가 "앰버는 어두운 글자와 짝" 이라 둔 그대로).    -->
+    <!-- 시맨틱은 Win11 순정, 경고만 앰버와 벌리려 진한 주황(2026-10-23).    -->
+    <!-- SharedResourceDictionary가 Mode == Honey일 때 병합.             -->
+    <!-- ============================================================= -->
+
+    <!-- Primary (액센트) — 딥 앰버 (흰 글자 6.1:1 · 배경 위 5.6:1) -->
+    <SolidColorBrush x:Key="Brush.Accent" Color="#FF8F5400" />
+    <SolidColorBrush x:Key="Brush.AccentHover" Color="#FFA66200" />
+    <SolidColorBrush x:Key="Brush.AccentPressed" Color="#FF7A4700" />
+    <SolidColorBrush x:Key="Brush.OnAccent" Color="#FFFFFFFF" />
+    <!-- 선택 강조는 금빛 amber-9 + 다크 브라운 글자(7.2:1) — 이 테마의 얼굴. -->
+    <SolidColorBrush x:Key="Brush.SelectedBackground" Color="#FFFFC53D" />
+    <SolidColorBrush x:Key="Brush.SelectedText" Color="#FF4F3422" />
+    <!-- 누름(pressed) 전용 짝 — 보조 버튼·토글·메뉴 항목을 누르는 순간. 선택 배경을 빌려 쓰지 않는다. -->
+    <SolidColorBrush x:Key="Brush.PressedBackground" Color="#FFFBE577" />
+    <SolidColorBrush x:Key="Brush.PressedText" Color="#FF4F3422" />
+    <SolidColorBrush x:Key="Brush.FocusBorder" Color="#FF8F5400" />
+    <SolidColorBrush x:Key="Brush.FocusRing" Color="#338F5400" />
+
+    <!-- Neutral — Radix amber 2~7단: 배경 · 머리글 · 테두리, 카드 표면은 흰색 -->
+    <SolidColorBrush x:Key="Brush.Background" Color="#FFFFF7C2" />
+    <SolidColorBrush x:Key="Brush.SurfaceAlt" Color="#FFFEFBE9" />
+    <SolidColorBrush x:Key="Brush.HeaderBackground" Color="#FFFEFBE9" />
+    <SolidColorBrush x:Key="Brush.GridHeaderBackground" Color="#FFFFEE9C" />
+    <SolidColorBrush x:Key="Brush.GridRowAlt" Color="#FFFEFDF3" />
+    <SolidColorBrush x:Key="Brush.Border" Color="#FFE9C162" />
+    <SolidColorBrush x:Key="Brush.BorderSubtle" Color="#FFF3D673" />
+    <SolidColorBrush x:Key="Brush.BorderHover" Color="#FFE2A336" />
+    <SolidColorBrush x:Key="Brush.HoverBackground" Color="#FFFEFBE9" />
+
+    <Color x:Key="Color.Accent">#FF8F5400</Color>
+    <Color x:Key="Color.AccentSoft">#FFE2A336</Color>
+    <!-- 코멧 테일 페이드 끝색 — 액센트와 같은 RGB의 알파 0. -->
+    <Color x:Key="Color.AccentFade">#008F5400</Color>
+
+    <!-- 텍스트 — 다크 브라운(amber-12). 흰 카드 11:1 · 배경 10:1 · 머리글 9.7:1. -->
+    <SolidColorBrush x:Key="Brush.TextPrimary" Color="#FF4F3422" />
+    <SolidColorBrush x:Key="Brush.TextSecondary" Color="#FF6E5030" />
+    <SolidColorBrush x:Key="Brush.TextPlaceholder" Color="#FF957348" />
+    <SolidColorBrush x:Key="Brush.DisabledBackground" Color="#FFF7F3E6" />
+    <SolidColorBrush x:Key="Brush.DisabledText" Color="#FFA89A7A" />
+
+    <!-- 시맨틱 — Win11 순정 값(LightPurple 과 같음). 경고만 앰버 액센트와 겹치지 않게 진한 주황. -->
+    <SolidColorBrush x:Key="Brush.InfoBackground" Color="#FFEBF3FC" />
+    <SolidColorBrush x:Key="Brush.InfoBorder" Color="#FFBBD7F0" />
+    <SolidColorBrush x:Key="Brush.InfoText" Color="#FF005FB8" />
+    <SolidColorBrush x:Key="Brush.Success" Color="#FF0F7B0F" />
+    <SolidColorBrush x:Key="Brush.SuccessHover" Color="#FF0C660C" />
+    <SolidColorBrush x:Key="Brush.SuccessPressed" Color="#FF094F09" />
+    <SolidColorBrush x:Key="Brush.SuccessBackground" Color="#FFDFF6DD" />
+    <SolidColorBrush x:Key="Brush.SuccessBorder" Color="#FFA9D8A4" />
+    <SolidColorBrush x:Key="Brush.SuccessText" Color="#FF0F7B0F" />
+    <!-- Excel 내보내기 버튼(ButtonKind.Excel) — Excel 브랜드 초록 아웃라인. -->
+    <SolidColorBrush x:Key="Brush.ExcelText" Color="#FF217346" />
+    <SolidColorBrush x:Key="Brush.ExcelBorderSoft" Color="#FFA7D7BC" />
+    <SolidColorBrush x:Key="Brush.ExcelBackground" Color="#FFE8F5EE" />
+    <SolidColorBrush x:Key="Brush.ExcelBorder" Color="#FF6FBE92" />
+    <SolidColorBrush x:Key="Brush.ExcelPressed" Color="#FF17513A" />
+    <SolidColorBrush x:Key="Brush.Warning" Color="#FFB4400B" />
+    <SolidColorBrush x:Key="Brush.WarningBackground" Color="#FFFFE8D6" />
+    <SolidColorBrush x:Key="Brush.WarningBorder" Color="#FFF2B98A" />
+    <SolidColorBrush x:Key="Brush.WarningText" Color="#FFB4400B" />
+    <SolidColorBrush x:Key="Brush.StatusSuccess" Color="#FF0F7B0F" />
+    <SolidColorBrush x:Key="Brush.StatusWarning" Color="#FFB4400B" />
+    <SolidColorBrush x:Key="Brush.ErrorBorder" Color="#FFC42B1C" />
+    <SolidColorBrush x:Key="Brush.ErrorBorderSoft" Color="#FFF2B8B2" />
+    <SolidColorBrush x:Key="Brush.ErrorBackground" Color="#FFFDE7E9" />
+    <SolidColorBrush x:Key="Brush.ErrorText" Color="#FFC42B1C" />
+    <SolidColorBrush x:Key="Brush.DangerPressed" Color="#FFA4262C" />
+    <SolidColorBrush x:Key="Brush.NeutralBackground" Color="#FFF0F0F0" />
+    <SolidColorBrush x:Key="Brush.NeutralText" Color="#FF3B3B3B" />
+
+    <Color x:Key="Color.TrackOff">#FFE9C162</Color>
+
+</ResourceDictionary>
