@@ -521,26 +521,29 @@ namespace Modern.Lab.Theming
         /// <summary>선택 강조 배경 (Brush.SelectedBackground)</summary>
         public static Color SelectionBackground
         {
-            get
+            get { return SelectionBackgroundOf(Mode); }
+        }
+
+        /// <summary>지정 테마의 선택 행 배경 — 현재 테마와 무관하게 조회한다(테마 설정 창의 타일 미니 그리드, 2026-10-23).</summary>
+        public static Color SelectionBackgroundOf(ThemeMode mode)
+        {
+            switch (mode)
             {
-                switch (Mode)
-                {
-                    case ThemeMode.Dark: return Rgb(30, 73, 100);
-                    case ThemeMode.CrimsonGray: return Rgb(156, 63, 78);
-                    case ThemeMode.OrangeBlue: return Rgb(46, 109, 180);
-                    case ThemeMode.GreenTomato: return Rgb(46, 125, 100);
-                    case ThemeMode.LightPurple: return Rgb(220, 204, 240);
-                    case ThemeMode.LightPink: return Rgb(246, 193, 214);
-                    case ThemeMode.Mint: return Rgb(14, 95, 85);
-                    case ThemeMode.Honey: return Rgb(255, 197, 61);
-                    case ThemeMode.HighContrast: return Rgb(111, 224, 255);
-                    case ThemeMode.DarkGold: return Rgb(31, 79, 90);
-                    case ThemeMode.Mocha: return Rgb(91, 74, 140);
-                    case ThemeMode.Forest: return Rgb(59, 90, 71);
-                    case ThemeMode.TokyoNight: return Rgb(61, 89, 161);
-                    case ThemeMode.Kanagawa: return Rgb(45, 79, 103);
-                    default: return Rgb(182, 217, 242);
-                }
+                case ThemeMode.Dark: return Rgb(30, 73, 100);
+                case ThemeMode.CrimsonGray: return Rgb(156, 63, 78);
+                case ThemeMode.OrangeBlue: return Rgb(46, 109, 180);
+                case ThemeMode.GreenTomato: return Rgb(46, 125, 100);
+                case ThemeMode.LightPurple: return Rgb(220, 204, 240);
+                case ThemeMode.LightPink: return Rgb(246, 193, 214);
+                case ThemeMode.Mint: return Rgb(14, 95, 85);
+                case ThemeMode.Honey: return Rgb(255, 197, 61);
+                case ThemeMode.HighContrast: return Rgb(111, 224, 255);
+                case ThemeMode.DarkGold: return Rgb(31, 79, 90);
+                case ThemeMode.Mocha: return Rgb(91, 74, 140);
+                case ThemeMode.Forest: return Rgb(59, 90, 71);
+                case ThemeMode.TokyoNight: return Rgb(61, 89, 161);
+                case ThemeMode.Kanagawa: return Rgb(45, 79, 103);
+                default: return Rgb(182, 217, 242);
             }
         }
 
@@ -573,78 +576,87 @@ namespace Modern.Lab.Theming
         /// <summary>그리드 열 헤더 배경 (Brush.GridHeaderBackground)</summary>
         public static Color GridHeaderBackground
         {
-            get
+            get { return GridHeaderBackgroundOf(Mode); }
+        }
+
+        /// <summary>지정 테마의 그리드 헤더 배경 — 현재 테마와 무관하게 조회한다(테마 설정 창의 타일 미니 그리드, 2026-10-23).</summary>
+        public static Color GridHeaderBackgroundOf(ThemeMode mode)
+        {
+            switch (mode)
             {
-                switch (Mode)
-                {
-                    case ThemeMode.Dark: return Rgb(54, 54, 54);
-                    case ThemeMode.CrimsonGray: return Rgb(102, 102, 102);
-                    case ThemeMode.OrangeBlue: return Rgb(242, 194, 156);
-                    case ThemeMode.GreenTomato: return Rgb(183, 224, 198);
-                    case ThemeMode.LightPurple: return Rgb(227, 216, 244);
-                    case ThemeMode.LightPink: return Rgb(240, 196, 216);
-                    case ThemeMode.Mint: return Rgb(184, 234, 224);
-                    case ThemeMode.Honey: return Rgb(255, 238, 156);
-                    case ThemeMode.HighContrast: return Rgb(20, 20, 20);
-                    case ThemeMode.DarkGold: return Rgb(46, 42, 34);
-                    case ThemeMode.Mocha: return Rgb(69, 71, 90);
-                    case ThemeMode.Forest: return Rgb(61, 72, 77);
-                    case ThemeMode.TokyoNight: return Rgb(41, 46, 66);
-                    case ThemeMode.Kanagawa: return Rgb(54, 54, 70);
-                    default: return Rgb(239, 243, 250);
-                }
+                case ThemeMode.Dark: return Rgb(54, 54, 54);
+                case ThemeMode.CrimsonGray: return Rgb(102, 102, 102);
+                case ThemeMode.OrangeBlue: return Rgb(242, 194, 156);
+                case ThemeMode.GreenTomato: return Rgb(183, 224, 198);
+                case ThemeMode.LightPurple: return Rgb(227, 216, 244);
+                case ThemeMode.LightPink: return Rgb(240, 196, 216);
+                case ThemeMode.Mint: return Rgb(184, 234, 224);
+                case ThemeMode.Honey: return Rgb(255, 238, 156);
+                case ThemeMode.HighContrast: return Rgb(20, 20, 20);
+                case ThemeMode.DarkGold: return Rgb(46, 42, 34);
+                case ThemeMode.Mocha: return Rgb(69, 71, 90);
+                case ThemeMode.Forest: return Rgb(61, 72, 77);
+                case ThemeMode.TokyoNight: return Rgb(41, 46, 66);
+                case ThemeMode.Kanagawa: return Rgb(54, 54, 70);
+                default: return Rgb(239, 243, 250);
             }
         }
 
         /// <summary>그리드 교차 행 배경 (Brush.GridRowAlt)</summary>
         public static Color GridRowAlt
         {
-            get
+            get { return GridRowAltOf(Mode); }
+        }
+
+        /// <summary>지정 테마의 그리드 교대 행 배경 — 현재 테마와 무관하게 조회한다(테마 설정 창의 타일 미니 그리드, 2026-10-23).</summary>
+        public static Color GridRowAltOf(ThemeMode mode)
+        {
+            switch (mode)
             {
-                switch (Mode)
-                {
-                    case ThemeMode.Dark: return Rgb(48, 48, 48);
-                    case ThemeMode.CrimsonGray: return Rgb(94, 94, 94);
-                    case ThemeMode.OrangeBlue: return Rgb(253, 243, 234);
-                    case ThemeMode.GreenTomato: return Rgb(242, 250, 245);
-                    case ThemeMode.LightPurple: return Rgb(248, 245, 252);
-                    case ThemeMode.LightPink: return Rgb(252, 243, 247);
-                    case ThemeMode.Mint: return Rgb(246, 252, 250);
-                    case ThemeMode.Honey: return Rgb(254, 253, 243);
-                    case ThemeMode.HighContrast: return Rgb(10, 10, 10);
-                    case ThemeMode.DarkGold: return Rgb(40, 36, 30);
-                    case ThemeMode.Mocha: return Rgb(53, 54, 73);
-                    case ThemeMode.Forest: return Rgb(56, 67, 74);
-                    case ThemeMode.TokyoNight: return Rgb(39, 43, 64);
-                    case ThemeMode.Kanagawa: return Rgb(46, 46, 60);
-                    default: return Rgb(246, 247, 249);
-                }
+                case ThemeMode.Dark: return Rgb(48, 48, 48);
+                case ThemeMode.CrimsonGray: return Rgb(94, 94, 94);
+                case ThemeMode.OrangeBlue: return Rgb(253, 243, 234);
+                case ThemeMode.GreenTomato: return Rgb(242, 250, 245);
+                case ThemeMode.LightPurple: return Rgb(248, 245, 252);
+                case ThemeMode.LightPink: return Rgb(252, 243, 247);
+                case ThemeMode.Mint: return Rgb(246, 252, 250);
+                case ThemeMode.Honey: return Rgb(254, 253, 243);
+                case ThemeMode.HighContrast: return Rgb(10, 10, 10);
+                case ThemeMode.DarkGold: return Rgb(40, 36, 30);
+                case ThemeMode.Mocha: return Rgb(53, 54, 73);
+                case ThemeMode.Forest: return Rgb(56, 67, 74);
+                case ThemeMode.TokyoNight: return Rgb(39, 43, 64);
+                case ThemeMode.Kanagawa: return Rgb(46, 46, 60);
+                default: return Rgb(246, 247, 249);
             }
         }
 
         /// <summary>선택 강조 텍스트 (Brush.SelectedText) — SelectionBackground 위 글자색.</summary>
         public static Color SelectedText
         {
-            get
+            get { return SelectedTextOf(Mode); }
+        }
+
+        /// <summary>지정 테마의 선택 행 글자색 — 현재 테마와 무관하게 조회한다(테마 설정 창의 타일 미니 그리드, 2026-10-23).</summary>
+        public static Color SelectedTextOf(ThemeMode mode)
+        {
+            switch (mode)
             {
-                switch (Mode)
-                {
-                    case ThemeMode.Dark: return Rgb(183, 227, 255);
-                    case ThemeMode.CrimsonGray: return Rgb(255, 241, 243);
-                    case ThemeMode.OrangeBlue: return Rgb(255, 255, 255);
-                    case ThemeMode.GreenTomato: return Rgb(255, 255, 255);
-                    case ThemeMode.LightPurple: return Rgb(70, 34, 110);
-                    case ThemeMode.LightPink: return Rgb(122, 16, 56);
-                    case ThemeMode.Mint: return Rgb(255, 255, 255);
-                    case ThemeMode.Honey: return Rgb(79, 52, 34);
-                    case ThemeMode.HighContrast: return Rgb(0, 0, 0);
-                    case ThemeMode.DarkGold: return Rgb(255, 255, 255);
-                    case ThemeMode.Mocha: return Rgb(255, 255, 255);
-                    case ThemeMode.Forest: return Rgb(255, 255, 255);
-                    case ThemeMode.TokyoNight: return Rgb(255, 255, 255);
-                    case ThemeMode.Kanagawa: return Rgb(220, 215, 186);
-                    default: return Rgb(0, 90, 158);
-                }
+                case ThemeMode.Dark: return Rgb(183, 227, 255);
+                case ThemeMode.CrimsonGray: return Rgb(255, 241, 243);
+                case ThemeMode.OrangeBlue: return Rgb(255, 255, 255);
+                case ThemeMode.GreenTomato: return Rgb(255, 255, 255);
+                case ThemeMode.LightPurple: return Rgb(70, 34, 110);
+                case ThemeMode.LightPink: return Rgb(122, 16, 56);
+                case ThemeMode.Mint: return Rgb(255, 255, 255);
+                case ThemeMode.Honey: return Rgb(79, 52, 34);
+                case ThemeMode.HighContrast: return Rgb(0, 0, 0);
+                case ThemeMode.DarkGold: return Rgb(255, 255, 255);
+                case ThemeMode.Mocha: return Rgb(255, 255, 255);
+                case ThemeMode.Forest: return Rgb(255, 255, 255);
+                case ThemeMode.TokyoNight: return Rgb(255, 255, 255);
+                case ThemeMode.Kanagawa: return Rgb(220, 215, 186);
+                default: return Rgb(0, 90, 158);
             }
         }
 

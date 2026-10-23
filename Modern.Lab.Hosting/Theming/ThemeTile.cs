@@ -13,8 +13,8 @@ namespace Modern.Lab.Hosting.Theming
     /// 클릭 · Space 로 고른다(2026-10-23). 라디오 문법이다 — 누르면 켜지고 스스로 꺼지지 않는다. 배타 선택은
     /// 타일을 놓은 창(<see cref="ModernThemeDialogForm"/>)이 맡는다.
     ///
-    /// 그리는 것: 테마 Background 로 채운 둥근 판 위에 Surface 색 미니 카드(액센트 세로 바 + "Ag" 글자 견본 + 상태 낱말),
-    /// 아래에 테마 이름. 마우스 오버는 현재 테마 액센트 1px 링, 선택은 FocusBorder 2px 링 + 오른쪽 위 체크 배지.
+    /// 그리는 것: 테마 Background 로 채운 둥근 판 위에 Surface 색 미니 그리드(헤더 행 · 선택 행(SelectionBackground + 액센트 띠 + 작은 액센트 버튼) ·
+    /// 교대 행), 아래에 테마 이름(액센트색)과 상태 낱말. 마우스 오버는 현재 테마 액센트 1px 링, 선택은 FocusBorder 2px 링 + 오른쪽 위 체크 배지.
     /// 상태 낱말은 하나만 — Current(지금 켜진 테마) 가 Saved(파일에 저장된 테마) 보다 먼저다.
     ///
     /// 키: ←→↑↓ · Home · End 는 입력 키로 받아 KeyDown 으로 올린다(이동은 창이 처리). Enter 는 창의 AcceptButton(Save)으로 간다.
@@ -24,10 +24,11 @@ namespace Modern.Lab.Hosting.Theming
         private const int CornerRadius = 8;
         private const int CardRadius = 4;
         private const int Inset = 10;
-        private const int CardHeight = 30;
+        private const int GridRowHeight = 12;
+        private const int CellBarHeight = 2;
+        private const int MiniButtonWidth = 22;
         private const int AccentBarWidth = 3;
         private const int CheckBadgeDiameter = 18;
-        private const string SampleText = "Ag";
         private const string CheckGlyph = "";
         private const string CurrentWord = "Current";
         private const string SavedWord = "Saved";
@@ -222,39 +223,46 @@ namespace Modern.Lab.Hosting.Theming
                 graphics.DrawPath(pen, path);
             }
 
-            // 미니 카드 — 그 테마의 Surface 위에 액센트 바 · 글자 견본 · 상태 낱말.
-            Rectangle card = new Rectangle(Inset, Inset, this.Width - Inset * 2, CardHeight);
+            // 미니 그리드 — 그 테마의 Surface 카드 안에 헤더 행 · 선택 행(액센트 띠 + 작은 액센트 버튼) · 교대 행.
+            // 다크 테마끼리는 바탕 · 카드가 다 회색 계열이라, 테마마다 다른 선택 행 색과 액센트를 넓게 보여야 갈린다(2026-10-23).
+            Rectangle card = new Rectangle(Inset, Inset, this.Width - Inset * 2, GridRowHeight * 3);
+            Rectangle header = new Rectangle(card.X, card.Y, card.Width, GridRowHeight);
+            Rectangle selected = new Rectangle(card.X, card.Y + GridRowHeight, card.Width, GridRowHeight);
+            Rectangle alternate = new Rectangle(card.X, card.Y + GridRowHeight * 2, card.Width, GridRowHeight);
+            GraphicsState state = graphics.Save();
 
             using (GraphicsPath path = CreateRoundedPath(card, CardRadius))
-            using (SolidBrush brush = new SolidBrush(surface))
             {
-                graphics.FillPath(brush, path);
+                graphics.SetClip(path);
             }
 
-            Rectangle bar = new Rectangle(card.X + 8, card.Y + 7, AccentBarWidth, card.Height - 14);
+            FillRow(graphics, card, surface);
+            FillRow(graphics, header, ModernTheme.GridHeaderBackgroundOf(this.mode));
+            FillRow(graphics, selected, ModernTheme.SelectionBackgroundOf(this.mode));
+            FillRow(graphics, alternate, ModernTheme.GridRowAltOf(this.mode));
 
-            using (SolidBrush brush = new SolidBrush(accent))
-            {
-                graphics.FillRectangle(brush, bar);
-            }
+            // 행 안의 짧은 가로 막대 = 글자 자리. 헤더 · 교대 행은 그 테마 글자색(옅게), 선택 행은 선택 글자색.
+            DrawCells(graphics, header, Color.FromArgb(150, text));
+            DrawCells(graphics, selected, ModernTheme.SelectedTextOf(this.mode));
+            DrawCells(graphics, alternate, Color.FromArgb(110, text));
+            FillRow(graphics, new Rectangle(card.X, selected.Y, AccentBarWidth, selected.Height), accent);
+            DrawMiniButton(graphics, selected, accent);
+            graphics.Restore(state);
 
-            // 선택 타일은 오른쪽 위 체크 배지가 카드 모서리를 덮으므로 상태 낱말을 그만큼 왼쪽으로 비킨다.
-            int statusReserve = this.isChecked ? CheckBadgeDiameter - 4 : 0;
-            Rectangle sample = new Rectangle(bar.Right + 7, card.Y, card.Width - (bar.Right + 7 - card.X) - 8 - statusReserve, card.Height);
-            TextRenderer.DrawText(graphics, SampleText, ModernFonts.BodyStrong, sample, text,
-                    TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding | TextFormatFlags.SingleLine);
-
+            // 테마 이름은 그 테마의 액센트색 — 글자 자체가 시그니처다. 상태 낱말은 같은 줄 오른쪽, 그 테마의 글자색.
             string status = this.isCurrent ? CurrentWord : (this.isSaved ? SavedWord : string.Empty);
+            Rectangle line = new Rectangle(Inset, card.Bottom + 4, this.Width - Inset * 2, this.Height - card.Bottom - 4 - Inset + 2);
+            int statusWidth = 0;
 
             if (status.Length > 0)
             {
-                TextRenderer.DrawText(graphics, status, ModernFonts.Body, sample, accent,
+                statusWidth = TextRenderer.MeasureText(graphics, status, ModernFonts.Body, line.Size, TextFormatFlags.NoPadding | TextFormatFlags.SingleLine).Width;
+                TextRenderer.DrawText(graphics, status, ModernFonts.Body, line, text,
                         TextFormatFlags.Right | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding | TextFormatFlags.SingleLine);
             }
 
-            // 테마 이름 — 판 아래쪽, 그 테마의 글자색.
-            Rectangle name = new Rectangle(Inset, card.Bottom + 4, this.Width - Inset * 2, this.Height - card.Bottom - 4 - Inset + 2);
-            TextRenderer.DrawText(graphics, this.mode.ToString(), ModernFonts.BodyStrong, name, text,
+            Rectangle name = new Rectangle(line.X, line.Y, Math.Max(0, line.Width - statusWidth - (statusWidth > 0 ? 8 : 0)), line.Height);
+            TextRenderer.DrawText(graphics, this.mode.ToString(), ModernFonts.BodyStrong, name, accent,
                     TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis);
 
             if (!this.isChecked && this.hovered)
@@ -278,6 +286,46 @@ namespace Modern.Lab.Hosting.Theming
 
                 this.DrawCheckBadge(graphics, focusBorder);
             }
+        }
+
+        private static void FillRow(Graphics graphics, Rectangle row, Color fill)
+        {
+            using (SolidBrush brush = new SolidBrush(fill))
+            {
+                graphics.FillRectangle(brush, row);
+            }
+        }
+
+        // 글자 자리 막대 세 개 — 폭 18 · 12 · 10, 간격 6. 선택 행의 액센트 띠 뒤에서 시작한다.
+        private static void DrawCells(Graphics graphics, Rectangle row, Color color)
+        {
+            int[] widths = { 18, 12, 10 };
+            int x = row.X + AccentBarWidth + 6;
+            int y = row.Y + (row.Height - CellBarHeight) / 2;
+
+            using (SolidBrush brush = new SolidBrush(color))
+            {
+                foreach (int width in widths)
+                {
+                    graphics.FillRectangle(brush, new Rectangle(x, y, width, CellBarHeight));
+                    x += width + 6;
+                }
+            }
+        }
+
+        // 선택 행 오른쪽의 작은 액센트 버튼 — 액센트 채움 + 대비색 글자 막대. 액센트가 면으로 보이게.
+        private static void DrawMiniButton(Graphics graphics, Rectangle row, Color accent)
+        {
+            Rectangle button = new Rectangle(row.Right - 6 - MiniButtonWidth, row.Y + 2, MiniButtonWidth, row.Height - 4);
+
+            using (GraphicsPath path = CreateRoundedPath(button, 2))
+            using (SolidBrush brush = new SolidBrush(accent))
+            {
+                graphics.FillPath(brush, path);
+            }
+
+            Rectangle label = new Rectangle(button.X + 6, button.Y + (button.Height - CellBarHeight) / 2, button.Width - 12, CellBarHeight);
+            FillRow(graphics, label, ContrastOn(accent));
         }
 
         // 오른쪽 위 체크 배지 — 링과 같은 색 원 + 대비색 체크 글리프.
