@@ -44,12 +44,12 @@ namespace Modern.Lab.Samples
                     parameters.Take("SEND_FAC")).Table;
         }
 
-        private DataActionResult CreateWaferLot(string lotId, string sendFac, string remark)
+        private DataActionResult CreateWaferLot(RequestParameters parameters)
         {
             return this.RequestFields("CreateWaferLot",
-                    "LotId", lotId,
-                    "SendFac", sendFac,
-                    "Description", remark,
+                    parameters.Take("LOT_ID"),
+                    parameters.Take("SEND_FAC"),
+                    parameters.Take("DESCRIPTION"),
                     "UserId", this.CurrentUserId);
         }
     }

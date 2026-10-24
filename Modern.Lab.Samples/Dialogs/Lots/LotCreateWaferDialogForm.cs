@@ -128,7 +128,8 @@ namespace Modern.Lab.Samples
 
             try
             {
-                result = this.CreateWaferLot(lotId, this.SelectedSendFac(), this.txtRemark.Text.Trim());
+                result = this.CreateWaferLot(RequestParameters.Of(
+                        "LOT_ID", lotId, "SEND_FAC", this.SelectedSendFac(), "DESCRIPTION", this.txtRemark.Text.Trim()));
             }
             catch (Exception ex)
             {

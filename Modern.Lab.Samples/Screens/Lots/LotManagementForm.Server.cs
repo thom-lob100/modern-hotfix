@@ -83,61 +83,74 @@ namespace Modern.Lab.Samples
                     parameters.Take(Schemas.Wafer.WfId)).Table;
         }
 
-        private DataActionResult CreateChildLot(string subProdTyp, DataRow lot, string trayId, DataTable judgeResults, string description)
+        private DataActionResult CreateChildLot(RequestParameters parameters)
         {
-            return this.RequestFields(subProdTyp == "Chip" ? "CreateChipLot" : "CreateLamellaLot",
-                    "ParentLotId", TableHelper.CellText(lot, "LOT_ID"),
-                    "TrayId", trayId,
+            return this.RequestFields(parameters.Text("SUB_PROD_TYP") == "Chip" ? "CreateChipLot" : "CreateLamellaLot",
+                    parameters.Take(Schemas.Lot.LotId, "ParentLotId"),
+                    parameters.Take("TRAY_ID"),
                     "UserId", this.CurrentUserId,
-                    "Description", description,
-                    "JudgeResults", JudgeResultJson.ToJson(judgeResults));
+                    parameters.Take("DESCRIPTION"),
+                    parameters.Take("JUDGE_RESULTS"));
         }
 
-        private DataActionResult ChangeSpecLot(
-                DataRow lot, string prodId, string flowId, string operId, string description)
+        private DataActionResult ChangeSpecLot(RequestParameters parameters)
         {
-            return this.RequestFields("ChangeSpecLot", "LOT_ID", TableHelper.CellText(lot, "LOT_ID").Trim(),
-                    "PROD_ID", prodId, "FLOW_ID", flowId, "OPER_ID", operId,
-                    "currentOperId", TableHelper.CellText(lot, "OPER_ID").Trim(), "description", description, "USER_ID", this.CurrentUserId);
+            return this.RequestFields("ChangeSpecLot",
+                    parameters.Take(Schemas.Lot.LotId),
+                    parameters.Take("PROD_ID"),
+                    parameters.Take("FLOW_ID"),
+                    parameters.Take("OPER_ID"),
+                    parameters.Take(Schemas.Lot.OperId, "currentOperId"),
+                    parameters.Take("description"),
+                    "UserId", this.CurrentUserId);
         }
 
-        private DataActionResult HoldLot(DataRow lot, string holdCode, string engrUserId, string description)
+        private DataActionResult HoldLot(RequestParameters parameters)
         {
-            return this.RequestFields("HoldLot", "LOT_ID", TableHelper.CellText(lot, "LOT_ID").Trim(),
-                    "currentOperId", TableHelper.CellText(lot, "OPER_ID").Trim(), "holdCode", holdCode, "engrUserId", engrUserId,
-                    "description", description, "USER_ID", this.CurrentUserId);
+            return this.RequestFields("HoldLot",
+                    parameters.Take(Schemas.Lot.LotId),
+                    parameters.Take(Schemas.Lot.OperId, "currentOperId"),
+                    parameters.Take("holdCode"),
+                    parameters.Take("engrUserId"),
+                    parameters.Take("description"),
+                    "UserId", this.CurrentUserId);
         }
 
-        private DataActionResult NotOnHoldLot(DataRow lot, string releaseCode, string engrUserId, string description)
+        private DataActionResult NotOnHoldLot(RequestParameters parameters)
         {
-            return this.RequestFields("NotOnHoldLot", "LOT_ID", TableHelper.CellText(lot, "LOT_ID").Trim(),
-                    "currentOperId", TableHelper.CellText(lot, "OPER_ID").Trim(), "releaseCode", releaseCode, "engrUserId", engrUserId,
-                    "description", description, "USER_ID", this.CurrentUserId);
+            return this.RequestFields("NotOnHoldLot",
+                    parameters.Take(Schemas.Lot.LotId),
+                    parameters.Take(Schemas.Lot.OperId, "currentOperId"),
+                    parameters.Take("releaseCode"),
+                    parameters.Take("engrUserId"),
+                    parameters.Take("description"),
+                    "UserId", this.CurrentUserId);
         }
 
-        private DataActionResult CancelChangeSpecLot(DataRow lot, string description)
+        private DataActionResult CancelChangeSpecLot(RequestParameters parameters)
         {
-            return this.RequestFields("CancelChangeSpecLot", "LOT_ID", TableHelper.CellText(lot, "LOT_ID").Trim(),
-                    "DESCRIPTION", description, "USER_ID", this.CurrentUserId);
+            return this.RequestFields("CancelChangeSpecLot",
+                    parameters.Take(Schemas.Lot.LotId),
+                    parameters.Take("DESCRIPTION"),
+                    "UserId", this.CurrentUserId);
         }
 
-        private DataActionResult CancelScrapLot(DataRow lot, string description)
+        private DataActionResult CancelScrapLot(RequestParameters parameters)
         {
-            return this.RequestFields("CancelScrapLot", "LOT_ID", TableHelper.CellText(lot, "LOT_ID").Trim(),
-                    "DESCRIPTION", description, "USER_ID", this.CurrentUserId);
+            return this.RequestFields("CancelScrapLot",
+                    parameters.Take(Schemas.Lot.LotId),
+                    parameters.Take("DESCRIPTION"),
+                    "UserId", this.CurrentUserId);
         }
 
-        private DataActionResult ScrapLot(DataRow lot, string scrapCode, string[] waferIds, string description)
+        private DataActionResult ScrapLot(RequestParameters parameters)
         {
-            if (waferIds == null || waferIds.Length == 0)
-            {
-                return this.RequestFields("ScrapLot", "LOT_ID", TableHelper.CellText(lot, "LOT_ID").Trim(),
-                        "scrapCode", scrapCode, "description", description, "USER_ID", this.CurrentUserId);
-            }
-
-            return this.RequestFields("ScrapLot", "LOT_ID", TableHelper.CellText(lot, "LOT_ID").Trim(),
-                    "WF_ID", string.Join(",", waferIds),
-                    "scrapCode", scrapCode, "description", description, "USER_ID", this.CurrentUserId);
+            return this.RequestFields("ScrapLot",
+                    parameters.Take(Schemas.Lot.LotId),
+                    parameters.Take("WF_ID"),
+                    parameters.Take("scrapCode"),
+                    parameters.Take("description"),
+                    "UserId", this.CurrentUserId);
         }
     }
 }

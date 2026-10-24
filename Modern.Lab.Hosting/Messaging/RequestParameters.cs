@@ -45,10 +45,13 @@ namespace Modern.Lab.Hosting.Messaging
             return this;
         }
 
-        /// <summary><see cref="Of"/>로 넣은 값을 컬럼 이름의 PascalCase 키로 꺼낸다.</summary>
+        /// <summary>
+        /// <see cref="Of"/>로 넣은 값을 꺼낸다. 키는 컬럼 이름(<c>SUB_PROD_TYP</c>)이면 PascalCase(<c>SubProdTyp</c>),
+        /// 소문자가 든 이름(<c>holdCode</c> · <c>description</c>)은 회사가 정한 전문 키이므로 글자 그대로다.
+        /// </summary>
         public RequestParameter Take(string column)
         {
-            return this.Take(column, ParameterNameConverter.Convert(column, ParameterNameStyle.PascalCase));
+            return this.Take(column, WireName(column));
         }
 
         /// <summary><see cref="Of"/>로 넣은 값을 <paramref name="name"/> 키로 꺼낸다.</summary>
@@ -83,6 +86,19 @@ namespace Modern.Lab.Hosting.Messaging
             return new RequestParameter(name, TableHelper.CellText(row, column));
         }
 
+        /// <summary><see cref="Of"/>로 넣은 값을 글자로 돌려준다 — 전문 이름을 가를 때 쓴다. 없으면 빈 문자열.</summary>
+        public string Text(string column)
+        {
+            object value;
+
+            if (string.IsNullOrEmpty(column) || !this.values.TryGetValue(column, out value) || value == null)
+            {
+                return string.Empty;
+            }
+
+            return value is string ? (string)value : ServerMessageFormat.FormatValue(value);
+        }
+
         /// <summary><see cref="Of"/>로 넣은 컬럼인가.</summary>
         public bool Contains(string column)
         {
@@ -94,6 +110,21 @@ namespace Modern.Lab.Hosting.Messaging
         {
             DataRow row;
             return entity != null && this.rows.TryGetValue(entity, out row) ? row : null;
+        }
+
+        private static string WireName(string column)
+        {
+            string name = (column ?? string.Empty).Trim();
+
+            foreach (char letter in name)
+            {
+                if (char.IsLower(letter))
+                {
+                    return name;
+                }
+            }
+
+            return ParameterNameConverter.Convert(name, ParameterNameStyle.PascalCase);
         }
 
         private static string FieldName(Field field)

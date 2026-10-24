@@ -791,7 +791,10 @@ namespace Modern.Lab.Samples
 
             this.Process(
                     key, parentLotId,
-                    () => this.CreateChildLot(childType, parent, judgedTrayId, judged.Rows, judged.Description),
+                    () => this.CreateChildLot(RequestParameters.Of(
+                            "SUB_PROD_TYP", childType, "TRAY_ID", judgedTrayId,
+                            "DESCRIPTION", judged.Description, "JUDGE_RESULTS", JudgeResultJson.ToJson(judged.Rows))
+                            .From(Schemas.Lot, parent)),
                     "Creating " + childType + " lot from " + parentLotId + "…",
                     reply => this.ExecuteSearch(true));
         }
@@ -834,7 +837,9 @@ namespace Modern.Lab.Samples
 
             this.Process(
                     LotManagementPresenter.ActionChangeSpec, lotId,
-                    () => this.ChangeSpecLot(lot, prodId, flowId, operId, description),
+                    () => this.ChangeSpecLot(RequestParameters.Of(
+                            "PROD_ID", prodId, "FLOW_ID", flowId, "OPER_ID", operId, "description", description)
+                            .From(Schemas.Lot, lot)),
                     "Changing spec of " + lotId + "…",
                     reply => this.ExecuteSearch(true));
         }
@@ -849,7 +854,9 @@ namespace Modern.Lab.Samples
             string lotId = LotManagementPresenter.Id(lot);
             if (!HoldInputComplete(lotId, holdCode, engrUserId)) { return; }
             this.Process(LotManagementPresenter.ActionHold, lotId,
-                    () => this.HoldLot(lot, holdCode, engrUserId, description),
+                    () => this.HoldLot(RequestParameters.Of(
+                            "holdCode", holdCode, "engrUserId", engrUserId, "description", description)
+                            .From(Schemas.Lot, lot)),
                     "Holding " + lotId + "…", reply => this.ExecuteSearch(true));
         }
 
@@ -858,7 +865,9 @@ namespace Modern.Lab.Samples
             string lotId = LotManagementPresenter.Id(lot);
             if (!HoldInputComplete(lotId, releaseCode, engrUserId)) { return; }
             this.Process(LotManagementPresenter.ActionNotOnHold, lotId,
-                    () => this.NotOnHoldLot(lot, releaseCode, engrUserId, description),
+                    () => this.NotOnHoldLot(RequestParameters.Of(
+                            "releaseCode", releaseCode, "engrUserId", engrUserId, "description", description)
+                            .From(Schemas.Lot, lot)),
                     "Setting " + lotId + " to NotOnHold…", reply => this.ExecuteSearch(true));
         }
 
@@ -870,7 +879,8 @@ namespace Modern.Lab.Samples
                 {
                     string description = dialog.Description;
                     this.ProcessCancel(LotManagementPresenter.ActionChangeSpecCancel, lot,
-                            () => this.CancelChangeSpecLot(lot, description), "Cancelling the spec change of ");
+                            () => this.CancelChangeSpecLot(RequestParameters.Of("DESCRIPTION", description).From(Schemas.Lot, lot)),
+                            "Cancelling the spec change of ");
                 }
             }
         }
@@ -885,7 +895,8 @@ namespace Modern.Lab.Samples
                 {
                     string description = dialog.Description;
                     this.ProcessCancel(LotManagementPresenter.ActionScrapCancel, lot,
-                            () => this.CancelScrapLot(lot, description), "Cancelling the scrap of ");
+                            () => this.CancelScrapLot(RequestParameters.Of("DESCRIPTION", description).From(Schemas.Lot, lot)),
+                            "Cancelling the scrap of ");
                 }
             }
         }
@@ -902,7 +913,9 @@ namespace Modern.Lab.Samples
             string[] targets = waferIds ?? new string[0];
             this.Process(
                     LotManagementPresenter.ActionScrap, lotId,
-                    () => this.ScrapLot(lot, scrapCode, targets, description),
+                    () => this.ScrapLot(RequestParameters.Of(
+                            "WF_ID", string.Join(",", targets), "scrapCode", scrapCode, "description", description)
+                            .From(Schemas.Lot, lot)),
                     targets.Length == 0 ? "Scrapping " + lotId + "…" : "Scrapping " + targets.Length + " of " + lotId + "…",
                     reply => this.ExecuteSearch(true));
         }
