@@ -30,7 +30,7 @@ namespace Modern.Lab.Samples
         }
 
         // EQP_ID
-        private DataTable GetEquipmentExts(RequestParameters parameters)
+        private DataTable GetEquipments(RequestParameters parameters)
         {
             return this.RequestFields("GetEqpList",
                     parameters.Take("EQP_GRP_ID")).Table;
@@ -38,31 +38,31 @@ namespace Modern.Lab.Samples
 
         // EQP_ID
         // PORT_NM
-        private DataTable GetPortExts(RequestParameters parameters)
+        private DataTable GetPorts(RequestParameters parameters)
         {
             DataTable ports = this.RequestFields("GetEqpPortList",
-                    parameters.Take(Schemas.EquipmentExt.EqpId)).Table;
-            return WithEqpId(ports, "EQP_ID", parameters.Text(Schemas.EquipmentExt.EqpId));
+                    parameters.Take(Schemas.Equipment.EqpId)).Table;
+            return WithEqpId(ports, "EQP_ID", parameters.Text(Schemas.Equipment.EqpId));
         }
 
-        private DataTable GetEquipmentExtHistory(RequestParameters parameters)
+        private DataTable GetEquipmentHistory(RequestParameters parameters)
         {
             return this.RequestFields("GetEqpHistory",
-                    parameters.Take(Schemas.EquipmentExt.EqpId)).Table;
+                    parameters.Take(Schemas.Equipment.EqpId)).Table;
         }
 
-        private DataTable GetPortExtHistory(RequestParameters parameters)
+        private DataTable GetPortHistory(RequestParameters parameters)
         {
             DataTable history = this.RequestFields("GetEqpPortHistory",
-                    parameters.Take(Schemas.EquipmentExt.EqpId),
-                    parameters.Take(Schemas.PortExt.PortNm)).Table;
-            return WithEqpId(history, "EQP_ID", parameters.Text(Schemas.EquipmentExt.EqpId));
+                    parameters.Take(Schemas.Equipment.EqpId),
+                    parameters.Take(Schemas.Port.PortNm)).Table;
+            return WithEqpId(history, "EQP_ID", parameters.Text(Schemas.Equipment.EqpId));
         }
 
         private DataActionResult SetMode(RequestParameters parameters)
         {
             return this.RequestFields("SetEqpMode",
-                    parameters.Take(Schemas.EquipmentExt.EqpId),
+                    parameters.Take(Schemas.Equipment.EqpId),
                     parameters.Take("MODE"),
                     "UserId", this.CurrentUserId);
         }
@@ -70,7 +70,7 @@ namespace Modern.Lab.Samples
         private DataActionResult SetAuto(RequestParameters parameters)
         {
             return this.RequestFields("SetEqpAuto",
-                    parameters.Take(Schemas.EquipmentExt.EqpId),
+                    parameters.Take(Schemas.Equipment.EqpId),
                     parameters.Take("AUTO_YN"),
                     "UserId", this.CurrentUserId);
         }
