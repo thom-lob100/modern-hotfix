@@ -99,6 +99,15 @@ namespace Modern.Lab.Hosting.Messaging
             return value is string ? (string)value : ServerMessageFormat.FormatValue(value);
         }
 
+        /// <summary><see cref="From"/>으로 넣은 그 엔티티 행의 필드 값을 글자로 돌려준다. 행·컬럼이 없으면 빈 문자열.</summary>
+        public string Text(Field field)
+        {
+            string column = FieldName(field);
+            DataRow row;
+
+            return this.rows.TryGetValue(field.Owner, out row) ? TableHelper.CellText(row, column) : string.Empty;
+        }
+
         /// <summary><see cref="Of"/>로 넣은 컬럼인가.</summary>
         public bool Contains(string column)
         {
