@@ -167,8 +167,8 @@
     <Compile Include="Schema\Entities\OperEntity.cs" />
     <Compile Include="Schema\Entities\PortBase.cs" />
     <Compile Include="Schema\Entities\PortEntity.cs" />
-    <Compile Include="Schema\Entities\PortExtEntity.cs" />
-    <Compile Include="Schema\Entities\PortExtHistoryEntity.cs" />
+    <Compile Include="Schema\Entities\PortDetEntity.cs" />
+    <Compile Include="Schema\Entities\PortDetHistoryEntity.cs" />
     <Compile Include="Schema\Entities\PortPriorityEntity.cs" />
     <Compile Include="Schema\Fields\PortTypField.cs" />
     <Compile Include="Schema\Entities\ProductEntity.cs" />

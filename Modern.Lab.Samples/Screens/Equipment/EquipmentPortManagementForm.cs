@@ -74,7 +74,7 @@ namespace Modern.Lab.Samples
 
             this.DeferredResize = true;
 
-            this.RegisterFindShortcut(this.gridEquipmentExtHistory, this.gridPortExtHistory);
+            this.RegisterFindShortcut(this.gridEquipmentExtHistory, this.gridPortDetHistory);
 
             this.menuEqp.Renderer = new Modern.Lab.WinForms.Rendering.ModernMenuRenderer();
         }
@@ -86,11 +86,11 @@ namespace Modern.Lab.Samples
             this.treeEquipmentExts.IdMember = treeKeyColumn;
             this.treeEquipmentExts.ParentIdMember = treeParentColumn;
             this.treeEquipmentExts.DisplayMember = Schemas.EquipmentExt.DisplayField.Name;
-            this.gridPortExts.RowKeyMember = Schemas.PortExt.RowKey;
-            this.gridPortExts.CellLinkClick += this.OnDurableIdLinkClick;
+            this.gridPortDets.RowKeyMember = Schemas.PortDet.RowKey;
+            this.gridPortDets.CellLinkClick += this.OnDurableIdLinkClick;
             this.gridEquipmentExtHistory.RowKeyMember = Schemas.EquipmentExtHistory.RowKey;
-            this.gridPortExtHistory.RowKeyMember = Schemas.PortExtHistory.RowKey;
-            this.gridPortExtHistory.CellLinkClick += this.OnDurableIdLinkClick;
+            this.gridPortDetHistory.RowKeyMember = Schemas.PortDetHistory.RowKey;
+            this.gridPortDetHistory.CellLinkClick += this.OnDurableIdLinkClick;
 
             this.PopulateMenu(this.menuEqp, "Mode", EquipmentPortManagementPresenter.EquipmentActions, this.OnEquipmentMenuItemClick);
 
@@ -128,8 +128,8 @@ namespace Modern.Lab.Samples
         {
             string durableId = DurableInfoDialogForm.LinkedDurableId(
                     e,
-                    Schemas.PortExt.DurableId.Name,
-                    Schemas.PortExtHistory.DurableId.Name);
+                    Schemas.PortDet.DurableId.Name,
+                    Schemas.PortDetHistory.DurableId.Name);
 
             if (durableId.Length == 0)
             {
@@ -456,11 +456,11 @@ namespace Modern.Lab.Samples
 
             this.portData = null;
             this.portCurrent = null;
-            this.gridPortExts.DataSource = null;
+            this.gridPortDets.DataSource = null;
             this.eqpHistoryData = null;
             this.gridEquipmentExtHistory.DataSource = null;
             this.portHistoryData = null;
-            this.gridPortExtHistory.DataSource = null;
+            this.gridPortDetHistory.DataSource = null;
             this.pageEqpHistory.Text = eqpHistoryTitle;
             this.pagePortHistory.Text = portHistoryTitle;
         }
@@ -468,8 +468,8 @@ namespace Modern.Lab.Samples
         private void LoadDependents(DataRow equipment, bool silent)
         {
             string eqpId = Schemas.EquipmentExt.EqpId.Text(equipment);
-            this.LoadDependent(channelPorts, () => this.GetPortExts(RequestParameters.Of().From(Schemas.EquipmentExt, equipment)),
-                    table => this.BindPortExts(table, silent), silent, this.portCover);
+            this.LoadDependent(channelPorts, () => this.GetPortDets(RequestParameters.Of().From(Schemas.EquipmentExt, equipment)),
+                    table => this.BindPortDets(table, silent), silent, this.portCover);
             this.LoadDependent(channelEqpHistory, () => this.GetEquipmentExtHistory(RequestParameters.Of().From(Schemas.EquipmentExt, equipment)),
                     table => this.BindEquipmentExtHistory(table, NewItemTracker.Criteria(eqpId)), silent, this.historyCover);
         }
@@ -497,18 +497,18 @@ namespace Modern.Lab.Samples
             bind(outcome.Failure != null ? null : outcome.Value);
         }
 
-        private void BindPortExts(DataTable ports, bool silent)
+        private void BindPortDets(DataTable ports, bool silent)
         {
             this.portData = this.BindJudged(
                     EquipmentPortContracts.PortTable, ref this.portCurrent, ports, silent);
 
             if (!Judged(this.portCurrent))
             {
-                GridColumns.Of(this.portData == null ? null : this.portData.Copy()).Bind(this.gridPortExts);
+                GridColumns.Of(this.portData == null ? null : this.portData.Copy()).Bind(this.gridPortDets);
             }
             else
             {
-                PortExtColumns(this.portData).Bind(this.gridPortExts);
+                PortDetColumns(this.portData).Bind(this.gridPortDets);
             }
 
             this.RefreshActionStates();
@@ -523,12 +523,12 @@ namespace Modern.Lab.Samples
             NewItemTint.Bind(this.gridEquipmentExtHistory, this.eqpHistoryNewItems, this.gridEquipmentExtHistory.RowKeyMember);
         }
 
-        private void BindPortExtHistory(DataTable history, string criteria)
+        private void BindPortDetHistory(DataTable history, string criteria)
         {
-            this.portHistoryData = this.portHistoryNewItems.Accept(history, this.gridPortExtHistory.RowKeyMember, criteria);
+            this.portHistoryData = this.portHistoryNewItems.Accept(history, this.gridPortDetHistory.RowKeyMember, criteria);
 
-            PortExtHistoryColumns(this.portHistoryData).Bind(this.gridPortExtHistory);
-            NewItemTint.Bind(this.gridPortExtHistory, this.portHistoryNewItems, this.gridPortExtHistory.RowKeyMember);
+            PortDetHistoryColumns(this.portHistoryData).Bind(this.gridPortDetHistory);
+            NewItemTint.Bind(this.gridPortDetHistory, this.portHistoryNewItems, this.gridPortDetHistory.RowKeyMember);
         }
 
         private void OnPortSelectionChanged(object sender, EventArgs e)
@@ -542,14 +542,14 @@ namespace Modern.Lab.Samples
             this.CancelDebounce(channelPortHistory);
 
             DataRowView equipment = this.SelectedEquipmentView();
-            DataRowView port = this.gridPortExts.SelectedItem as DataRowView;
-            string portNm = port == null ? string.Empty : Schemas.PortExt.PortNm.Text(port.Row);
+            DataRowView port = this.gridPortDets.SelectedItem as DataRowView;
+            string portNm = port == null ? string.Empty : Schemas.PortDet.PortNm.Text(port.Row);
 
             if (equipment == null || portNm.Length == 0)
             {
                 this.InvalidateChannel(channelPortHistory);
                 this.portHistoryData = null;
-                this.gridPortExtHistory.DataSource = null;
+                this.gridPortDetHistory.DataSource = null;
                 this.pagePortHistory.Text = portHistoryTitle;
                 return;
             }
@@ -559,14 +559,14 @@ namespace Modern.Lab.Samples
             this.pagePortHistory.Text = portHistoryTitle + " — " + portNm;
             this.LoadDependent(
                     channelPortHistory,
-                    () => this.GetPortExtHistory(RequestParameters.Of().From(Schemas.EquipmentExt, equipment.Row).From(Schemas.PortExt, port.Row)),
-                    table => this.BindPortExtHistory(table, NewItemTracker.Criteria(eqpId, portNm)), silent, this.historyCover);
+                    () => this.GetPortDetHistory(RequestParameters.Of().From(Schemas.EquipmentExt, equipment.Row).From(Schemas.PortDet, port.Row)),
+                    table => this.BindPortDetHistory(table, NewItemTracker.Criteria(eqpId, portNm)), silent, this.historyCover);
         }
 
         private void RefreshActionStates()
         {
             DataRowView equipment = this.SelectedEquipmentView();
-            DataRowView port = this.gridPortExts.SelectedItem as DataRowView;
+            DataRowView port = this.gridPortDets.SelectedItem as DataRowView;
             DataRow equipmentRow = equipment == null ? null : equipment.Row;
             DataRow portRow = port == null ? null : port.Row;
             this.lblTarget.Text = EquipmentPortManagementPresenter.StatusLineText(equipmentRow, portRow);

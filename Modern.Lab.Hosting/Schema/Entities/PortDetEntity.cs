@@ -1,9 +1,9 @@
 namespace Modern.Lab.Hosting.Schema
 {
     /// <summary>Equipment / Port 의 포트 목록 — 필드는 모두 <see cref="PortBase"/>.</summary>
-    public class PortExtEntity : PortBase
+    public class PortDetEntity : PortBase
     {
-        public PortExtEntity()
+        public PortDetEntity()
         {
             this.Seal();
         }

@@ -38,7 +38,7 @@ namespace Modern.Lab.Samples
 
         // EQP_ID
         // PORT_NM
-        private DataTable GetPortExts(RequestParameters parameters)
+        private DataTable GetPortDets(RequestParameters parameters)
         {
             DataTable ports = this.RequestFields("GetEqpPortList",
                     parameters.Take(Schemas.EquipmentExt.EqpId)).Table;
@@ -51,11 +51,11 @@ namespace Modern.Lab.Samples
                     parameters.Take(Schemas.EquipmentExt.EqpId)).Table;
         }
 
-        private DataTable GetPortExtHistory(RequestParameters parameters)
+        private DataTable GetPortDetHistory(RequestParameters parameters)
         {
             DataTable history = this.RequestFields("GetEqpPortHistory",
                     parameters.Take(Schemas.EquipmentExt.EqpId),
-                    parameters.Take(Schemas.PortExt.PortNm)).Table;
+                    parameters.Take(Schemas.PortDet.PortNm)).Table;
             return WithEqpId(history, "EQP_ID", parameters.Text(Schemas.EquipmentExt.EqpId));
         }
 
