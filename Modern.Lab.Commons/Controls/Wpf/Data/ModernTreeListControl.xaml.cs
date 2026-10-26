@@ -106,8 +106,9 @@ namespace Modern.Lab.Controls.Wpf.Data
         /// <summary>
         /// 값 컬럼 너비를 헤더와 데이터 내용에 맞춰 자동 계산할지(기본 false — 그리드와 같은 이름·기본값, 2026-10-26).
         /// 켜면 폭을 적지 않은 값 컬럼이 남은 공간을 채우는 대신 내용 폭의 고정 픽셀이 되고, 합이 넓이를 넘으면 가로 스크롤이
-        /// 생긴다. 측정은 그리드와 같은 엔진(<see cref="GridAutoFitMeasurer"/>)이고 데이터가 바뀌면 다시 잰다. 트리 컬럼(첫 칸)은
-        /// <see cref="TreeColumnWidth"/> 그대로다.
+        /// 생긴다. 측정은 그리드와 같은 엔진(<see cref="GridAutoFitMeasurer"/>)이고 데이터가 바뀌면 다시 잰다. 트리 컬럼(첫 칸)도
+        /// <see cref="TreeColumnWidth"/> 가 없으면 가장 긴 노드(들여쓰기 + 화살표 + 글자)의 고정 픽셀이 된다 — star 로 남기면
+        /// WPF DataGrid 가 공간이 모자랄 때 값 컬럼 폭을 빼앗아 자동 폭이 무너진다.
         /// </summary>
         public static readonly DependencyProperty AutoFitColumnsProperty =
             DependencyProperty.Register(
@@ -1360,9 +1361,22 @@ namespace Modern.Lab.Controls.Wpf.Data
             column.CanUserSort = false;
 
             double width = this.TreeColumnWidth;
-            column.Width = width > 0d
-                    ? new DataGridLength(width)
-                    : new DataGridLength(1d, DataGridLengthUnitType.Star);
+
+            if (width > 0d)
+            {
+                column.Width = new DataGridLength(width);
+            }
+            else if (this.AutoFitColumns)
+            {
+                // 자동 폭이 켜진 트리는 첫 칸도 내용 폭의 고정 픽셀이다 — star 로 남기면 WPF DataGrid 가 공간이 모자랄 때
+                // 고정 폭 값 컬럼에서 MinWidth 까지 폭을 빼앗아, 글자 컬럼이 20px 로 눌리고 배지 컬럼만 남았다(2026-10-26 장비 목록).
+                column.Width = new DataGridLength(GridAutoFitMeasurer.MeasureTreeColumnWidth(
+                        this, this.TreeHeaderText, this.allNodes, treeColumnMinWidth));
+            }
+            else
+            {
+                column.Width = new DataGridLength(1d, DataGridLengthUnitType.Star);
+            }
 
             // 남은 공간 채우기(star) 칸은 값 컬럼 합이 넓이를 넘으면 0 으로 눌려 노드 글자가 사라졌다(2026-10-26 캡처).
             // 최소 폭을 두어 첫 칸은 늘 읽히고, 넘치는 값 컬럼은 가로 스크롤로 간다.

@@ -43,6 +43,10 @@ namespace Modern.Lab.Controls.Wpf.Data
         private const double autoFitHeaderGlyphGap = 4d;
         // 소수점 폭 반올림 여유 (컬럼 폭은 Math.Ceiling으로 올림된다).
         private const double autoFitHeaderSafety = 2d;
+        // ===== 트리 컬럼(ModernTreeListControl 첫 칸) 셀 템플릿 치수 =====
+        // 펼침 화살표 버튼 폭(TreeCellTemplate 의 ExpanderButton Width)과 글자 앞 여백(TextBlock Margin 4,0,0,0).
+        private const double treeExpanderWidth = 16d;
+        private const double treeTextGap = 4d;
         // 정렬/필터 글리프 문자 — 실제 폭을 이 글리프로 측정한다. 상수로 폭을
         // 박아 두면 아이콘 크기 토큰(Font.Size.IconSm)이 바뀔 때 어긋난다.
         private const string autoFitSortGlyphSample = "";
@@ -547,6 +551,95 @@ namespace Modern.Lab.Controls.Wpf.Data
         }
 
         // FormattedText로 문자열의 실제 렌더링 폭을 잰다 (빈 문자열은 0).
+        /// <summary>
+        /// 트리 리스트의 트리 컬럼(첫 칸) 자동 폭(2026-10-26) — 헤더 캡션 폭과, 노드마다 들여쓰기 + 펼침 화살표 + 글자 여백 + 글자 폭에
+        /// 셀 패딩을 더한 것 중 가장 넓은 값. 하한은 호출자가 넘긴 최소 폭, 상한은 값 컬럼과 같다. 노드가 많아도 비용이 일정하도록
+        /// 들여쓰기와 글자 수로 고른 상위 후보만 실측한다. 트리 컬럼을 star 로 남기면 WPF DataGrid 가 공간이 모자랄 때
+        /// 고정 폭 값 컬럼에서 MinWidth 까지 폭을 빼앗아 자동 폭이 무너지므로, AutoFit 이 켜진 트리는 첫 칸도 이 폭으로 고정한다.
+        /// </summary>
+        internal static double MeasureTreeColumnWidth(
+            Control owner, string headerText, IEnumerable<TreeListNode> nodes, double minWidth)
+        {
+            double pixelsPerDip = VisualTreeHelper.GetDpi(owner).PixelsPerDip;
+            Typeface headerTypeface = new Typeface(owner.FontFamily, FontStyles.Normal, FontWeights.SemiBold, FontStretches.Normal);
+            Typeface bodyTypeface = new Typeface(owner.FontFamily, FontStyles.Normal, FontWeights.Normal, FontStretches.Normal);
+            double headerFontSize = (double)owner.FindResource("Font.Size.Label");
+            double bodyFontSize = (double)owner.FindResource("Font.Size.Body");
+
+            double width = MeasureText(headerText, headerTypeface, headerFontSize, pixelsPerDip)
+                + autoFitHeaderPadding + autoFitHeaderBorder + autoFitHeaderSafety;
+
+            foreach (TreeListNode node in LongestTreeNodes(nodes, bodyFontSize))
+            {
+                double cellWidth = node.Indent + treeExpanderWidth + treeTextGap
+                    + MeasureText(node.Text, bodyTypeface, bodyFontSize, pixelsPerDip) + autoFitCellPadding;
+
+                if (cellWidth > width)
+                {
+                    width = cellWidth;
+                }
+            }
+
+            if (width < minWidth)
+            {
+                width = minWidth;
+            }
+
+            if (width > autoFitMaxWidth)
+            {
+                width = autoFitMaxWidth;
+            }
+
+            return Math.Ceiling(width);
+        }
+
+        // 트리 노드 중 폭이 넓을 후보 — 들여쓰기 + 글자 수 × 글자 크기의 어림값이 큰 순으로 후보 수만큼. 실측은 호출자가 한다.
+        private static List<TreeListNode> LongestTreeNodes(IEnumerable<TreeListNode> nodes, double fontSize)
+        {
+            List<TreeListNode> candidates = new List<TreeListNode>();
+            List<double> scores = new List<double>();
+
+            if (nodes == null)
+            {
+                return candidates;
+            }
+
+            foreach (TreeListNode node in nodes)
+            {
+                if (node == null || string.IsNullOrEmpty(node.Text))
+                {
+                    continue;
+                }
+
+                double score = node.Indent + (node.Text.Length * fontSize);
+
+                if (candidates.Count < autoFitCandidateCount)
+                {
+                    candidates.Add(node);
+                    scores.Add(score);
+                    continue;
+                }
+
+                int lowestIndex = 0;
+
+                for (int index = 1; index < scores.Count; index++)
+                {
+                    if (scores[index] < scores[lowestIndex])
+                    {
+                        lowestIndex = index;
+                    }
+                }
+
+                if (score > scores[lowestIndex])
+                {
+                    candidates[lowestIndex] = node;
+                    scores[lowestIndex] = score;
+                }
+            }
+
+            return candidates;
+        }
+
         internal static double MeasureText(string text, Typeface typeface, double fontSize, double pixelsPerDip)
         {
             if (string.IsNullOrEmpty(text))

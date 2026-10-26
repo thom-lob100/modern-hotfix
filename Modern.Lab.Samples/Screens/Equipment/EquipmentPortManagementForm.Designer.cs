@@ -257,7 +257,7 @@ namespace Modern.Lab.Samples
             //
             this.splitLeft.Panel2MinSize = 120;
             this.splitLeft.Size = new System.Drawing.Size(540, 612);
-            this.splitLeft.SplitterDistance = 372;
+            this.splitLeft.SplitterDistance = 352;
             this.splitLeft.SplitterWidth = 8;
             this.splitLeft.TabIndex = 0;
             this.splitLeft.TabStop = false;
