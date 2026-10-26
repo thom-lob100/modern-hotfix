@@ -51,6 +51,9 @@ namespace Modern.Lab.WinForms.Controls.Data
         private string fallbackRowHeaderMember = string.Empty;
         private bool fallbackAllowColumnFilters = true;
         private bool fallbackAutoFitColumns;
+        private bool fallbackFreezeTreeColumn = true;
+        private string fallbackRowForegroundMember = string.Empty;
+        private Func<object, string> fallbackRowMarkerSelector;
         private bool fallbackAllowFindPanel = true;
         private bool showExportMenu = true;
         private string exportSheetName = string.Empty;
@@ -66,6 +69,12 @@ namespace Modern.Lab.WinForms.Controls.Data
         /// <summary>선택 노드가 바뀔 때 발생한다.</summary>
         public event EventHandler SelectedValueChanged;
 
+        /// <summary>행을 더블클릭했을 때 — 그 행이 먼저 선택된 뒤 발생한다(그리드와 같은 이벤트, 2026-10-26).</summary>
+        public event EventHandler RowDoubleClick;
+
+        /// <summary>Link 컬럼의 글자를 눌렀을 때 — 인자의 행은 원본 행(DataRowView 등), 컬럼은 원본 컬럼 이름(그리드와 같은 이벤트, 2026-10-26).</summary>
+        public event EventHandler<Modern.Lab.Controls.Wpf.Data.GridButtonClickEventArgs> CellLinkClick;
+
         /// <summary>적절한 기본 크기로 컨트롤을 생성한다.</summary>
         public ModernTreeList()
         {
@@ -80,6 +89,24 @@ namespace Modern.Lab.WinForms.Controls.Data
             {
                 this.Wpf.SelectedValueChanged += this.OnWpfSelectedValueChanged;
                 this.Wpf.RowRightClick += this.OnWpfRowRightClick;
+                this.Wpf.RowDoubleClick += this.OnWpfRowDoubleClick;
+                this.Wpf.CellLinkClick += this.OnWpfCellLinkClick;
+            }
+        }
+
+        private void OnWpfRowDoubleClick(object sender, EventArgs e)
+        {
+            if (this.RowDoubleClick != null)
+            {
+                this.RowDoubleClick(this, EventArgs.Empty);
+            }
+        }
+
+        private void OnWpfCellLinkClick(object sender, Modern.Lab.Controls.Wpf.Data.GridButtonClickEventArgs e)
+        {
+            if (this.CellLinkClick != null)
+            {
+                this.CellLinkClick(this, e);
             }
         }
 
@@ -335,6 +362,75 @@ namespace Modern.Lab.WinForms.Controls.Data
                 if (this.Wpf != null)
                 {
                     this.Wpf.AutoFitColumns = value;
+                }
+            }
+        }
+
+        /// <summary>트리 컬럼(첫 칸) 고정(기본 true, 2026-10-26) — 값 컬럼이 넓어 가로로 스크롤해도 첫 칸이 밀려 나가지 않는다. 그리드의 <c>FrozenColumnCount</c>=1 과 같다.</summary>
+        [Category("Modern")]
+        [Description("Keep the tree column (first column) frozen while scrolling horizontally")]
+        [DefaultValue(true)]
+        public bool FreezeTreeColumn
+        {
+            get
+            {
+                if (this.Wpf != null)
+                {
+                    return this.Wpf.FreezeTreeColumn;
+                }
+
+                return this.fallbackFreezeTreeColumn;
+            }
+            set
+            {
+                this.fallbackFreezeTreeColumn = value;
+
+                if (this.Wpf != null)
+                {
+                    this.Wpf.FreezeTreeColumn = value;
+                }
+            }
+        }
+
+        /// <summary>행 글자색 컬럼/속성 이름(기본 빈 값 = 끔, 2026-10-26) — <c>#RRGGBB</c> 같은 색 문자열. 그리드의 <c>RowForegroundMember</c> 와 같은 문법. 선택·hover 중에는 테마 글자색이 우선한다.</summary>
+        [Category("Modern")]
+        [Description("Column/property name for the row text color — #RRGGBB color string (empty keeps the default)")]
+        [DefaultValue("")]
+        public string RowForegroundMember
+        {
+            get
+            {
+                if (this.Wpf != null)
+                {
+                    return this.Wpf.RowForegroundMemberPath;
+                }
+
+                return this.fallbackRowForegroundMember;
+            }
+            set
+            {
+                this.fallbackRowForegroundMember = value;
+
+                if (this.Wpf != null)
+                {
+                    this.Wpf.RowForegroundMemberPath = value;
+                }
+            }
+        }
+
+        /// <summary>첫 열(트리 칸) 셀 모서리에 짧은 표식(예: "New")을 겹쳐 그린다(2026-10-26) — 원본 행을 받아 글자를 돌려주고 빈 문자열이면 없음. 컬럼을 추가하지 않는다. 그리드의 <c>RowMarkerSelector</c> 와 같은 문법.</summary>
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public Func<object, string> RowMarkerSelector
+        {
+            get { return this.Wpf == null ? this.fallbackRowMarkerSelector : this.Wpf.RowMarkerSelector; }
+            set
+            {
+                this.fallbackRowMarkerSelector = value;
+
+                if (this.Wpf != null)
+                {
+                    this.Wpf.RowMarkerSelector = value;
                 }
             }
         }

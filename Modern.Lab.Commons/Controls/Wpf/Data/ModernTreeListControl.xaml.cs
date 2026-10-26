@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using Modern.Lab.Controls.Wpf.Common;
 
@@ -28,7 +29,7 @@ namespace Modern.Lab.Controls.Wpf.Data
     /// 재할당 시 값이 새 트리에 없으면 미선택으로 초기화된다. 노드는 기본
     /// 전부 펼쳐진 상태로 구성된다 (계보 조회 용도 — CollapseAll로 접는다).
     /// </summary>
-    public partial class ModernTreeListControl : UserControl, IHostDisposalAware
+    public partial class ModernTreeListControl : UserControl, IHostDisposalAware, IGridRowMarkerHost
     {
         /// <summary>트리를 구성할 행 목록 (평면 자기참조 테이블).</summary>
         public static readonly DependencyProperty ItemsSourceProperty =
@@ -114,6 +115,39 @@ namespace Modern.Lab.Controls.Wpf.Data
                 typeof(bool),
                 typeof(ModernTreeListControl),
                 new PropertyMetadata(false, OnColumnShapeChanged));
+
+        /// <summary>
+        /// 트리 컬럼(첫 칸)을 고정할지(기본 true, 2026-10-26) — 값 컬럼이 넓어 가로로 스크롤해도 첫 칸이 밀려 나가지 않는다.
+        /// 그리드의 <c>FrozenColumnCount</c>=1 과 같다.
+        /// </summary>
+        public static readonly DependencyProperty FreezeTreeColumnProperty =
+            DependencyProperty.Register(
+                "FreezeTreeColumn",
+                typeof(bool),
+                typeof(ModernTreeListControl),
+                new PropertyMetadata(true, OnColumnShapeChanged));
+
+        /// <summary>
+        /// 행 글자색 컬럼 이름(기본 빈 값 = 끔, 2026-10-26) — 값이 <c>#RRGGBB</c> 같은 색이면 그 행의 글자를 그 색으로.
+        /// 그리드의 <c>RowForegroundMemberPath</c> 와 같은 문법. 선택·hover 중에는 테마 글자색이 우선한다.
+        /// </summary>
+        public static readonly DependencyProperty RowForegroundMemberPathProperty =
+            DependencyProperty.Register(
+                "RowForegroundMemberPath",
+                typeof(string),
+                typeof(ModernTreeListControl),
+                new PropertyMetadata(string.Empty, OnRowColorMemberPathChanged));
+
+        /// <summary>
+        /// 첫 열(트리 칸)의 셀 모서리에 짧은 표식(예: "New")을 겹쳐 그리는 선택자(2026-10-26) — 원본 행을 받아 글자를 돌려주고,
+        /// 빈 문자열이면 표식이 없다. 그리드의 <c>RowMarkerSelector</c> 와 같은 문법.
+        /// </summary>
+        public static readonly DependencyProperty RowMarkerSelectorProperty =
+            DependencyProperty.Register(
+                "RowMarkerSelector",
+                typeof(Func<object, string>),
+                typeof(ModernTreeListControl),
+                new PropertyMetadata(null, OnRowMarkerSelectorChanged));
 
         /// <summary>
         /// 찾기(Ctrl+F) 사용 여부 (기본 켬 — 그리드와 같은 기본값). 행을 거르지
@@ -213,6 +247,9 @@ namespace Modern.Lab.Controls.Wpf.Data
         // ApplyColumns로 받은 값 컬럼 정의 (트리 컬럼 오른쪽에 붙는다).
         private IList<ModernDataGridColumn> valueColumnDefinitions;
 
+        // 트리 컬럼(star)의 최소 폭 — 값 컬럼이 넓이를 넘겨도 노드 글자가 읽히는 하한(2026-10-26).
+        private const double treeColumnMinWidth = 120d;
+
         // 그리드 선택 ↔ SelectedValue 동기화의 순환을 막는 가드.
         private bool suppressSelectionSync;
 
@@ -225,6 +262,17 @@ namespace Modern.Lab.Controls.Wpf.Data
         /// </summary>
         public event EventHandler RowRightClick;
 
+        /// <summary>행을 더블클릭했을 때 발생한다 — 그 행이 먼저 선택된 뒤 알린다(그리드와 같은 계약, 2026-10-26).</summary>
+        public event EventHandler RowDoubleClick;
+
+        /// <summary>Link 컬럼의 글자를 눌렀을 때 — 인자의 행은 원본 행(DataRowView 등), 컬럼은 원본 컬럼 이름(2026-10-26).</summary>
+        public event EventHandler<GridButtonClickEventArgs> CellLinkClick;
+
+        // 행 표식 — 표식 요소(GridRowMarker)가 듣는다. 선택자 교체·컬럼 재구성·데이터 재바인딩 때 알린다.
+        private EventHandler rowMarkersChanged;
+
+        private readonly HashSet<object> pulsedMarkerItems = new HashSet<object>();
+
         public ModernTreeListControl()
         {
             this.InitializeComponent();
@@ -233,6 +281,9 @@ namespace Modern.Lab.Controls.Wpf.Data
             // 행 우클릭: 그 행을 먼저 선택하고 RowRightClick을 알린다 —
             // "우클릭 → 그 행 대상 컨텍스트 메뉴" 동선(그리드와 동일).
             this.InnerDataGrid.PreviewMouseRightButtonDown += this.OnGridRightButtonDown;
+
+            // 행 더블클릭: 그 행을 먼저 선택하고 RowDoubleClick을 알린다(그리드와 동일).
+            this.InnerDataGrid.MouseDoubleClick += this.OnGridMouseDoubleClick;
 
             // 클립보드 복사: Ctrl+C = 행, Ctrl+Shift+C = 셀 하나 (그리드와 같은 단축키).
             this.InnerDataGrid.PreviewKeyDown += this.OnGridPreviewKeyDown;
@@ -546,6 +597,8 @@ namespace Modern.Lab.Controls.Wpf.Data
         {
             this.filterController.Detach();
             this.findController.Release();
+            this.rowMarkersChanged = null;
+            this.pulsedMarkerItems.Clear();
         }
 
         private static void OnAllowColumnFiltersChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -741,6 +794,33 @@ namespace Modern.Lab.Controls.Wpf.Data
 
                 row.ClearValue(Control.ForegroundProperty);
             }
+
+            this.PaintRowForeground(row);
+        }
+
+        // 행 글자색 — RowForegroundMemberPath 값이 색이면 행 Foreground 를 그 색으로(그리드와 같은 규칙).
+        // 선택·hover 중에는 테마 글자색이 우선하므로 건드리지 않는다. 행 색에서 유도한 글자색보다 이 지정이 앞선다.
+        private void PaintRowForeground(DataGridRow row)
+        {
+            string path = this.RowForegroundMemberPath;
+
+            if (string.IsNullOrEmpty(path) || row.IsSelected || row.IsMouseOver)
+            {
+                return;
+            }
+
+            TreeListNode node = row.Item as TreeListNode;
+            object value = MemberPathReader.Read(node == null ? row.Item : node.Row, path);
+            Color color;
+
+            if (!ChipColorHelper.TryParseColor(value == null ? string.Empty : value.ToString(), out color))
+            {
+                return;
+            }
+
+            SolidColorBrush brush = new SolidColorBrush(color);
+            brush.Freeze();
+            row.Foreground = brush;
         }
 
         // RowHeaderMemberPath 값이 참인 행이 소제목이다 — 참 판정은 체크 칸과 같은 어휘(TruthyToBooleanConverter.IsTruthy).
@@ -899,6 +979,153 @@ namespace Modern.Lab.Controls.Wpf.Data
             set { this.SetValue(AutoFitColumnsProperty, value); }
         }
 
+        /// <summary>트리 컬럼(첫 칸) 고정 여부(기본 true).</summary>
+        public bool FreezeTreeColumn
+        {
+            get { return (bool)this.GetValue(FreezeTreeColumnProperty); }
+            set { this.SetValue(FreezeTreeColumnProperty, value); }
+        }
+
+        /// <summary>행 글자색 컬럼 이름(기본 빈 값 = 끔).</summary>
+        public string RowForegroundMemberPath
+        {
+            get { return (string)this.GetValue(RowForegroundMemberPathProperty); }
+            set { this.SetValue(RowForegroundMemberPathProperty, value); }
+        }
+
+        /// <summary>첫 열 셀 모서리 표식 선택자(원본 행 → 글자, 빈 문자열 = 없음).</summary>
+        public Func<object, string> RowMarkerSelector
+        {
+            get { return (Func<object, string>)this.GetValue(RowMarkerSelectorProperty); }
+            set { this.SetValue(RowMarkerSelectorProperty, value); }
+        }
+
+        // ===== 행 표식 호스트 (GridRowMarker 가 묻는다) =====
+
+        event EventHandler IGridRowMarkerHost.RowMarkersChanged
+        {
+            add { this.rowMarkersChanged += value; }
+            remove { this.rowMarkersChanged -= value; }
+        }
+
+        // 표식은 트리 컬럼(0번)에만 — 선택자에는 노드가 아니라 원본 행을 준다(그리드와 같은 인자).
+        string IGridRowMarkerHost.MarkerText(object item, DataGridColumn column)
+        {
+            Func<object, string> selector = this.RowMarkerSelector;
+
+            if (selector == null || item == null || column == null
+                    || this.InnerDataGrid.Columns.Count == 0 || column != this.InnerDataGrid.Columns[0])
+            {
+                return string.Empty;
+            }
+
+            TreeListNode node = item as TreeListNode;
+
+            try
+            {
+                return selector(node == null ? item : node.Row) ?? string.Empty;
+            }
+            catch (Exception)
+            {
+                return string.Empty;
+            }
+        }
+
+        bool IGridRowMarkerHost.BeginMarkerPulse(object item)
+        {
+            return this.pulsedMarkerItems.Add(item);
+        }
+
+        private void RaiseRowMarkersChanged()
+        {
+            if (this.rowMarkersChanged != null)
+            {
+                this.rowMarkersChanged(this, EventArgs.Empty);
+            }
+        }
+
+        private static void OnRowMarkerSelectorChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            ModernTreeListControl control = (ModernTreeListControl)d;
+            control.pulsedMarkerItems.Clear();
+            control.RaiseRowMarkersChanged();
+        }
+
+        // 더블클릭 지점에서 행(DataGridRow)을 찾아 선택한 뒤 RowDoubleClick을 발생시킨다 — 그리드와 같은 규칙.
+        // 왼쪽 버튼만, 행 밖(헤더·빈 영역)은 무시한다. 셰브런(펼침 버튼) 더블클릭도 행 더블클릭으로 본다.
+        private void OnGridMouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton != System.Windows.Input.MouseButton.Left)
+            {
+                return;
+            }
+
+            DependencyObject source = e.OriginalSource as DependencyObject;
+
+            while (source != null && !(source is DataGridRow))
+            {
+                if (source is DataGridColumnHeader)
+                {
+                    return;
+                }
+
+                source = source is Visual
+                        ? VisualTreeHelper.GetParent(source)
+                        : LogicalTreeHelper.GetParent(source);
+            }
+
+            DataGridRow row = source as DataGridRow;
+
+            if (row == null)
+            {
+                return;
+            }
+
+            if (!row.IsSelected)
+            {
+                this.InnerDataGrid.SelectedItem = row.Item;
+            }
+
+            e.Handled = true;
+            this.RaiseRowDoubleClick();
+        }
+
+        // 계약 검사가 리플렉션으로 부른다 — 실제 더블클릭 없이 이벤트 경로만 확인하기 위해(그리드와 같은 이름).
+        private void RaiseRowDoubleClick()
+        {
+            if (this.RowDoubleClick != null)
+            {
+                this.RowDoubleClick(this, EventArgs.Empty);
+            }
+        }
+
+        // Link 셀 클릭 — 그 노드를 먼저 선택하고, 원본 행과 원본 컬럼 이름("Row." 접두 제거)으로 알린다.
+        private void OnCellLinkClick(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+            FrameworkElement element = (FrameworkElement)sender;
+            TreeListNode node = element.DataContext as TreeListNode;
+
+            if (node != null)
+            {
+                this.InnerDataGrid.SelectedItem = node;
+            }
+
+            if (this.CellLinkClick != null)
+            {
+                string column = element.Tag as string ?? string.Empty;
+                this.CellLinkClick(this, new GridButtonClickEventArgs(
+                        node == null ? element.DataContext : node.Row,
+                        column.StartsWith("Row.", StringComparison.Ordinal) ? column.Substring(4) : column));
+            }
+        }
+
+        // Y/N 체크 칸은 읽기 전용(IsEnabled 가 노드의 IsCheckEditable=false 에 묶임)이라 여기까지 오지 않는다 — 와도 아무것도 하지 않는다.
+        private void OnCellCheckBoxClick(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+        }
+
         /// <summary>노드 0개일 때의 안내 문구 (기본 "No data", 빈 문자열 = 끔).</summary>
         public string EmptyText
         {
@@ -1013,11 +1240,11 @@ namespace Modern.Lab.Controls.Wpf.Data
                         1d,
                         this,
                         null,
-                        null,
+                        this.OnCellCheckBoxClick,
                         null,
                         delegate { },
                         cellMinWidth,
-                        null);
+                        this.OnCellLinkClick);
 
                 // 값 필터: 헤더 오른쪽 깔때기 — 값은 노드가 품은 원본 행에서 읽는다
                 // ("Row." 경로). 트리 컬럼에는 붙이지 않는다.
@@ -1029,7 +1256,7 @@ namespace Modern.Lab.Controls.Wpf.Data
                 if (definition.HeaderAlignment != GridTextAlignment.Center || GridHeaderCaption.IsCaptionHeader(column.Header)
                         || definition.TopLabelAlignment.HasValue || definition.BottomLabelAlignment.HasValue)
                 {
-                    ApplyHeaderAlignment(column, prefixed);
+                    this.ApplyHeaderAlignment(column, prefixed);
                 }
 
                 this.searchDefinitions.Add(prefixed);
@@ -1046,11 +1273,19 @@ namespace Modern.Lab.Controls.Wpf.Data
                 GridAutoFitMeasurer.ApplyAutoFitWidths(
                         this.InnerDataGrid, this.valueColumnDefinitions, this.ItemsSource, this, 1d, 1);
             }
+
+            // 트리 컬럼 고정 — 가로 스크롤에서 첫 칸이 밀려 나가지 않게(그리드 FrozenColumnCount=1 과 같다).
+            this.InnerDataGrid.FrozenColumnCount = this.FreezeTreeColumn ? 1 : 0;
+
+            // 컬럼이 다시 만들어졌으니 첫 열의 표식도 다시 묻게 한다.
+            this.RaiseRowMarkersChanged();
         }
 
         // 헤더 캡션 정렬 — 그리드와 같은 규칙. 작은 글씨 없는 문자열 헤더는 Center·Left 에서 그대로 두고,
         // Right 만 TextBlock 으로 바꾼다. 세로 패널 헤더는 줄마다 정렬한다(위·아래 줄은 자기 정렬, 없으면 본 캡션 정렬).
-        private static void ApplyHeaderAlignment(DataGridColumn column, ModernDataGridColumn definition)
+        // 헤더 캡션 정렬 — 그리드와 같은 규칙(2026-10-26 부터 기본 Center 도 같다). 헤더 내용은 템플릿의
+        // HorizontalContentAlignment(기본 Center)에 놓이므로, Left·Right 는 컬럼별 헤더 스타일로 그 정렬을 덮는다.
+        private void ApplyHeaderAlignment(DataGridColumn column, ModernDataGridColumn definition)
         {
             GridTextAlignment caption = definition.HeaderAlignment;
             string plain = column.Header as string;
@@ -1090,6 +1325,17 @@ namespace Modern.Lab.Controls.Wpf.Data
                     line.HorizontalAlignment = ToHorizontalAlignment(lineAlignment);
                 }
             }
+
+            if (caption == GridTextAlignment.Center || column.HeaderStyle != null)
+            {
+                return;
+            }
+
+            Style headerStyle = new Style(typeof(DataGridColumnHeader));
+            headerStyle.BasedOn = (Style)this.FindResource("TreeListHeaderStyle");
+            headerStyle.Setters.Add(new Setter(Control.HorizontalContentAlignmentProperty,
+                    caption == GridTextAlignment.Left ? HorizontalAlignment.Left : HorizontalAlignment.Right));
+            column.HeaderStyle = headerStyle;
         }
 
         private static HorizontalAlignment ToHorizontalAlignment(GridTextAlignment alignment)
@@ -1117,6 +1363,10 @@ namespace Modern.Lab.Controls.Wpf.Data
             column.Width = width > 0d
                     ? new DataGridLength(width)
                     : new DataGridLength(1d, DataGridLengthUnitType.Star);
+
+            // 남은 공간 채우기(star) 칸은 값 컬럼 합이 넓이를 넘으면 0 으로 눌려 노드 글자가 사라졌다(2026-10-26 캡처).
+            // 최소 폭을 두어 첫 칸은 늘 읽히고, 넘치는 값 컬럼은 가로 스크롤로 간다.
+            column.MinWidth = treeColumnMinWidth;
             return column;
         }
 
@@ -1133,9 +1383,20 @@ namespace Modern.Lab.Controls.Wpf.Data
         {
             ModernDataGridColumn clone = new ModernDataGridColumn(
                     "Row." + source.DataPropertyName, source.HeaderText, source.Width);
-            clone.Kind = source.Kind == GridColumnKind.Badge
-                    ? GridColumnKind.Badge
+            // Badge · Link · CheckBox(읽기 전용 Y/N) 는 그대로, 그 밖의 상호작용 Kind(버튼·콤보·스피너)는 Text 로(2026-10-26 Link · CheckBox 추가).
+            clone.Kind = source.Kind == GridColumnKind.Badge ? GridColumnKind.Badge
+                    : source.Kind == GridColumnKind.Link ? GridColumnKind.Link
+                    : source.Kind == GridColumnKind.CheckBox ? GridColumnKind.CheckBox
                     : GridColumnKind.Text;
+
+            if (clone.Kind == GridColumnKind.CheckBox)
+            {
+                // 체크 어휘·모양은 복사하고, 켜짐 여부는 노드의 IsCheckEditable(항상 false)에 묶어 읽기 전용으로 만든다.
+                clone.CheckTrueValue = source.CheckTrueValue;
+                clone.CheckFalseValue = source.CheckFalseValue;
+                clone.CheckStyle = source.CheckStyle;
+                clone.CheckEnabledMember = "IsCheckEditable";
+            }
             // 헤더의 위·아래 작은 글씨와 정렬도 그리드와 같이 옮긴다 — 전에는 본 캡션만 옮겨 엔티티의
             // TopLabel·BottomLabel 이 트리에서는 보이지 않았다(2026-10-18 사용자 보고).
             clone.TopLabel = source.TopLabel;
