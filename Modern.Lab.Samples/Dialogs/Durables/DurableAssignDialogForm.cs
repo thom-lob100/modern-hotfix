@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Windows.Forms;
@@ -11,10 +12,16 @@ namespace Modern.Lab.Samples
     public partial class DurableAssignDialogForm : ModernFormBase
     {
         private const string LookupHint = "Close and try again, or contact support.";
+        private const int IssueLinesInDialog = 8;
 
         private readonly DurableAssignDialogOptions options;
+        private readonly HashSet<string> issueRows = new HashSet<string>(StringComparer.Ordinal);
         private DataTable plan;
         private string planSubProdTyp = string.Empty;
+        private int planCapacity;
+        private int planFreeCount;
+        private Dictionary<string, string> planOccupied = new Dictionary<string, string>(StringComparer.Ordinal);
+        private List<string> issues = new List<string>();
         private bool lotSetup;
 
         public DurableAssignDialogForm()
@@ -87,7 +94,7 @@ namespace Modern.Lab.Samples
 
             try
             {
-                this.cboLot.DataSource = Candidates(lots, types);
+                this.cboLot.DataSource = Candidates(lots, types, this.options.Source, this.options.Contents);
                 this.cboLot.SelectedIndex = -1;
             }
             finally
@@ -113,6 +120,9 @@ namespace Modern.Lab.Samples
         {
             this.plan = null;
             this.planSubProdTyp = string.Empty;
+            this.planCapacity = 0;
+            this.planFreeCount = 0;
+            this.planOccupied = new Dictionary<string, string>(StringComparer.Ordinal);
             this.gridUnits.DataSource = null;
 
             DataRowView selected = this.cboLot.SelectedItem as DataRowView;
@@ -140,7 +150,13 @@ namespace Modern.Lab.Samples
             }
 
             this.planSubProdTyp = subProdTyp;
-            this.plan = BuildPlan(units, subProdTyp);
+            this.planCapacity = Capacity(this.options.Source, subProdTyp);
+            this.planOccupied = Occupied(this.options.Contents, subProdTyp);
+            List<string[]> freePositions = this.planCapacity > 0
+                    ? FreePositions(this.planCapacity, subProdTyp, this.planOccupied)
+                    : null;
+            this.planFreeCount = freePositions == null ? 0 : freePositions.Count;
+            this.plan = BuildPlan(units, subProdTyp, freePositions);
             this.gridUnits.StatusCountFormat = UnitsCaption(subProdTyp);
             this.gridUnits.ConfigureColumns(PlanColumns(this.plan, subProdTyp));
             this.gridUnits.DataSource = this.plan;
@@ -160,13 +176,63 @@ namespace Modern.Lab.Samples
 
             if (this.plan == null)
             {
+                this.issues = new List<string>();
+                this.issueRows.Clear();
+                this.badgeStatus.Visible = false;
                 this.btnOk.Enabled = false;
                 return;
             }
 
-            string problem = PlanProblem(this.plan, this.planSubProdTyp, Capacity(this.options.Source, this.planSubProdTyp));
-            this.lblStatus.Text = problem ?? this.plan.Rows.Count + " unit(s) ready.";
-            this.btnOk.Enabled = problem == null;
+            this.issues = PlanIssues(
+                    this.plan, this.planSubProdTyp, this.planCapacity, this.planOccupied, this.planFreeCount, this.issueRows);
+            this.gridUnits.RowColorSelector = item => this.IssueRowColorOf(item);
+            this.gridUnits.RowMarkerSelector = item => this.IssueMarkerOf(item);
+
+            if (this.issues.Count > 0)
+            {
+                this.badgeStatus.Semantic = Modern.Lab.Theming.SemanticKind.Error;
+                this.badgeStatus.Text = this.issues.Count == 1 ? "1 issue" : this.issues.Count + " issues";
+                this.lblStatus.Text = PlainText(this.issues[0]);
+            }
+            else
+            {
+                this.badgeStatus.Semantic = Modern.Lab.Theming.SemanticKind.Success;
+                this.badgeStatus.Text = this.plan.Rows.Count + " ready";
+                this.lblStatus.Text = this.plan.Rows.Count + " " + UnitWord(this.planSubProdTyp, this.plan.Rows.Count)
+                        + " go to " + this.FreeSlotsText() + ".";
+            }
+
+            this.badgeStatus.Visible = true;
+            this.btnOk.Enabled = this.issues.Count == 0;
+        }
+
+        private string FreeSlotsText()
+        {
+            if (this.planCapacity <= 0)
+            {
+                return "the slots entered";
+            }
+
+            int left = this.planFreeCount - this.plan.Rows.Count;
+            return "free slots (" + left + " left)";
+        }
+
+        private string IssueRowColorOf(object item)
+        {
+            DataRowView view = item as DataRowView;
+
+            return view != null && this.issueRows.Contains(Schemas.Wafer.WfId.Text(view.Row).Trim())
+                    ? IssueRowColor()
+                    : string.Empty;
+        }
+
+        private string IssueMarkerOf(object item)
+        {
+            DataRowView view = item as DataRowView;
+
+            return view != null && this.issueRows.Contains(Schemas.Wafer.WfId.Text(view.Row).Trim())
+                    ? IssueMarker
+                    : string.Empty;
         }
 
         private void OnOkClick(object sender, EventArgs e)
@@ -179,8 +245,10 @@ namespace Modern.Lab.Samples
             this.gridUnits.EndEdit();
             this.RefreshState();
 
-            if (!this.btnOk.Enabled)
+            if (this.issues.Count > 0)
             {
+                this.ShowWarningMessage(IssueSummary(this.issues, IssueLinesInDialog));
+                this.gridUnits.SelectRow(item => this.IssueMarkerOf(item).Length > 0);
                 return;
             }
 

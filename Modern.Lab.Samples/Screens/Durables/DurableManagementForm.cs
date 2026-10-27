@@ -1011,6 +1011,7 @@ namespace Modern.Lab.Samples
             options.OkText = "Assign";
             options.DefaultDescription = Services.DefaultDescriptions.AssignDurable;
             options.Source = ActionRows.Copy(durable);
+            options.Contents = this.slotData == null ? null : this.slotData.Copy();
 
             using (DurableAssignDialogForm dialog = new DurableAssignDialogForm(options))
             {

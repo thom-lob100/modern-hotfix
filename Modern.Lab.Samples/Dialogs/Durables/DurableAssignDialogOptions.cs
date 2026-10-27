@@ -11,5 +11,7 @@ namespace Modern.Lab.Samples
         public string DefaultDescription { get; set; }
 
         public DataRow Source { get; set; }
+
+        public DataTable Contents { get; set; }
     }
 }

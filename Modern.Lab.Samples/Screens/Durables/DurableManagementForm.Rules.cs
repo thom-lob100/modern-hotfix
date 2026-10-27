@@ -16,7 +16,7 @@ namespace Modern.Lab.Samples
         // 다른 필드끼리의 OR 가 필요한 조건만 (DataRow durable) 판정 메서드로 적는다 — 그 줄은 안내 창에 문장으로 나온다.
         // 판정은 이 파일에서 끝난다 — 본체는 DurableActionReason 결과를 버튼·메뉴에 적용하고, 실행 직전에 다시 부른다.
         // 목록 로딩 중이면 모든 액션이 닫힌다(listReady). contents 는 선택 지속재의 내용물 표(GetDurableSlotList 전부) —
-        // Deassign 의 Lot 조건이 읽고, 받는 중(null)이면 Deassign 만 닫힌다.
+        // Deassign 의 Lot 조건과 Assign 의 빈 자리 계산이 읽고, 받는 중(null)이면 Assign · Deassign 만 닫힌다.
 
         private const string DurableEntityName = "Durable";
         private const string LotEntityName = "Lot";
@@ -102,13 +102,14 @@ namespace Modern.Lab.Samples
             ActionRule.NotValue(DurableEntityName, Schemas.Durable.WfLoadStatCd, Schemas.Durable.WfLoadStatCd.Free)
         };
 
-        // Assign — 회사 조건(2026-10-27): Normal · Idle · 빈(WF_LOAD_STAT_CD Free) 지속재. Lot 조건(Released · NotOnHold · DURABLE_ID 빈 것)은
-        // Assign 창의 Lot 후보 목록이 거른다(DurableAssignDialogForm.Grid.cs Candidates).
+        // Assign — 회사 조건(2026-10-28): Normal · Idle · 가득 차지 않은(WF_LOAD_STAT_CD ≠ Full) 지속재.
+        // Lot 조건(Released · NotOnHold · DURABLE_ID 빈 것 · 수량이 빈 자리 이하)은 Assign 창의 Lot 후보 목록이 거른다
+        // (DurableAssignDialogForm.Grid.cs Candidates). 빈 자리는 내용물 표에서 세므로 받는 중(null)이면 Assign 도 닫힌다.
         private static readonly ActionRule[] AssignRules =
         {
             ActionRule.Value(DurableEntityName, Schemas.Durable.MesStatTyp, Schemas.Durable.MesStatTyp.Normal),
             ActionRule.Value(DurableEntityName, Schemas.Durable.MesProcStatCd, Schemas.Durable.MesProcStatCd.Idle),
-            ActionRule.Value(DurableEntityName, Schemas.Durable.WfLoadStatCd, Schemas.Durable.WfLoadStatCd.Free)
+            ActionRule.NotValue(DurableEntityName, Schemas.Durable.WfLoadStatCd, Schemas.Durable.WfLoadStatCd.Full)
         };
 
         private const string NoDurableSelected = "Select a durable first.";
@@ -154,6 +155,11 @@ namespace Modern.Lab.Samples
             if (reason == null && actionKey == DurableManagementPresenter.ActionDeassign)
             {
                 reason = DeassignContentsReason(contents);
+            }
+
+            if (reason == null && actionKey == DurableManagementPresenter.ActionAssign && contents == null)
+            {
+                reason = ContentsLoading;
             }
 
             return reason;

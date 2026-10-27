@@ -40,6 +40,7 @@ namespace Modern.Lab.Samples
             this.lblDescription = new Modern.Lab.WinForms.Controls.Display.ModernLabel();
             this.txtDescription = new Modern.Lab.WinForms.Controls.Input.ModernTextBox();
             this.buttonPanel = new System.Windows.Forms.Panel();
+            this.badgeStatus = new Modern.Lab.WinForms.Controls.Display.ModernStatusBadge();
             this.lblStatus = new Modern.Lab.WinForms.Controls.Display.ModernLabel();
             this.btnOk = new Modern.Lab.WinForms.Controls.Input.ModernButton();
             this.btnCancel = new Modern.Lab.WinForms.Controls.Input.ModernButton();
@@ -102,11 +103,12 @@ namespace Modern.Lab.Samples
             // cboLot
             //
             this.cboLot.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-            this.cboLot.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cboLot.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
+            this.cboLot.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDown;
             this.cboLot.Location = new System.Drawing.Point(123, 11);
             this.cboLot.Margin = new System.Windows.Forms.Padding(3, 3, 3, 5);
             this.cboLot.Name = "cboLot";
-            this.cboLot.PlaceholderText = "Select a lot";
+            this.cboLot.PlaceholderText = "Select or type a lot";
             this.cboLot.Size = new System.Drawing.Size(562, 32);
             this.cboLot.TabIndex = 1;
             this.cboLot.SelectedIndexChanged += new System.EventHandler(this.OnLotChanged);
@@ -171,6 +173,7 @@ namespace Modern.Lab.Samples
             //
             // buttonPanel
             //
+            this.buttonPanel.Controls.Add(this.badgeStatus);
             this.buttonPanel.Controls.Add(this.lblStatus);
             this.buttonPanel.Controls.Add(this.btnOk);
             this.buttonPanel.Controls.Add(this.btnCancel);
@@ -180,14 +183,26 @@ namespace Modern.Lab.Samples
             this.buttonPanel.Size = new System.Drawing.Size(688, 48);
             this.buttonPanel.TabIndex = 4;
             //
+            // badgeStatus
+            //
+            this.badgeStatus.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)));
+            this.badgeStatus.Location = new System.Drawing.Point(0, 15);
+            this.badgeStatus.Name = "badgeStatus";
+            this.badgeStatus.Shape = Modern.Lab.WinForms.Controls.Display.BadgeShape.Rounded;
+            this.badgeStatus.Size = new System.Drawing.Size(96, 26);
+            this.badgeStatus.TabIndex = 3;
+            this.badgeStatus.Text = "-";
+            this.badgeStatus.Visible = false;
+            this.badgeStatus.Child = null;
+            //
             // lblStatus
             //
             this.lblStatus.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) | System.Windows.Forms.AnchorStyles.Right)));
             this.lblStatus.BackColor = System.Drawing.Color.Transparent;
             this.lblStatus.Kind = Modern.Lab.Controls.Wpf.Display.LabelKind.Label;
-            this.lblStatus.Location = new System.Drawing.Point(0, 16);
+            this.lblStatus.Location = new System.Drawing.Point(104, 16);
             this.lblStatus.Name = "lblStatus";
-            this.lblStatus.Size = new System.Drawing.Size(496, 24);
+            this.lblStatus.Size = new System.Drawing.Size(392, 24);
             this.lblStatus.TabIndex = 2;
             //
             // btnOk
@@ -256,6 +271,7 @@ namespace Modern.Lab.Samples
         private Modern.Lab.WinForms.Controls.Display.ModernLabel lblDescription;
         private Modern.Lab.WinForms.Controls.Input.ModernTextBox txtDescription;
         private System.Windows.Forms.Panel buttonPanel;
+        private Modern.Lab.WinForms.Controls.Display.ModernStatusBadge badgeStatus;
         private Modern.Lab.WinForms.Controls.Display.ModernLabel lblStatus;
         private Modern.Lab.WinForms.Controls.Input.ModernButton btnOk;
         private Modern.Lab.WinForms.Controls.Input.ModernButton btnCancel;
