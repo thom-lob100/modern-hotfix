@@ -23,6 +23,7 @@ namespace Modern.Lab.Samples.Services
         public const string ActionRfId = "RfId";
         public const string ActionExchange = "Exchange";
         public const string ActionEdit = "Edit";
+        public const string ActionAssign = "Assign";
         public const string ActionDeassign = "Deassign";
         public const string ActionScrap = "Scrap";
         public const string ActionScrapCancel = "ScrapCancel";
@@ -48,6 +49,7 @@ namespace Modern.Lab.Samples.Services
                     new DurableAction(ActionRfId, "RFID", true),
                     new DurableAction(ActionExchange, "Exchange", true),
                     new DurableAction(ActionEdit, "Edit", true),
+                    new DurableAction(ActionAssign, "Assign", true),
                     new DurableAction(ActionDeassign, "Deassign", true),
                     new DurableAction(ActionScrap, "Scrap", true),
                     new DurableAction(ActionScrapCancel, ScrapCancelLabel, true),
@@ -74,6 +76,7 @@ namespace Modern.Lab.Samples.Services
                 {
                     Of(ActionExchange),
                     Of(ActionEdit),
+                    Of(ActionAssign),
                     Of(ActionDeassign)
                 }.AsReadOnly();
 

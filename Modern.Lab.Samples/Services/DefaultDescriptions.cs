@@ -27,6 +27,7 @@ namespace Modern.Lab.Samples.Services
         public const string AdjustDurable = "Manual Adjust Durable";
         public const string ScrapDurable = "Manual Scrap Durable";
         public const string ScrapDurableCancel = "Manual Scrap Cancel";
+        public const string AssignDurable = "Manual Assign Durable";
         public const string DeassignDurable = "Manual Deassign Durable";
         public const string MoveWafer = "Manual Move Wafer";
         public const string MoveChipLamella = "Manual Move Chip / Lamella";

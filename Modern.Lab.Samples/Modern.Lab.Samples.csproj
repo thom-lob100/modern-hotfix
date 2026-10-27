@@ -219,6 +219,22 @@
       <DependentUpon>DurableAdjustDialogForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Dialogs\Durables\DurableAdjustDialogOptions.cs" />
+    <Compile Include="Dialogs\Durables\DurableAssignDialogForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dialogs\Durables\DurableAssignDialogForm.Designer.cs">
+      <DependentUpon>DurableAssignDialogForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\Durables\DurableAssignDialogForm.Grid.cs">
+      <DependentUpon>DurableAssignDialogForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\Durables\DurableAssignDialogForm.Server.cs">
+      <DependentUpon>DurableAssignDialogForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Home\Api\DurableAssignDialogForm.HomeApi.cs">
+      <DependentUpon>DurableAssignDialogForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\Durables\DurableAssignDialogOptions.cs" />
     <Compile Include="Dialogs\Durables\DurableDeassignDialogForm.cs">
       <SubType>Form</SubType>
     </Compile>

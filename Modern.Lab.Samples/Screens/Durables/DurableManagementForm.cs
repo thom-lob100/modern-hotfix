@@ -836,6 +836,10 @@ namespace Modern.Lab.Samples
                     this.OpenCarrierEditor(row);
                     break;
 
+                case DurableManagementPresenter.ActionAssign:
+                    this.ShowAssignDialog(row);
+                    break;
+
                 case DurableManagementPresenter.ActionDeassign:
                     this.ShowDeassignDialog(row);
                     break;
@@ -997,6 +1001,25 @@ namespace Modern.Lab.Samples
                 }
 
                 this.ProcessDeassign(options.Source, dialog.LotIds, dialog.Description);
+            }
+        }
+
+        protected virtual void ShowAssignDialog(DataRow durable)
+        {
+            DurableAssignDialogOptions options = new DurableAssignDialogOptions();
+            options.Title = "Assign — " + DurableManagementPresenter.Id(durable);
+            options.OkText = "Assign";
+            options.DefaultDescription = Services.DefaultDescriptions.AssignDurable;
+            options.Source = ActionRows.Copy(durable);
+
+            using (DurableAssignDialogForm dialog = new DurableAssignDialogForm(options))
+            {
+                if (dialog.ShowDialog(this) != DialogResult.OK)
+                {
+                    return;
+                }
+
+                this.ProcessAssign(options.Source, dialog.LotId, dialog.Plan, dialog.Description);
             }
         }
 
@@ -1223,6 +1246,19 @@ namespace Modern.Lab.Samples
             this.Process(
                     () => this.DeassignDurable(durable, lotIds, description),
                     "Deassigning…",
+                    () => this.ExecuteSearch(true));
+        }
+
+        private void ProcessAssign(DataRow durable, string lotId, DataTable plan, string description)
+        {
+            if (!this.StillAllows(DurableManagementPresenter.ActionAssign, durable))
+            {
+                return;
+            }
+
+            this.Process(
+                    () => this.AssignDurable(durable, lotId, plan, description),
+                    "Assigning…",
                     () => this.ExecuteSearch(true));
         }
 

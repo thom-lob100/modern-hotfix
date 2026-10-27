@@ -66,6 +66,7 @@ namespace Modern.Lab.Samples.Services
             glyphs["RFID"] = ModernMenuGlyphs.Tag;
             glyphs["Exchange"] = ModernMenuGlyphs.Switch;
             glyphs["Edit"] = ModernMenuGlyphs.Edit;
+            glyphs["Assign"] = ModernMenuGlyphs.Pin;
             glyphs["Deassign"] = ModernMenuGlyphs.Unpin;
             glyphs["Release"] = ModernMenuGlyphs.Play;
             glyphs["Adjust"] = ModernMenuGlyphs.Setting;

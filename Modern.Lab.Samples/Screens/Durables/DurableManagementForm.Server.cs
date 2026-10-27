@@ -236,6 +236,54 @@ namespace Modern.Lab.Samples
             return this.Request(request.ToString());
         }
 
+        private DataActionResult AssignDurable(DataRow durable, string lotId, DataTable plan, string description)
+        {
+            StringBuilder request = new StringBuilder();
+            request.Append("AssignDurable");
+            request.Append(" DURABLE_ID=").Append(TableHelper.CellText(durable, "DURABLE_ID").Trim());
+            request.Append(" LOT_ID=").Append(lotId);
+
+            string subProdTyp = plan != null && plan.Rows.Count > 0
+                    ? TableHelper.CellText(plan.Rows[0], "SUB_PROD_TYP").Trim()
+                    : string.Empty;
+
+            if (subProdTyp == "Chip")
+            {
+                request.Append(" STUB_SLOT_NOS=").Append(PlanList(plan, "SLOT_NO"));
+                request.Append(" CHIP_IDS=").Append(PlanList(plan, "WF_ID"));
+            }
+            else if (subProdTyp == "Lamella")
+            {
+                request.Append(" LCC_SLOT_NOS=").Append(PlanList(plan, "SLOT_NO"));
+                request.Append(" FINGER_IDS=").Append(PlanList(plan, "FINGER_ID"));
+                request.Append(" LAMELLA_IDS=").Append(PlanList(plan, "WF_ID"));
+            }
+            else
+            {
+                request.Append(" SLOT_NOS=").Append(PlanList(plan, "SLOT_NO"));
+                request.Append(" WAFER_IDS=").Append(PlanList(plan, "WF_ID"));
+            }
+
+            request.Append(" DESCRIPTION=").Append(description);
+            request.Append(" USER_ID=").Append(this.CurrentUserId);
+            return this.Request(request.ToString());
+        }
+
+        private static string PlanList(DataTable plan, string columnName)
+        {
+            List<string> values = new List<string>();
+
+            if (plan != null)
+            {
+                foreach (DataRow row in plan.Rows)
+                {
+                    values.Add(TableHelper.CellText(row, columnName).Trim());
+                }
+            }
+
+            return string.Join(",", values);
+        }
+
         private DataActionResult TransportDurable(DataRow durable, string locNm, string location, string description)
         {
             StringBuilder request = new StringBuilder();

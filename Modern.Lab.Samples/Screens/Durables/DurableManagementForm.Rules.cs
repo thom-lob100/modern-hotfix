@@ -102,6 +102,15 @@ namespace Modern.Lab.Samples
             ActionRule.NotValue(DurableEntityName, Schemas.Durable.WfLoadStatCd, Schemas.Durable.WfLoadStatCd.Free)
         };
 
+        // Assign — 회사 조건(2026-10-27): Normal · Idle · 빈(WF_LOAD_STAT_CD Free) 지속재. Lot 조건(Released · NotOnHold · DURABLE_ID 빈 것)은
+        // Assign 창의 Lot 후보 목록이 거른다(DurableAssignDialogForm.Grid.cs Candidates).
+        private static readonly ActionRule[] AssignRules =
+        {
+            ActionRule.Value(DurableEntityName, Schemas.Durable.MesStatTyp, Schemas.Durable.MesStatTyp.Normal),
+            ActionRule.Value(DurableEntityName, Schemas.Durable.MesProcStatCd, Schemas.Durable.MesProcStatCd.Idle),
+            ActionRule.Value(DurableEntityName, Schemas.Durable.WfLoadStatCd, Schemas.Durable.WfLoadStatCd.Free)
+        };
+
         private const string NoDurableSelected = "Select a durable first.";
 
         private const string ListLoading = "The list is still loading.";
@@ -237,6 +246,8 @@ namespace Modern.Lab.Samples
                     return ScrapCancelRules;
                 case DurableManagementPresenter.ActionDeassign:
                     return DeassignRules;
+                case DurableManagementPresenter.ActionAssign:
+                    return AssignRules;
             }
 
             return null;
