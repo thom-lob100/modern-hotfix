@@ -92,7 +92,7 @@ namespace Modern.Lab.Samples
         };
 
         // Deassign — 회사 조건(2026-10-28): FOUP 이고 Normal · Idle · 비어 있지 않은(WF_LOAD_STAT_CD ≠ Free) 지속재.
-        // 내용물의 Lot 조건(모든 Lot 이 MES_PROC_STAT_CD JobEnd 이고, Released·NotOnHold 또는 Scrapped·Emptied)은
+        // 내용물의 Lot 조건(모든 Lot 이 MES_PROC_STAT_CD WAIT 이고, Released·NotOnHold 또는 Scrapped·Emptied — 2026-10-28)은
         // DeassignContentsReason 이 본다 — 내용물 표의 여러 행(Lot 상태 컬럼 LOT_STAT_TYP · LOT_HOLD_STAT_CD · MES_PROC_STAT_CD)에
         // 걸친 판정이라 값 규칙이 아니고, 안내 창에는 나오지 않으며 처음 막은 Lot 이 툴팁 사유로 나온다.
         private static readonly ActionRule[] DeassignRules =
@@ -167,7 +167,7 @@ namespace Modern.Lab.Samples
             return reason;
         }
 
-        // 내용물의 모든 Lot 이 JobEnd 이고 (Released 이면서 NotOnHold) 또는 Scrapped · Emptied 여야 연다. Lot 이 하나도 없으면 막는다.
+        // 내용물의 모든 Lot 이 WAIT 이고 (Released 이면서 NotOnHold) 또는 Scrapped · Emptied 여야 연다. Lot 이 하나도 없으면 막는다.
         private static string DeassignContentsReason(DataTable contents)
         {
             if (contents == null)
@@ -188,10 +188,10 @@ namespace Modern.Lab.Samples
 
                 anyLot = true;
 
-                if (!Schemas.DurableWafer.MesProcStatCd.Is(row, Schemas.DurableWafer.MesProcStatCd.JobEnd))
+                if (!Schemas.DurableWafer.MesProcStatCd.Is(row, Schemas.DurableWafer.MesProcStatCd.Wait))
                 {
                     return LotReason(lotId, Schemas.DurableWafer.MesProcStatCd, row,
-                            Schemas.DurableWafer.MesProcStatCd.JobEnd.Value);
+                            Schemas.DurableWafer.MesProcStatCd.Wait.Value);
                 }
 
                 if (Schemas.DurableWafer.LotStatTyp.Is(row, Schemas.DurableWafer.LotStatTyp.Released))
