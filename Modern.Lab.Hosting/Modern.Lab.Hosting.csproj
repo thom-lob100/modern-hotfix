@@ -66,6 +66,7 @@
     <Compile Include="Messaging\ReplyMessageParser.cs" />
     <Compile Include="Messaging\RequestParameters.cs" />
     <Compile Include="Messaging\ServerMessageFormat.cs" />
+    <Compile Include="Messaging\ServerReplyException.cs" />
     <Compile Include="ActionRule.cs" />
     <Compile Include="ActionRuleCatalog.cs" />
     <Compile Include="ActionRuleCheck.cs" />
