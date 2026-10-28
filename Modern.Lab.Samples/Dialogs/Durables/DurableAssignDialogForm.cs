@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Windows.Forms;
+using Modern.Lab.Data;
 using Modern.Lab.Hosting;
 using Modern.Lab.Hosting.Messaging;
 using Modern.Lab.Hosting.Schema;
+using Modern.Lab.Samples.Services;
 using Modern.Lab.WinForms.Controls.Selection;
 
 namespace Modern.Lab.Samples
@@ -13,16 +15,12 @@ namespace Modern.Lab.Samples
     public partial class DurableAssignDialogForm : ModernFormBase
     {
         private const string LookupHint = "Close and try again, or contact support.";
-        private const int IssueLinesInDialog = 8;
 
         private readonly DurableAssignDialogOptions options;
-        private readonly HashSet<string> issueRows = new HashSet<string>(StringComparer.Ordinal);
         private DataTable plan;
-        private int planCapacity;
-        private int planFreeCount;
-        private Dictionary<int, string> planOccupied = new Dictionary<int, string>();
-        private List<string> issues = new List<string>();
-        private bool lotSetup;
+        private List<int> freeSlots;
+        private string loadedLotId = string.Empty;
+        private bool refreshPending;
 
         public DurableAssignDialogForm()
         {
@@ -64,8 +62,15 @@ namespace Modern.Lab.Samples
             this.fieldSource.SetRow(this.options.Source);
             this.txtDescription.Text = this.options.DefaultDescription ?? string.Empty;
             this.cboLot.UseEntity(Schemas.Lot);
+
+            if (this.cboLot.Child != null)
+            {
+                this.cboLot.Child.AddHandler(System.Windows.Controls.Primitives.TextBoxBase.TextChangedEvent,
+                        new System.Windows.Controls.TextChangedEventHandler(this.OnLotTextChanged), true);
+            }
+
             this.gridUnits.RowKeyMember = Schemas.Wafer.WfId.Name;
-            this.gridUnits.ReadOnly = false;
+            this.freeSlots = DurableAssignPresenter.FreeSlots(this.options.Source, this.options.Contents);
             this.LoadLots();
             this.RefreshState();
         }
@@ -76,18 +81,11 @@ namespace Modern.Lab.Samples
 
             try
             {
-                lots = this.GetLots(RequestParameters.Of(
-                        Schemas.Lot.SubProdTyp.Name, Schemas.Lot.SubProdTyp.Wafer.Value,
-                        "CRT_FROM_DT", string.Empty,
-                        "CRT_TO_DT", string.Empty,
-                        "KEYWORD", string.Empty));
+                lots = this.GetLots(RequestParameters.Of(Schemas.Lot.SubProdTyp.Name, Schemas.Lot.SubProdTyp.Wafer.Value));
             }
             catch (Exception ex)
             {
-                this.ShowErrorMessage(
-                        "Lot lookup failed",
-                        "Lots could not be loaded. " + LookupHint,
-                        this.ServerFailureText(ex));
+                this.ShowErrorMessage("Lot lookup failed", "Lots could not be loaded. " + LookupHint, this.ServerFailureText(ex));
                 return;
             }
 
@@ -97,69 +95,97 @@ namespace Modern.Lab.Samples
                 return;
             }
 
-            this.lotSetup = true;
-
-            try
-            {
-                this.cboLot.DataSource = Candidates(lots, this.options.Source, this.options.Contents);
-                this.cboLot.SelectedIndex = -1;
-            }
-            finally
-            {
-                this.lotSetup = false;
-            }
-
-            this.lblStatus.Text = this.cboLot.Items.Count == 0 ? "No lot is ready to assign." : "Select a lot.";
+            this.cboLot.DataSource = lots;
+            this.cboLot.SelectedIndex = -1;
+            this.lblStatus.Text = lots.Rows.Count == 0 ? "No lot was returned." : "Select a lot.";
         }
 
         private void OnLotChanged(object sender, EventArgs e)
         {
-            if (IsDesignTime() || this.DesignMode || this.options == null || this.lotSetup)
+            this.QueueLotRefresh();
+        }
+
+        private void OnLotTextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            this.QueueLotRefresh();
+        }
+
+        private void QueueLotRefresh()
+        {
+            if (IsDesignTime() || this.DesignMode || this.options == null
+                    || this.IsDisposed || !this.IsHandleCreated || this.refreshPending)
             {
                 return;
             }
 
-            this.LoadUnits();
+            this.refreshPending = true;
+            this.BeginInvoke(new MethodInvoker(delegate
+            {
+                this.refreshPending = false;
+
+                if (!this.IsDisposed)
+                {
+                    this.RefreshLot();
+                }
+            }));
+        }
+
+        private void RefreshLot()
+        {
+            DataRow lot = this.SelectedLot();
+            string lotId = lot == null ? string.Empty : Schemas.Lot.LotId.Text(lot);
+
+            if (!string.Equals(lotId, this.loadedLotId, StringComparison.Ordinal))
+            {
+                this.loadedLotId = lotId;
+                this.LoadUnits(lot);
+
+                if (lot == null)
+                {
+                    this.lblStatus.Text = "Select a lot.";
+                }
+            }
+
             this.RefreshState();
         }
 
-        private void LoadUnits()
+        private DataRow SelectedLot()
         {
-            this.plan = null;
-            this.planCapacity = 0;
-            this.planFreeCount = 0;
-            this.planOccupied = new Dictionary<int, string>();
-            this.gridUnits.DataSource = null;
-
             DataRowView selected = this.cboLot.SelectedItem as DataRowView;
 
-            if (selected == null)
+            if (selected == null || !string.Equals(this.cboLot.Text,
+                    TableHelper.CellText(selected.Row, this.cboLot.DisplayMember), StringComparison.Ordinal))
+            {
+                return null;
+            }
+
+            return selected.Row;
+        }
+
+        private void LoadUnits(DataRow lot)
+        {
+            this.plan = null;
+            this.gridUnits.DataSource = null;
+
+            if (lot == null)
             {
                 return;
             }
 
-            string lotId = Schemas.Lot.LotId.Text(selected.Row);
+            string lotId = Schemas.Lot.LotId.Text(lot);
             DataTable units;
 
             try
             {
-                units = this.GetLotUnits(RequestParameters.Of().From(Schemas.Lot, selected.Row));
+                units = this.GetLotUnits(RequestParameters.Of().From(Schemas.Lot, lot));
             }
             catch (Exception ex)
             {
-                this.ShowErrorMessage(
-                        "Unit lookup failed",
-                        "Wafers of " + lotId + " could not be loaded. " + LookupHint,
-                        this.ServerFailureText(ex));
+                this.ShowErrorMessage("Unit lookup failed", "Wafers of " + lotId + " could not be loaded. " + LookupHint, this.ServerFailureText(ex));
                 return;
             }
 
-            this.planCapacity = Capacity(this.options.Source);
-            this.planOccupied = Occupied(this.options.Contents);
-            List<int> freeSlots = this.planCapacity > 0 ? FreeSlots(this.planCapacity, this.planOccupied) : null;
-            this.planFreeCount = freeSlots == null ? 0 : freeSlots.Count;
-            this.plan = BuildPlan(units, freeSlots);
-            this.gridUnits.StatusCountFormat = "{0:N0} wafers";
+            this.plan = DurableAssignPresenter.BuildPlan(units, this.freeSlots);
             this.gridUnits.ConfigureColumns(PlanColumns(this.plan));
             this.gridUnits.DataSource = this.plan;
         }
@@ -178,92 +204,45 @@ namespace Modern.Lab.Samples
 
             if (this.plan == null)
             {
-                this.issues = new List<string>();
-                this.issueRows.Clear();
-                this.badgeStatus.Visible = false;
                 this.btnOk.Enabled = false;
                 return;
             }
 
-            this.issues = PlanIssues(this.plan, this.planCapacity, this.planOccupied, this.planFreeCount, this.issueRows);
-            this.gridUnits.RowColorSelector = item => this.IssueRowColorOf(item);
-            this.gridUnits.RowMarkerSelector = item => this.IssueMarkerOf(item);
-
-            if (this.issues.Count > 0)
-            {
-                this.badgeStatus.Semantic = Modern.Lab.Theming.SemanticKind.Error;
-                this.badgeStatus.Text = this.issues.Count == 1 ? "1 issue" : this.issues.Count + " issues";
-                this.lblStatus.Text = PlainText(this.issues[0]);
-            }
-            else
-            {
-                this.badgeStatus.Semantic = Modern.Lab.Theming.SemanticKind.Success;
-                this.badgeStatus.Text = this.plan.Rows.Count + " ready";
-                this.lblStatus.Text = this.plan.Rows.Count + " " + WaferWord(this.plan.Rows.Count)
-                        + " go to " + this.FreeSlotsText() + ".";
-            }
-
-            this.badgeStatus.Visible = true;
-            this.btnOk.Enabled = this.issues.Count == 0;
-        }
-
-        private string FreeSlotsText()
-        {
-            if (this.planCapacity <= 0)
-            {
-                return "the slots entered";
-            }
-
-            int left = this.planFreeCount - this.plan.Rows.Count;
-            return "free slots (" + left + " left)";
-        }
-
-        private string IssueRowColorOf(object item)
-        {
-            DataRowView view = item as DataRowView;
-
-            return view != null && this.issueRows.Contains(Schemas.Wafer.WfId.Text(view.Row))
-                    ? IssueRowColor()
-                    : string.Empty;
-        }
-
-        private string IssueMarkerOf(object item)
-        {
-            DataRowView view = item as DataRowView;
-
-            return view != null && this.issueRows.Contains(Schemas.Wafer.WfId.Text(view.Row))
-                    ? IssueMarker
-                    : string.Empty;
+            int count = this.plan.Rows.Count;
+            this.lblStatus.Text = count == 0 ? "The lot has no wafer to assign."
+                    : count + (count == 1 ? " wafer" : " wafers") + " to assign.";
+            this.btnOk.Enabled = count > 0;
         }
 
         private void OnOkClick(object sender, EventArgs e)
         {
-            if (this.options == null || this.plan == null)
+            if (this.options == null)
             {
                 return;
             }
 
             this.gridUnits.EndEdit();
-            this.RefreshState();
+            DataRow lot = this.SelectedLot();
 
-            if (this.issues.Count > 0)
+            if (lot == null || this.plan == null || this.plan.Rows.Count == 0)
             {
-                this.ShowWarningMessage(IssueSummary(this.issues, IssueLinesInDialog));
-                this.gridUnits.SelectRow(item => this.IssueMarkerOf(item).Length > 0);
+                this.ShowWarningMessage(lot == null ? "Select a lot first." : "The lot has no wafer to assign.");
                 return;
             }
 
-            DataRowView selected = this.cboLot.SelectedItem as DataRowView;
+            string missing = DurableAssignPresenter.FirstWithoutSlot(this.plan);
 
-            if (selected == null)
+            if (missing != null)
             {
-                this.ShowWarningMessage("Select a lot first.");
+                this.ShowWarningMessage("Enter a slot for " + missing + ".");
+                this.gridUnits.SelectRow(item => item is DataRowView
+                        && string.Equals(Schemas.Wafer.WfId.Text(((DataRowView)item).Row), missing, StringComparison.Ordinal));
                 return;
             }
 
-            this.LotId = Schemas.Lot.LotId.Text(selected.Row);
-            this.SlotNos = JoinColumn(this.plan, Schemas.Wafer.SlotNo.Name);
-            this.WfIds = JoinColumn(this.plan, Schemas.Wafer.WfId.Name);
+            this.LotId = Schemas.Lot.LotId.Text(lot);
+            this.SlotNos = DurableAssignPresenter.JoinColumn(this.plan, Schemas.Wafer.SlotNo);
+            this.WfIds = DurableAssignPresenter.JoinColumn(this.plan, Schemas.Wafer.WfId);
             this.Description = this.txtDescription.Text ?? string.Empty;
             this.DialogResult = DialogResult.OK;
             this.Close();

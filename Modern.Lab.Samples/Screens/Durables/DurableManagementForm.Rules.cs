@@ -104,8 +104,8 @@ namespace Modern.Lab.Samples
         };
 
         // Assign — 회사 조건(2026-10-28): FOUP 이고 Normal · Idle · 가득 차지 않은(WF_LOAD_STAT_CD ≠ Full) 지속재.
-        // Lot 조건(Released · NotOnHold · DURABLE_ID 빈 것 · 수량이 빈 자리 이하)은 Assign 창의 Lot 후보 목록이 거른다
-        // (DurableAssignDialogForm.Grid.cs Candidates). 빈 자리는 내용물 표에서 세므로 받는 중(null)이면 Assign 도 닫힌다.
+        // Lot 조건(Released · NotOnHold · 실리지 않은 Lot · 자리)은 서버가 AssignDurable 에서 판정한다 — 창은 거르지 않는다(2026-10-28).
+        // 빈 자리는 내용물 표에서 세므로(기본 Slot 값) 받는 중(null)이면 Assign 도 닫힌다.
         private static readonly ActionRule[] AssignRules =
         {
             ActionRule.Value(DurableEntityName, Schemas.Durable.DurableTyp, Schemas.Durable.DurableTyp.Foup),

@@ -7,16 +7,13 @@ namespace Modern.Lab.Samples
     public partial class DurableAssignDialogForm
     {
         // LOT_ID
-        // LOT_STAT_TYP
-        // LOT_HOLD_STAT_CD
-        // DURABLE_ID
         private DataTable GetLots(RequestParameters parameters)
         {
             return this.RequestFields("GetLotList",
                     parameters.Take("SUB_PROD_TYP"),
-                    parameters.Take("CRT_FROM_DT"),
-                    parameters.Take("CRT_TO_DT"),
-                    parameters.Take("KEYWORD")).Table;
+                    "CrtFromDt", string.Empty,
+                    "CrtToDt", string.Empty,
+                    "Keyword", string.Empty).Table;
         }
 
         // WF_ID
