@@ -405,7 +405,7 @@ namespace Modern.Lab.Hosting
             {
                 Exception cause = reply.Cause ?? new ServerReplyException(
                         reply.Message, string.Empty, reply.RequestText, false, null);
-                bool lost = IsLostReply(cause);
+                bool lost = this.IsLostReply(cause);
 
                 this.ShowErrorMessage(
                         lost ? this.ActionFailedCaption : this.ScreenErrorCaption,

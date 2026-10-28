@@ -1002,14 +1002,9 @@ namespace Modern.Lab.Hosting
                 return failure.Message;
             }
 
-            if (replyKind == "lost")
+            if (this.IsLostReply(failure))
             {
-                return this.ConnectionFailureText(failure.InnerException);
-            }
-
-            if (IsConnectionFailure(failure))
-            {
-                return this.ConnectionFailureText(failure);
+                return this.ConnectionFailureText(replyKind == "lost" ? failure.InnerException : failure);
             }
 
             return this.ScreenErrorText;
@@ -1041,7 +1036,7 @@ namespace Modern.Lab.Hosting
                 return afterAction ? this.ActionRejectedNextText : this.QueryRejectedNextText;
             }
 
-            if (replyKind == "lost" || IsConnectionFailure(failure))
+            if (this.IsLostReply(failure))
             {
                 if (afterAction)
                 {
@@ -1056,14 +1051,25 @@ namespace Modern.Lab.Hosting
             return this.SupportNextText;
         }
 
-        // 응답이 오지 않은 실패인지 — 읽기 실패 "lost" 또는 통신 계층 예외.
-        private static bool IsLostReply(Exception failure)
+        // 응답이 오지 않은 통신 실패인지 — 읽기 실패 "lost" 가운데 원인이 통신 예외(또는 원인 없음)인 것, 또는 통신 계층 예외 자체.
+        // "lost" 라도 원인이 응답 형식 오류 · 전송 코드 안의 화면 예외면 통신 실패가 아니다 — 조회도 실행처럼 원인을 본다(코덱스 검토 2026-10-29).
+        private bool IsLostReply(Exception failure)
         {
-            return ServerReplyKind(failure) == "lost" || IsConnectionFailure(failure);
+            if (ServerReplyKind(failure) == "lost")
+            {
+                return failure.InnerException == null || this.IsTransportFailure(failure.InnerException);
+            }
+
+            return this.IsTransportFailure(failure);
         }
 
-        // 통신 계층이 낸 예외인지 — 예외와 그 안쪽 원인을 따라가며 본다. 화면 코드의 예외(널 참조 · 인자 오류)는 여기 들지 않는다.
-        private static bool IsConnectionFailure(Exception failure)
+        /// <summary>
+        /// 통신 계층이 낸 예외인지 — 예외와 그 안쪽 원인을 따라가며 시간 초과 · 웹 · 소켓 · IO · DB 예외를 찾는다. 화면 코드의 예외(널 참조 ·
+        /// 인자 오류)와 응답 형식 오류는 여기 들지 않아 "Screen error" 로 간다. 회사 전송 계층이 자기 예외 타입을 던지면 재정의해 더한다.
+        /// </summary>
+        /// <param name="failure">실패 예외.</param>
+        /// <returns>통신 실패면 true.</returns>
+        protected virtual bool IsTransportFailure(Exception failure)
         {
             for (Exception current = failure; current != null; current = current.InnerException)
             {
@@ -1088,9 +1094,9 @@ namespace Modern.Lab.Hosting
         }
 
         // 서버 · 통신 쪽 실패인지(제목 "Lookup failed" + 마지막 성공 시각 줄), 아니면 화면 내부 오류인지(제목 "Screen error").
-        private static bool IsServerSideFailure(Exception failure)
+        private bool IsServerSideFailure(Exception failure)
         {
-            return ServerReplyKind(failure).Length > 0 || IsConnectionFailure(failure);
+            return ServerReplyKind(failure) == "rejected" || this.IsLostReply(failure);
         }
 
         /// <summary>
@@ -1176,7 +1182,7 @@ namespace Modern.Lab.Hosting
             }
 
             // 마지막 성공 시각 안내는 서버 쪽 실패에만, 본문 아래 별도 줄로 — 사유와 한 문단에 이으면 읽기 어려웠다(2026-10-28).
-            bool serverSide = IsServerSideFailure(first);
+            bool serverSide = this.IsServerSideFailure(first);
 
             this.ShowErrorMessage(
                     serverSide ? this.QueryFailedCaption : this.ScreenErrorCaption,
