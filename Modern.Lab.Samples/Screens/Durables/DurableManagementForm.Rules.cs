@@ -122,10 +122,10 @@ namespace Modern.Lab.Samples
 
         private const string NoLotInContents = "The durable has no lot to deassign.";
 
-        // Scrap Cancel — 마지막 처리(LAST_EVENT_CD)가 Scrap 일 때만 연다(2026-10-22, Lot 과 같은 규칙). 되돌릴 수 있는지는 서버가 판정한다.
+        // Scrap Cancel — 회사 조건(2026-10-28): MES_STAT_TYP 가 Scrapped 인 지속재에만 연다. 되돌릴 수 있는지는 서버가 판정한다.
         private static readonly ActionRule[] ScrapCancelRules =
         {
-            ActionRule.Value(DurableEntityName, Schemas.Durable.LastEventCd, Schemas.Durable.LastEventCd.Scrap)
+            ActionRule.Value(DurableEntityName, Schemas.Durable.MesStatTyp, Schemas.Durable.MesStatTyp.Scrapped)
         };
 
         // 선택 없이 생성할 때도 평가한다. 공통 행 조건과 분리하고 저장 직전에도 같은 함수를 쓴다.
