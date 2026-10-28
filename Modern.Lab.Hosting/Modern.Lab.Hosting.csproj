@@ -64,7 +64,6 @@
     <Compile Include="Messaging\ParameterNameConverter.cs" />
     <Compile Include="Messaging\ParameterNameStyle.cs" />
     <Compile Include="Messaging\ReplyMessageParser.cs" />
-    <Compile Include="Messaging\RequestParameter.cs" />
     <Compile Include="Messaging\RequestParameters.cs" />
     <Compile Include="Messaging\ServerMessageFormat.cs" />
     <Compile Include="ActionRule.cs" />

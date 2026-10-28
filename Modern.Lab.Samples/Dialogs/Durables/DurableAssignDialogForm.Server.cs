@@ -10,15 +10,15 @@ namespace Modern.Lab.Samples
         private DataTable GetLots(RequestParameters parameters)
         {
             return this.RequestFields("GetLotList",
-                    parameters.Take("SUB_PROD_TYP")).Table;
+                    "SubProdTyp", parameters.Value(Schemas.Lot.SubProdTyp)).Table;
         }
 
         // WF_ID
         // SLOT_NO
-        private DataTable GetLotWafers(RequestParameters parameters)
+        private DataTable GetLotWafers(DataRow lot)
         {
             return this.RequestFields("GetLotUnitList",
-                    parameters.Take(Schemas.Lot.LotId)).Table;
+                    "LotId", Schemas.Lot.LotId.Text(lot)).Table;
         }
     }
 }

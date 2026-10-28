@@ -81,7 +81,7 @@ namespace Modern.Lab.Samples
 
             try
             {
-                lots = this.GetLots(RequestParameters.Of(Schemas.Lot.SubProdTyp.Name, Schemas.Lot.SubProdTyp.Wafer.Value));
+                lots = this.GetLots(RequestParameters.Of(Schemas.Lot.SubProdTyp, Schemas.Lot.SubProdTyp.Wafer.Value));
             }
             catch (Exception ex)
             {
@@ -177,7 +177,7 @@ namespace Modern.Lab.Samples
 
             try
             {
-                wafers = this.GetLotWafers(RequestParameters.Of().From(Schemas.Lot, lot));
+                wafers = this.GetLotWafers(lot);
             }
             catch (Exception ex)
             {
