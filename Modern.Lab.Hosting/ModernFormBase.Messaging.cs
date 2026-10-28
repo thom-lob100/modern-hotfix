@@ -383,13 +383,15 @@ namespace Modern.Lab.Hosting
 
             this.ShowErrorMessage(
                     this.QueryFailedCaption,
-                    ResponseContracts.ResponseColumns.MissingMessage,
+                    ResponseContracts.ResponseColumns.MissingWhy,
+                    ResponseContracts.ResponseColumns.MissingNext,
                     ResponseContracts.ResponseColumns.MissingDetails(response));
         }
 
         /// <summary>
-        /// 실행 실패 창 — 서버가 거절했으면 그 문구가 본문이고 반환 코드 · 전문은 상세로, 응답이 오지 않았으면
-        /// 고정 문구가 본문이고 예외 원문은 상세로 간다. 제목은 짧은 명사형(<see cref="ActionFailedCaption"/>)이다.
+        /// 실행 실패 창 — Why · Next 두 줄. 서버가 거절했으면 Why 는 그 문구, Next 는 "원인을 고치고 다시"이고 반환 코드 · 전문은 상세로.
+        /// 응답이 오지 않았으면 Why "The server did not reply.", Next "새로고침으로 처리 여부 확인"이고 예외 원문은 상세로.
+        /// 실행 코드 안에서 난 화면 예외(널 참조 등)는 제목 "Screen error" 로 가른다.
         /// </summary>
         /// <param name="reply">실패 응답.</param>
         protected virtual void ShowActionFailure(DataActionResult reply)
@@ -403,9 +405,13 @@ namespace Modern.Lab.Hosting
             {
                 Exception cause = reply.Cause ?? new ServerReplyException(
                         reply.Message, string.Empty, reply.RequestText, false, null);
+                bool lost = IsLostReply(cause);
 
                 this.ShowErrorMessage(
-                        this.ActionFailedCaption, this.FailureSummary(cause), FailureDetails(cause));
+                        lost ? this.ActionFailedCaption : this.ScreenErrorCaption,
+                        lost ? this.ActionLostText : this.FailureSummary(cause),
+                        this.FailureNextStep(cause, true),
+                        FailureDetails(cause));
                 return;
             }
 
@@ -413,7 +419,8 @@ namespace Modern.Lab.Hosting
                     ? this.ActionFailedText
                     : reply.Message;
 
-            this.ShowErrorMessage(this.ActionFailedCaption, reason, RejectionDetails(reply));
+            this.ShowErrorMessage(
+                    this.ActionFailedCaption, reason, this.ActionRejectedNextText, RejectionDetails(reply));
         }
 
         // 거절 응답의 상세 — 반환 코드와 보낸 전문.
@@ -434,7 +441,7 @@ namespace Modern.Lab.Hosting
             return string.Join(Environment.NewLine, lines.ToArray());
         }
 
-        /// <summary>화면이 전문을 잘못 조립한 경우(인자 예외) — 제목은 화면 오류, 본문은 고정 문구, 예외 원문은 상세.</summary>
+        /// <summary>화면이 전문을 잘못 조립한 경우(인자 예외) — 제목은 화면 오류, Why 는 고정 문구, Next 는 지원팀, 예외 원문은 상세.</summary>
         /// <param name="mistake">인자 예외.</param>
         protected virtual void ShowCallerMistake(Exception mistake)
         {
@@ -443,12 +450,13 @@ namespace Modern.Lab.Hosting
                 return;
             }
 
-            this.ShowErrorMessage(this.ScreenErrorCaption, this.CallerMistakeText, FailureDetails(mistake));
+            this.ShowErrorMessage(
+                    this.ScreenErrorCaption, this.CallerMistakeText, this.SupportNextText, FailureDetails(mistake));
         }
 
         protected virtual string CallerMistakeText
         {
-            get { return "This screen built the request incorrectly. Copy the details and send them to support."; }
+            get { return "This screen built the request incorrectly."; }
         }
 
         protected virtual string ActionFailedCaption

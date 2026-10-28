@@ -2,6 +2,8 @@ using System;
 using System.Threading;
 using System.Windows.Forms;
 
+using Modern.Lab.Controls.Wpf.Display;
+
 namespace Modern.Lab.WinForms.Controls.Dialogs
 {
     /// <summary>
@@ -22,14 +24,17 @@ namespace Modern.Lab.WinForms.Controls.Dialogs
         /// <summary>창 제목 — 기본은 영어이고 한국어 화면은 진입점에서 바꾼다.</summary>
         public static string Caption { get; set; }
 
-        /// <summary>본문 — 현업이 읽고 행동할 한 문장.</summary>
+        /// <summary>본문 — "Why:" 줄과 "Next:" 줄(라벨은 다이얼로그 강조 표기로 액센트 굵게). 한국어 화면은 통째로 바꾼다.</summary>
         public static string Message { get; set; }
 
         static UnhandledExceptionNotice()
         {
+            string marker = ModernMessageDialogControl.EmphasisMarker;
+
             Caption = "Unexpected error";
-            Message = "Something went wrong and the last action may not have completed. "
-                    + "Copy the details and send them to support.";
+            Message = marker + "Why:" + marker + " An unexpected error interrupted the last action."
+                    + Environment.NewLine
+                    + marker + "Next:" + marker + " Check the screen, then copy the details and send them to support.";
         }
 
         /// <summary>UI 스레드의 잡히지 않은 예외를 모던 다이얼로그로 돌린다. 두 번 불러도 한 번만 건다.</summary>

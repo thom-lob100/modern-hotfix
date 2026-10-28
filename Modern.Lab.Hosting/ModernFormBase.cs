@@ -562,16 +562,86 @@ namespace Modern.Lab.Hosting
             get { return "Screen error"; }
         }
 
-        /// <summary>화면 내부 오류의 본문 — 현업이 읽을 한 문장. 예외 원문은 상세로 간다.</summary>
+        /// <summary>화면 내부 오류의 Why 줄. 조치는 <see cref="SupportNextText"/>, 예외 원문은 상세로 간다.</summary>
         protected virtual string ScreenErrorText
         {
-            get { return "This screen ran into an internal error. Copy the details and send them to support."; }
+            get { return "This screen ran into an internal error."; }
         }
 
-        /// <summary>응답이 오지 않은 통신 실패의 본문(시간 초과는 그 예외의 문구를 쓴다).</summary>
+        /// <summary>응답이 오지 않은 통신 실패의 Why 줄(시간 초과는 그 예외의 문구를 쓴다).</summary>
         protected virtual string ServerUnreachableText
         {
-            get { return "The server could not be reached. Check the connection and try again."; }
+            get { return "The server could not be reached."; }
+        }
+
+        /// <summary>오류 창 본문의 첫 줄 라벨 — 무엇이 잘못됐는가.</summary>
+        protected virtual string WhyLabel
+        {
+            get { return "Why:"; }
+        }
+
+        /// <summary>오류 창 본문의 둘째 줄 라벨 — 현업이 다음에 할 일.</summary>
+        protected virtual string NextLabel
+        {
+            get { return "Next:"; }
+        }
+
+        /// <summary>Next 줄 — 화면 내부 오류 · 인자 오류 · 안 잡힌 예외처럼 현업이 고칠 수 없는 실패.</summary>
+        protected virtual string SupportNextText
+        {
+            get { return "Copy the details and send them to support."; }
+        }
+
+        /// <summary>Next 줄 — 조회 중 서버에 닿지 못했을 때.</summary>
+        protected virtual string QueryUnreachableNextText
+        {
+            get { return "Check the connection, then refresh."; }
+        }
+
+        /// <summary>Next 줄 — 조회가 시간 안에 돌아오지 않았을 때.</summary>
+        protected virtual string QueryTimeoutNextText
+        {
+            get { return "Wait a moment, then refresh."; }
+        }
+
+        /// <summary>Next 줄 — 조회를 서버가 코드로 거절했을 때.</summary>
+        protected virtual string QueryRejectedNextText
+        {
+            get { return "Fix the cause above, then refresh."; }
+        }
+
+        /// <summary>Next 줄 — 실행을 서버가 코드로 거절했을 때.</summary>
+        protected virtual string ActionRejectedNextText
+        {
+            get { return "Fix the cause above, then run the action again."; }
+        }
+
+        /// <summary>Why 줄 — 실행 중 응답이 오지 않았을 때. 서버에서는 처리됐을 수 있어 조치(<see cref="ActionLostNextText"/>)가 조회와 다르다.</summary>
+        protected virtual string ActionLostText
+        {
+            get { return "The server did not reply."; }
+        }
+
+        /// <summary>Next 줄 — 실행 중 응답이 오지 않았을 때.</summary>
+        protected virtual string ActionLostNextText
+        {
+            get { return "Refresh to see whether it went through, then run it again if needed."; }
+        }
+
+        /// <summary>
+        /// 오류 창 본문의 틀 — "Why:" 줄과 "Next:" 줄. 라벨은 다이얼로그의 강조 표기(<c>**</c>)로 액센트 굵게 그려진다.
+        /// 사유와 조치를 한 문단에 이어 쓰면 현업이 무엇을 하라는지 놓친다(2026-10-28 사용자).
+        /// </summary>
+        /// <param name="why">무엇이 잘못됐는가 — 한 문장.</param>
+        /// <param name="next">다음에 할 일 — 한 문장.</param>
+        /// <returns>두 줄 본문.</returns>
+        protected string WhyNextText(string why, string next)
+        {
+            string marker = Modern.Lab.Controls.Wpf.Display.ModernMessageDialogControl.EmphasisMarker;
+
+            return marker + this.WhyLabel + marker + " " + (why ?? string.Empty)
+                    + Environment.NewLine
+                    + marker + this.NextLabel + marker + " " + (next ?? string.Empty);
         }
 
         protected virtual string RetryingText
@@ -917,12 +987,12 @@ namespace Modern.Lab.Hosting
         }
 
         /// <summary>
-        /// 실패 창의 본문 — 현업이 읽을 한 문장이다. 서버가 코드로 거절했으면 그 문구 그대로, 응답이 오지 않았으면
+        /// 실패 창의 Why 줄 — 무엇이 잘못됐는지 한 문장이다. 서버가 코드로 거절했으면 그 문구 그대로, 응답이 오지 않았으면
         /// 고정 문구(시간 초과는 그 예외의 문구), 그 밖의 예외(널 참조 · 잘못된 호출)는 화면 내부 오류 문구다.
-        /// 예외 원문 · 종류 · 스택은 본문에 오지 않고 <see cref="FailureDetails"/> 로 간다. 한국어 화면은 재정의한다.
+        /// 조치는 <see cref="FailureNextStep"/>, 예외 원문 · 종류 · 스택은 <see cref="FailureDetails"/> 로 간다. 한국어 화면은 재정의한다.
         /// </summary>
         /// <param name="failure">실패 예외.</param>
-        /// <returns>본문 한 문장.</returns>
+        /// <returns>Why 한 문장.</returns>
         protected virtual string FailureSummary(Exception failure)
         {
             string replyKind = ServerReplyKind(failure);
@@ -945,7 +1015,7 @@ namespace Modern.Lab.Hosting
             return this.ScreenErrorText;
         }
 
-        // 시간 초과는 자기 문구가 이미 현업용이라 그대로("The server did not reply within 30 seconds…"), 나머지 통신 실패는 고정 문구.
+        // 시간 초과는 자기 문구가 이미 현업용이라 그대로("The server did not reply within 30 seconds."), 나머지 통신 실패는 고정 문구.
         private string ConnectionFailureText(Exception cause)
         {
             TimeoutException timeout = cause as TimeoutException;
@@ -953,6 +1023,43 @@ namespace Modern.Lab.Hosting
             return timeout != null && timeout.Message.Length > 0
                     ? timeout.Message
                     : this.ServerUnreachableText;
+        }
+
+        /// <summary>
+        /// 실패 창의 Next 줄 — 현업이 다음에 할 일 한 문장. 서버 거절은 "원인을 고치고 다시", 응답 없음은 조회면 "연결 확인 뒤 새로고침"
+        /// (시간 초과는 "잠시 뒤 새로고침"), 실행이면 "새로고침으로 처리 여부 확인 뒤 필요하면 다시", 그 밖의 예외는 "상세를 복사해 지원팀에".
+        /// </summary>
+        /// <param name="failure">실패 예외.</param>
+        /// <param name="afterAction">실행(RunAction) 뒤의 실패면 true, 조회 실패면 false.</param>
+        /// <returns>Next 한 문장.</returns>
+        protected virtual string FailureNextStep(Exception failure, bool afterAction)
+        {
+            string replyKind = ServerReplyKind(failure);
+
+            if (replyKind == "rejected")
+            {
+                return afterAction ? this.ActionRejectedNextText : this.QueryRejectedNextText;
+            }
+
+            if (replyKind == "lost" || IsConnectionFailure(failure))
+            {
+                if (afterAction)
+                {
+                    return this.ActionLostNextText;
+                }
+
+                Exception cause = replyKind == "lost" ? failure.InnerException : failure;
+
+                return cause is TimeoutException ? this.QueryTimeoutNextText : this.QueryUnreachableNextText;
+            }
+
+            return this.SupportNextText;
+        }
+
+        // 응답이 오지 않은 실패인지 — 읽기 실패 "lost" 또는 통신 계층 예외.
+        private static bool IsLostReply(Exception failure)
+        {
+            return ServerReplyKind(failure) == "lost" || IsConnectionFailure(failure);
         }
 
         // 통신 계층이 낸 예외인지 — 예외와 그 안쪽 원인을 따라가며 본다. 화면 코드의 예외(널 참조 · 인자 오류)는 여기 들지 않는다.
@@ -1060,12 +1167,12 @@ namespace Modern.Lab.Hosting
 
             this.pendingFailures.Clear();
 
-            string summary = this.FailureSummary(first);
+            string body = this.WhyNextText(this.FailureSummary(first), this.FailureNextStep(first, false));
 
             if (count > 1)
             {
-                summary = count.ToString(System.Globalization.CultureInfo.InvariantCulture)
-                        + " queries failed. " + summary;
+                body = count.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                        + " queries failed." + Environment.NewLine + body;
             }
 
             // 마지막 성공 시각 안내는 서버 쪽 실패에만, 본문 아래 별도 줄로 — 사유와 한 문단에 이으면 읽기 어려웠다(2026-10-28).
@@ -1073,7 +1180,7 @@ namespace Modern.Lab.Hosting
 
             this.ShowErrorMessage(
                     serverSide ? this.QueryFailedCaption : this.ScreenErrorCaption,
-                    serverSide ? summary + Environment.NewLine + Environment.NewLine + this.StaleBasisText() : summary,
+                    serverSide ? body + Environment.NewLine + Environment.NewLine + this.StaleBasisText() : body,
                     string.Join(Environment.NewLine + Environment.NewLine, detailBlocks.ToArray()));
         }
 
@@ -1164,6 +1271,19 @@ namespace Modern.Lab.Hosting
             }
         }
 
+        /// <summary>
+        /// Why · Next 두 줄 본문의 오류 알림 — 화면이 쓰는 틀. <paramref name="why"/>는 무엇이 잘못됐는지,
+        /// <paramref name="next"/>는 현업이 다음에 할 일을 한 문장씩 적고, 원문은 <paramref name="details"/>로 넘긴다.
+        /// </summary>
+        /// <param name="caption">제목 — 두세 단어 명사형.</param>
+        /// <param name="why">무엇이 잘못됐는가.</param>
+        /// <param name="next">다음에 할 일.</param>
+        /// <param name="details">개발자가 받을 원문 (빈 값이면 상세 버튼이 생기지 않는다).</param>
+        protected void ShowErrorMessage(string caption, string why, string next, string details)
+        {
+            this.ShowErrorMessage(caption, this.WhyNextText(why, next), details);
+        }
+
         protected void Debounce(string key, int delayMs, MethodInvoker action)
         {
             if (action == null || this.IsDisposed || this.Disposing)
@@ -1232,10 +1352,16 @@ namespace Modern.Lab.Hosting
             return rowCount.ToString("N0") + " " + rowNoun + " exported.";
         }
 
-        /// <summary>엑셀 저장 실패의 사용자 문구 — 행동할 수 있는 한 문장. 예외 원문은 다이얼로그 상세로 넘긴다(2026-10-21).</summary>
+        /// <summary>엑셀 저장 실패의 Why 줄. 조치는 <see cref="ExportFailedNextText"/>, 예외 원문은 다이얼로그 상세로 넘긴다(2026-10-21).</summary>
         protected virtual string ExportFailedText(Exception failure)
         {
-            return "Export failed. Close the file if it is open in another program and try again.";
+            return "The file could not be written.";
+        }
+
+        /// <summary>엑셀 저장 실패의 Next 줄.</summary>
+        protected virtual string ExportFailedNextText
+        {
+            get { return "Close the file if it is open in another program, then export again."; }
         }
 
         protected bool ExportToExcel(
@@ -1289,7 +1415,8 @@ namespace Modern.Lab.Hosting
                 catch (Exception exception)
                 {
                     // 실패는 토스트가 아니라 다이얼로그 — 예외 원문은 상세로(현업이 복사해 개발자에게 보낼 수 있게).
-                    this.ShowErrorMessage("Export failed", this.ExportFailedText(exception), exception.ToString());
+                    this.ShowErrorMessage(
+                            "Export failed", this.ExportFailedText(exception), this.ExportFailedNextText, exception.ToString());
                     return false;
                 }
             }
@@ -1347,7 +1474,7 @@ namespace Modern.Lab.Hosting
                     ThreadPool.QueueUserWorkItem(delegate(object state)
                     {
                         settle(default(T), new TimeoutException(
-                                "The server has not replied to the previous request yet. Try again later."));
+                                "The server has not replied to the previous request yet."));
                     });
                     return;
                 }
@@ -1376,7 +1503,7 @@ namespace Modern.Lab.Hosting
 
                     settle(default(T), new TimeoutException(string.Format(
                             System.Globalization.CultureInfo.InvariantCulture,
-                            "The server did not reply within {0:0} seconds. Try again later.",
+                            "The server did not reply within {0:0} seconds.",
                             limit.TotalSeconds)));
                 }, null, limit, System.Threading.Timeout.InfiniteTimeSpan);
             }
