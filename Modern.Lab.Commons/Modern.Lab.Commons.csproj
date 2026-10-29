@@ -119,6 +119,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Controls\Wpf\Input\ModernPropertyGridControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Controls\Wpf\Input\ModernTextBoxControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -266,6 +270,11 @@
     <Compile Include="Controls\Wpf\Input\ModernButtonControl.xaml.cs">
       <DependentUpon>ModernButtonControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\Wpf\Input\ModernPropertyGridControl.xaml.cs">
+      <DependentUpon>ModernPropertyGridControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\Wpf\Input\PropertyEditorKind.cs" />
+    <Compile Include="Controls\Wpf\Input\PropertyGridFieldSpec.cs" />
     <Compile Include="Controls\Wpf\Input\ModernTextBoxControl.xaml.cs">
       <DependentUpon>ModernTextBoxControl.xaml</DependentUpon>
     </Compile>
