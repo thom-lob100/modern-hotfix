@@ -21,6 +21,7 @@ namespace Modern.Lab.Hosting.MasterData
     /// 기본 편집기는 텍스트박스이고, 폼이 <see cref="Field"/>로 컬럼을 골라 <c>.Combo(…)</c>·<c>.Toggle()</c>을 이은
     /// 컬럼만 콤보박스·스위치가 된다. 라벨은 그리드 헤더와 같은 순서로 정해진다 — <see cref="GridCaptionCatalog.Humanize"/> →
     /// 캡션 사전 → 엔티티(<see cref="UseEntityLabels"/>) → 화면의 <c>.Field(…).Label(…).TopLabel(…)</c>(2026-10-04).
+    /// 위·아래 작은 글씨는 기본으로 그리지 않는다 — <see cref="ShowSubLabels"/> 를 켠 화면에서만 보인다(2026-10-29 사용자 결정).
     ///
     /// 입력칸 전부는 WPF 섬 하나(<see cref="ModernPropertyGridControl"/>) 안에 그려진다(2026-10-29) — 전에는 컬럼마다
     /// WinForms 래퍼(ElementHost)를 만들어 40컬럼이면 섬 40개가 생겼고 생성 1.4초 · 크기 변경 0.4초 · 열 수 변경 1.4초가 들었다
@@ -59,6 +60,7 @@ namespace Modern.Lab.Hosting.MasterData
         private int editorHeight = 28;
         private int multilineHeight = 72;
         private int rowGap = 4;
+        private bool showSubLabels;
         private bool isNew = true;
         private ParameterNameStyle parameterNameStyle = ParameterNameStyle.PascalCase;
 
@@ -221,6 +223,32 @@ namespace Modern.Lab.Hosting.MasterData
                     this.Wpf.RowGap = this.rowGap;
                 }
 
+                this.InvalidateDesignTimePreview();
+            }
+        }
+
+        /// <summary>
+        /// 라벨의 위·아래 작은 글씨(캡션 사전·엔티티·<c>.Field(…).TopLabel(…)</c>)를 그릴지. 기본 false — 본문만 보이고
+        /// 필수 누락 안내의 캡션(<see cref="CaptionOf"/>)도 본문만이다(2026-10-29 사용자 결정). 켜면 그리드 헤더와 같은 세 줄이 된다.
+        /// </summary>
+        [Category("Modern")]
+        [Description("Show the small top/bottom label lines from the caption dictionary, entity or Field chain; off shows the main text only.")]
+        [DefaultValue(false)]
+        public bool ShowSubLabels
+        {
+            get
+            {
+                return this.showSubLabels;
+            }
+            set
+            {
+                if (this.showSubLabels == value)
+                {
+                    return;
+                }
+
+                this.showSubLabels = value;
+                this.RebuildIfBuilt();
                 this.InvalidateDesignTimePreview();
             }
         }
@@ -502,10 +530,17 @@ namespace Modern.Lab.Hosting.MasterData
             return missing.ToArray();
         }
 
-        /// <summary>컬럼의 한 줄 라벨 — 위·본·아래를 공백으로 잇는다. 필수 누락 안내가 읽는다. 출처 순서는 라벨과 같다.</summary>
+        /// <summary>컬럼의 한 줄 라벨 — 필수 누락 안내가 읽는다. <see cref="ShowSubLabels"/> 가 켜져 있으면 위·본·아래를 공백으로 잇고,
+        /// 꺼져 있으면(기본) 라벨과 같이 본문만이다. 출처 순서는 라벨과 같다.</summary>
         public string CaptionOf(string column)
         {
             LabelDefinition definition = this.LabelOf(column);
+
+            if (!this.showSubLabels)
+            {
+                return definition.Text;
+            }
+
             return GridCaptionCatalog.PlainCaption(definition.TopLabel, definition.Text, definition.BottomLabel);
         }
 
@@ -983,8 +1018,8 @@ namespace Modern.Lab.Hosting.MasterData
                 PropertyGridFieldSpec spec = new PropertyGridFieldSpec(column);
                 spec.Kind = definition.Kind;
                 spec.LabelText = label.Text;
-                spec.TopLabel = label.TopLabel;
-                spec.BottomLabel = label.BottomLabel;
+                spec.TopLabel = this.showSubLabels ? label.TopLabel : string.Empty;
+                spec.BottomLabel = this.showSubLabels ? label.BottomLabel : string.Empty;
                 spec.IsKey = this.keyColumns.Contains(column);
                 spec.DecimalPlaces = definition.DecimalPlaces;
                 spec.ValueMember = definition.ValueMember;
