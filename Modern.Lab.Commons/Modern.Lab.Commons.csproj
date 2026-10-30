@@ -452,6 +452,7 @@
     <Compile Include="WinForms\Hosting\WpfHostCursorGuard.cs" />
     <Compile Include="WinForms\Hosting\DataSourceConverter.cs" />
     <Compile Include="WinForms\Hosting\SafeClipboard.cs" />
+    <Compile Include="WinForms\Hosting\WpfIdle.cs" />
     <Compile Include="WinForms\Input\ModernButton.cs" />
     <Compile Include="WinForms\Input\ModernTextBox.cs" />
     <Compile Include="WinForms\Input\ModernRichTextBox.cs" />
@@ -469,6 +470,7 @@
     <Compile Include="WinForms\Input\ModernToggleSwitch.cs" />
     <Compile Include="WinForms\Input\ModernMonthPicker.cs" />
     <Compile Include="WinForms\Input\ModernDropDownButton.cs" />
+    <Compile Include="WinForms\Input\ModernPropertyGridHost.cs" />
     <Compile Include="WinForms\Selection\ModernComboBox.cs" />
     <Compile Include="WinForms\Selection\ModernCheckComboBox.cs" />
     <Compile Include="WinForms\Selection\ComboEntityExtensions.cs" />

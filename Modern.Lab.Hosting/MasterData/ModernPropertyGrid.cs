@@ -9,7 +9,7 @@ using System.Globalization;
 using Modern.Lab.Controls.Wpf.Data;
 using Modern.Lab.Controls.Wpf.Input;
 using Modern.Lab.Hosting.Messaging;
-using Modern.Lab.WinForms.Controls.Hosting;
+using Modern.Lab.WinForms.Controls.Input;
 
 namespace Modern.Lab.Hosting.MasterData
 {
@@ -34,7 +34,7 @@ namespace Modern.Lab.Hosting.MasterData
     /// 콤보를 펼칠 때는 <see cref="ComboRefresh"/>로 같은 전문을 다시 보내 목록만 갱신한다.
     /// </summary>
     [ToolboxItem(true)]
-    public class ModernPropertyGrid : WpfElementHostBase<ModernPropertyGridControl>
+    public class ModernPropertyGrid : ModernPropertyGridHost
     {
         private readonly HashSet<string> keyColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> readOnlyColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -70,12 +70,6 @@ namespace Modern.Lab.Hosting.MasterData
         public ModernPropertyGrid()
         {
             this.Size = new Size(480, 320);
-
-            if (this.Wpf != null)
-            {
-                this.Wpf.ValueChanged += this.OnWpfValueChanged;
-                this.Wpf.DropDownRefresh = this.RefreshDropDownItems;
-            }
         }
 
         // ===== 설정 =====
@@ -125,12 +119,7 @@ namespace Modern.Lab.Hosting.MasterData
             set
             {
                 this.labelWidth = Math.Max(60, value);
-
-                if (this.Wpf != null)
-                {
-                    this.Wpf.LabelWidth = this.labelWidth;
-                }
-
+                this.SetEditorLabelWidth(this.labelWidth);
                 this.InvalidateDesignTimePreview();
             }
         }
@@ -148,12 +137,7 @@ namespace Modern.Lab.Hosting.MasterData
             set
             {
                 this.minColumnWidth = Math.Max(200, value);
-
-                if (this.Wpf != null)
-                {
-                    this.Wpf.MinColumnWidth = this.minColumnWidth;
-                }
-
+                this.SetEditorMinColumnWidth(this.minColumnWidth);
                 this.InvalidateDesignTimePreview();
             }
         }
@@ -171,12 +155,7 @@ namespace Modern.Lab.Hosting.MasterData
             set
             {
                 this.editorHeight = Math.Max(20, value);
-
-                if (this.Wpf != null)
-                {
-                    this.Wpf.EditorHeight = this.editorHeight;
-                }
-
+                this.SetEditorHeight(this.editorHeight);
                 this.InvalidateDesignTimePreview();
             }
         }
@@ -194,12 +173,7 @@ namespace Modern.Lab.Hosting.MasterData
             set
             {
                 this.multilineHeight = Math.Max(40, value);
-
-                if (this.Wpf != null)
-                {
-                    this.Wpf.MultilineHeight = this.multilineHeight;
-                }
-
+                this.SetEditorMultilineHeight(this.multilineHeight);
                 this.InvalidateDesignTimePreview();
             }
         }
@@ -217,12 +191,7 @@ namespace Modern.Lab.Hosting.MasterData
             set
             {
                 this.rowGap = Math.Max(0, value);
-
-                if (this.Wpf != null)
-                {
-                    this.Wpf.RowGap = this.rowGap;
-                }
-
+                this.SetEditorRowGap(this.rowGap);
                 this.InvalidateDesignTimePreview();
             }
         }
@@ -710,15 +679,15 @@ namespace Modern.Lab.Hosting.MasterData
         {
             FieldDefinition definition;
 
-            if (this.Wpf == null || !this.IsSchemaColumn(column)
+            if (!this.HasEditor || !this.IsSchemaColumn(column)
                     || !this.definitions.TryGetValue(column, out definition) || definition.Kind != PropertyEditorKind.Combo)
             {
                 return;
             }
 
-            string kept = this.Wpf.GetValue(column);
-            this.Wpf.BindComboItems(column, ItemsOf(items));
-            this.Wpf.SetValue(column, kept);
+            string kept = this.GetEditorValue(column);
+            this.BindEditorComboItems(column, ItemsOf(items));
+            this.SetEditorValue(column, kept);
         }
 
         private static IEnumerable ItemsOf(DataTable items)
@@ -728,7 +697,7 @@ namespace Modern.Lab.Hosting.MasterData
 
         // 펼치는 콤보의 전문을 다시 보내 목록만 바꾼다 — 같은 전문을 쓰는 다른 콤보도 함께 바뀌고 편집 값은 유지된다.
         // 여기서 전부 실었으므로 WPF 쪽에는 null 을 돌려준다(두 번 싣지 않는다).
-        private IEnumerable RefreshDropDownItems(string column)
+        protected override IEnumerable RefreshEditorDropDown(string column)
         {
             Func<string, object[], DataTable> refresh = this.ComboRefresh;
             FieldDefinition definition;
@@ -947,12 +916,12 @@ namespace Modern.Lab.Hosting.MasterData
         /// <summary>컬럼 하나의 편집 값. 없는 컬럼이면 빈 문자열.</summary>
         public string ReadValue(string column)
         {
-            if (this.Wpf == null || !this.IsSchemaColumn(column))
+            if (!this.HasEditor || !this.IsSchemaColumn(column))
             {
                 return string.Empty;
             }
 
-            return this.Wpf.GetValue(column);
+            return this.GetEditorValue(column);
         }
 
         /// <summary>키 컬럼 값들을 순서대로 이어 붙인 문자열(단일 키면 그 값 그대로).</summary>
@@ -974,7 +943,7 @@ namespace Modern.Lab.Hosting.MasterData
         /// <summary>첫 편집 가능한 편집기에 포커스를 준다.</summary>
         public void FocusFirstEditor()
         {
-            if (this.Wpf == null)
+            if (!this.HasEditor)
             {
                 return;
             }
@@ -984,7 +953,7 @@ namespace Modern.Lab.Hosting.MasterData
                 if (!this.ReadOnlyOf(column))
                 {
                     this.Focus();
-                    this.Wpf.FocusField(column);
+                    this.FocusEditorField(column);
                     return;
                 }
             }
@@ -995,7 +964,7 @@ namespace Modern.Lab.Hosting.MasterData
         // 스키마 · 종류 · 라벨로 WPF 쪽 입력칸을 다시 놓는다. 값은 읽어 두었다가 다시 쓰고, 키 잠금 · 필수 표시 · 콤보 항목을 다시 건다.
         private void Rebuild()
         {
-            if (this.Wpf == null)
+            if (!this.HasEditor)
             {
                 return;
             }
@@ -1027,7 +996,7 @@ namespace Modern.Lab.Hosting.MasterData
                 specs.Add(spec);
             }
 
-            this.Wpf.SetFields(specs);
+            this.SetEditorFields(specs);
 
             foreach (string column in this.schemaColumns)
             {
@@ -1035,7 +1004,7 @@ namespace Modern.Lab.Hosting.MasterData
 
                 if (this.comboSources.TryGetValue(column, out items))
                 {
-                    this.Wpf.BindComboItems(column, ItemsOf(items));
+                    this.BindEditorComboItems(column, ItemsOf(items));
                 }
 
                 string value;
@@ -1067,14 +1036,14 @@ namespace Modern.Lab.Hosting.MasterData
         // 필수라도 사용자가 할 일이 없고 필수 검사(MissingRequired)에서도 빠지므로 표시를 함께 뺀다(2026-10-12).
         private void ApplyKeyState()
         {
-            if (this.Wpf == null)
+            if (!this.HasEditor)
             {
                 return;
             }
 
             foreach (string column in this.schemaColumns)
             {
-                this.Wpf.SetReadOnly(column, this.ReadOnlyOf(column));
+                this.SetEditorReadOnly(column, this.ReadOnlyOf(column));
             }
 
             this.ApplyRequiredMarks();
@@ -1082,23 +1051,20 @@ namespace Modern.Lab.Hosting.MasterData
 
         private void ApplyRequiredMarks()
         {
-            if (this.Wpf == null)
+            if (!this.HasEditor)
             {
                 return;
             }
 
             foreach (string column in this.schemaColumns)
             {
-                this.Wpf.SetRequired(column, this.IsRequired(column) && !this.ReadOnlyOf(column));
+                this.SetEditorRequired(column, this.IsRequired(column) && !this.ReadOnlyOf(column));
             }
         }
 
         private void WriteValue(string column, string value)
         {
-            if (this.Wpf != null)
-            {
-                this.Wpf.SetValue(column, value);
-            }
+            this.SetEditorValue(column, value);
         }
 
         private bool IsSchemaColumn(string column)
@@ -1119,7 +1085,7 @@ namespace Modern.Lab.Hosting.MasterData
             return false;
         }
 
-        private void OnWpfValueChanged(object sender, EventArgs e)
+        protected override void OnEditorValueChanged(object sender, EventArgs e)
         {
             EventHandler handler = this.ValueChanged;
 

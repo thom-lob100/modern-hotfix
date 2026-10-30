@@ -110,9 +110,7 @@ namespace Modern.Lab.Hosting
 
             form.Load += delegate
             {
-                System.Windows.Threading.Dispatcher.CurrentDispatcher.BeginInvoke(
-                        System.Windows.Threading.DispatcherPriority.ApplicationIdle,
-                        new Action(delegate { Release(form); }));
+                Modern.Lab.WinForms.Controls.Hosting.WpfIdle.Post(new Action(delegate { Release(form); }));
             };
         }
 
