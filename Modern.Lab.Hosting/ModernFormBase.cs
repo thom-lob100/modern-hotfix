@@ -380,7 +380,9 @@ namespace Modern.Lab.Hosting
         /// 최상위 창으로 열릴 때 작업 영역보다 크면 맞출지(기본 true, 2026-10-21). 1366×768 이나 150% 배율(유효 1280×720)에서
         /// 디자이너 크기 그대로 열려 아래 버튼이 화면 밖으로 나가던 것 — 창을 작업 영역 안으로 줄이고, 디자이너의
         /// <c>MinimumSize</c>가 작업 영역보다 크면 그만큼 낮추되 <c>AutoScrollMinSize</c>로 남겨 내용이 잘리지 않고 스크롤된다.
-        /// 셸 안에 자식 폼(<c>TopLevel = false</c>)으로 들어간 화면은 셸이 크기를 정하므로 건드리지 않는다.
+        /// 셸 안에 자식 폼(<c>TopLevel = false</c>)으로 들어간 화면도 같은 기준으로 들어간 칸에 맞춘다(2026-10-30) — 칸보다 큰
+        /// <c>MinimumSize</c>는 칸에 맞춰 낮추고 화면 안에서 스크롤하며, 칸이 다시 넓어지면 원래대로 돌아간다(125% 에서 커진
+        /// 최소 크기가 셸 칸을 넘어 오른쪽 · 아래가 스크롤 없이 잘렸다).
         /// </summary>
         protected virtual bool FitToWorkingArea
         {
@@ -424,6 +426,113 @@ namespace Modern.Lab.Hosting
             location.X = Math.Max(area.Left, Math.Min(location.X, area.Right - this.Width));
             location.Y = Math.Max(area.Top, Math.Min(location.Y, area.Bottom - this.Height));
             this.Location = location;
+        }
+
+        private Control fitParent;
+
+        private bool fitMinimumLowered;
+
+        private bool fitOriginalAutoScroll;
+
+        private System.Drawing.Size fitDesignedMinimum;
+
+        private System.Drawing.Size fitOriginalScrollMinSize;
+
+        protected override void OnParentChanged(EventArgs e)
+        {
+            base.OnParentChanged(e);
+
+            if (IsDesignTime() || this.DesignMode)
+            {
+                return;
+            }
+
+            if (this.fitParent != null)
+            {
+                this.fitParent.Layout -= this.OnFitParentLayout;
+            }
+
+            this.fitParent = this.TopLevel ? null : this.Parent;
+
+            if (this.fitParent != null)
+            {
+                this.fitParent.Layout += this.OnFitParentLayout;
+                this.FitToParentIfNeeded();
+            }
+        }
+
+        // 칸의 Layout 이벤트는 자식을 배치하기 전에 온다 — 여기서 맞춰야 칸이 줄어든 크기로 화면을 다시 앉힌다.
+        private void OnFitParentLayout(object sender, LayoutEventArgs e)
+        {
+            this.FitToParentIfNeeded();
+        }
+
+        // 셸 안의 자식 폼 — 들어간 칸보다 MinimumSize 가 크면 칸에 맞춰 낮추고 내용은 화면 안에서 스크롤한다.
+        // 칸이 다시 넓어지면 디자이너 MinimumSize 와 원래 스크롤 설정으로 돌아간다.
+        private void FitToParentIfNeeded()
+        {
+            Control parent = this.Parent;
+            if (this.TopLevel || parent == null || !this.FitToWorkingArea)
+            {
+                return;
+            }
+
+            if (!this.fitMinimumLowered)
+            {
+                this.fitDesignedMinimum = this.MinimumSize;
+            }
+
+            System.Drawing.Size designed = this.fitDesignedMinimum;
+            System.Drawing.Size room = new System.Drawing.Size(
+                    parent.ClientSize.Width - parent.Padding.Horizontal,
+                    parent.ClientSize.Height - parent.Padding.Vertical);
+            if (designed.IsEmpty || room.Width <= 0 || room.Height <= 0)
+            {
+                return;
+            }
+
+            if (designed.Width > room.Width || designed.Height > room.Height)
+            {
+                if (!this.fitMinimumLowered)
+                {
+                    this.fitMinimumLowered = true;
+                    this.fitOriginalAutoScroll = this.AutoScroll;
+                    this.fitOriginalScrollMinSize = this.AutoScrollMinSize;
+                }
+
+                System.Drawing.Size chrome = this.SizeFromClientSize(System.Drawing.Size.Empty);
+                System.Drawing.Size lowered = new System.Drawing.Size(Math.Min(designed.Width, room.Width), Math.Min(designed.Height, room.Height));
+                System.Drawing.Size scrollMinimum = new System.Drawing.Size(designed.Width - chrome.Width, designed.Height - chrome.Height);
+                if (this.MinimumSize != lowered)
+                {
+                    this.MinimumSize = lowered;
+                }
+
+                if (!this.AutoScroll)
+                {
+                    this.AutoScroll = true;
+                }
+
+                if (this.AutoScrollMinSize != scrollMinimum)
+                {
+                    this.AutoScrollMinSize = scrollMinimum;
+                }
+
+                if (this.Dock == DockStyle.None && (this.Width > room.Width || this.Height > room.Height))
+                {
+                    this.Size = new System.Drawing.Size(Math.Min(this.Width, room.Width), Math.Min(this.Height, room.Height));
+                }
+
+                return;
+            }
+
+            if (this.fitMinimumLowered)
+            {
+                this.fitMinimumLowered = false;
+                this.MinimumSize = designed;
+                this.AutoScrollMinSize = this.fitOriginalScrollMinSize;
+                this.AutoScroll = this.fitOriginalAutoScroll;
+            }
         }
 
         private bool dpiScaleSettled;
@@ -652,6 +761,10 @@ namespace Modern.Lab.Hosting
 
         private static void ScaleSplitter(SplitContainer split, float factor)
         {
+            // KeepRatio 분할은 크기가 바뀔 때 스스로 비율대로 위치를 옮겼다 — 위치에 배율을 또 곱하면 비율이 틀어진다.
+            Modern.Lab.WinForms.Controls.Layout.ModernSplitContainer modern =
+                    split as Modern.Lab.WinForms.Controls.Layout.ModernSplitContainer;
+            bool keepsRatio = modern != null && modern.KeepRatio;
             int panel1 = (int)Math.Round(split.Panel1MinSize * factor);
             int panel2 = (int)Math.Round(split.Panel2MinSize * factor);
             int distance = (int)Math.Round(split.SplitterDistance * factor);
@@ -659,7 +772,10 @@ namespace Modern.Lab.Hosting
             {
                 split.Panel1MinSize = panel1;
                 split.Panel2MinSize = panel2;
-                split.SplitterDistance = distance;
+                if (!keepsRatio)
+                {
+                    split.SplitterDistance = distance;
+                }
             }
             catch (InvalidOperationException)
             {
