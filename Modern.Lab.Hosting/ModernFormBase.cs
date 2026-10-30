@@ -426,6 +426,256 @@ namespace Modern.Lab.Hosting
             this.Location = location;
         }
 
+        private bool dpiScaleSettled;
+
+        private bool dpiFontReset;
+
+        private bool dpiFontPassRunning;
+
+        private System.Drawing.SizeF dpiDesignedDimensions;
+
+        private System.Drawing.SizeF dpiExpectedDimensions;
+
+        private System.Drawing.SizeF dpiAlignedFactor;
+
+        /// <summary>
+        /// DPI 인식 exe 에서 배율(125% · 150% …)이면 디자이너 배치를 100% 모습의 배율 그대로 키울지(기본 true, 2026-10-30).
+        /// WinForms 의 글꼴 기준 자동 크기 조정은 디자이너가 <c>AutoScaleMode</c> 뒤에 <c>Font</c> 를 적으면 그 대입이 컨트롤의
+        /// 크기 조정 예정을 배율 1 로 소모해 배치를 전혀 키우지 않고(글자만 커져 라벨이 잘리고 버튼이 꽉 찼다), 글꼴을 안 적은
+        /// 폼도 평균 글자 폭이 정수로 반올림돼 가로는 덜 · 세로는 더 커진다. 보정은 <c>InitializeComponent</c> 끝의 자동 크기
+        /// 조정 안에서 한 번 끝나므로, 생성자가 그 뒤에 만드는 컨트롤(지금처럼 <c>DeviceDpi</c> 를 곱해 둔 것)은 건드리지 않는다.
+        /// SplitContainer 의 분할 위치 · 패널 최소 크기도 디자이너 배치라 함께 키운다 — WinForms 자동 크기 조정은 이 둘을
+        /// 키우지 않는다. 100% 와 DPI 비인식 exe 에서는 아무것도 바뀌지 않는다. 화면 하나가 이 보정과 맞지 않으면 그 폼에서
+        /// false 로 재정의해 예전 동작으로 되돌린다. 베이스 책임인 까닭: 폼 생성 흐름(디자이너 배치의 자동 크기 조정)을 고치는
+        /// 일이라 화면마다 둘 수 없다.
+        /// </summary>
+        protected virtual bool ExactDpiScaling
+        {
+            get { return true; }
+        }
+
+        protected override void SetClientSizeCore(int x, int y)
+        {
+            base.SetClientSizeCore(x, y);
+            this.AlignAutoScaleToDpi();
+        }
+
+        protected override void OnFontChanged(EventArgs e)
+        {
+            bool pending = !this.dpiScaleSettled && this.AutoScaleMode == AutoScaleMode.Font;
+            this.dpiFontPassRunning = pending;
+            try
+            {
+                base.OnFontChanged(e);
+            }
+            finally
+            {
+                this.dpiFontPassRunning = false;
+            }
+
+            if (pending)
+            {
+                // 글꼴 대입이 기준을 현재 글꼴로 바꾸고 잎 컨트롤의 크기 조정 예정을 소모했다 — 100% 에서도 배치는 그대로다.
+                this.dpiFontReset = true;
+                this.dpiExpectedDimensions = this.AutoScaleDimensions;
+            }
+        }
+
+        protected override void ScaleControl(System.Drawing.SizeF factor, BoundsSpecified specified)
+        {
+            bool settling = !this.dpiScaleSettled && !this.dpiFontPassRunning && this.AutoScaleMode == AutoScaleMode.Font;
+            if (!settling)
+            {
+                base.ScaleControl(factor, specified);
+                return;
+            }
+
+            // InitializeComponent 끝(ResumeLayout)의 자동 크기 조정 — 폼 자신이 먼저 불리고 자식은 그 뒤다.
+            this.dpiScaleSettled = true;
+            if (!this.DpiScalingWanted())
+            {
+                base.ScaleControl(factor, specified);
+                return;
+            }
+
+            float scale = this.DeviceDpi / 96f;
+            if (this.dpiFontReset)
+            {
+                if (!SameScale(factor, new System.Drawing.SizeF(1f, 1f)))
+                {
+                    base.ScaleControl(factor, specified);
+                    return;
+                }
+
+                // 프레임워크가 키울 것이 남지 않았으므로 폼과 자식 전체를 배율 그대로 한 번 키운다.
+                System.Drawing.SizeF exact = new System.Drawing.SizeF(scale, scale);
+                base.ScaleControl(exact, specified);
+                foreach (Control child in this.Controls)
+                {
+                    child.Scale(exact);
+                }
+
+                RestoreNestedAutoScale(this, scale, exact);
+                ScaleSplitterLayout(this, exact);
+                return;
+            }
+
+            base.ScaleControl(factor, specified);
+            if (SameScale(factor, this.dpiAlignedFactor))
+            {
+                RestoreNestedAutoScale(this, scale, new System.Drawing.SizeF(1f, 1f));
+                ScaleSplitterLayout(this, factor);
+            }
+        }
+
+        private bool DpiScalingWanted()
+        {
+            return this.DeviceDpi != 96 && this.ExactDpiScaling && !IsDesignTime() && !this.DesignMode;
+        }
+
+        // 글꼴을 안 적은 폼 — 기준(AutoScaleDimensions)을 맞춰 두면 프레임워크가 처음부터 배율 그대로 키운다. 컨테이너는
+        // 자기 ResumeLayout 때 먼저 키워지므로(OnChildLayoutResuming) 키운 뒤에 고치는 방식은 이중으로 커진다.
+        private void AlignAutoScaleToDpi()
+        {
+            if (this.dpiScaleSettled || this.AutoScaleMode != AutoScaleMode.Font || !this.DpiScalingWanted())
+            {
+                return;
+            }
+
+            System.Drawing.SizeF now = this.AutoScaleDimensions;
+            if (now.Width <= 0f || now.Height <= 0f)
+            {
+                return;
+            }
+
+            if (!SameScale(now, this.dpiExpectedDimensions))
+            {
+                this.dpiDesignedDimensions = now;
+                this.dpiFontReset = false;
+            }
+
+            if (this.dpiFontReset)
+            {
+                return;
+            }
+
+            float scale = this.DeviceDpi / 96f;
+            System.Drawing.SizeF at96 = FontAutoScaleDimensionsAt96(this.Font);
+            System.Drawing.SizeF target = new System.Drawing.SizeF(
+                    scale * at96.Width / this.dpiDesignedDimensions.Width,
+                    scale * at96.Height / this.dpiDesignedDimensions.Height);
+            System.Drawing.SizeF current = this.CurrentAutoScaleDimensions;
+            System.Drawing.SizeF aligned = new System.Drawing.SizeF(current.Width / target.Width, current.Height / target.Height);
+            if (!SameScale(aligned, now))
+            {
+                this.AutoScaleDimensions = aligned;
+            }
+
+            this.dpiExpectedDimensions = this.AutoScaleDimensions;
+            this.dpiAlignedFactor = target;
+        }
+
+        // 자기 AutoScaleMode 로 이미 크기를 맞춘 안쪽 컨테이너(사용자 컨트롤)의 내용을 그 컨테이너 글꼴 기준의 배율로 맞춘다.
+        // applied 는 지금까지 그 내용에 곱해진 배율이다.
+        private static void RestoreNestedAutoScale(Control parent, float scale, System.Drawing.SizeF applied)
+        {
+            foreach (Control child in parent.Controls)
+            {
+                System.Drawing.SizeF next = applied;
+                ContainerControl container = child as ContainerControl;
+                if (container != null && container.AutoScaleMode != AutoScaleMode.Inherit)
+                {
+                    next = container.AutoScaleMode == AutoScaleMode.Font
+                            ? NestedFontCorrection(container, scale)
+                            : new System.Drawing.SizeF(1f, 1f);
+                    System.Drawing.SizeF extra = new System.Drawing.SizeF(next.Width / applied.Width, next.Height / applied.Height);
+                    if (!SameScale(extra, new System.Drawing.SizeF(1f, 1f)))
+                    {
+                        foreach (Control inner in container.Controls)
+                        {
+                            inner.Scale(extra);
+                        }
+                    }
+                }
+
+                RestoreNestedAutoScale(child, scale, next);
+            }
+        }
+
+        private static System.Drawing.SizeF NestedFontCorrection(ContainerControl container, float scale)
+        {
+            System.Drawing.SizeF current = container.CurrentAutoScaleDimensions;
+            if (current.Width <= 0f || current.Height <= 0f)
+            {
+                return new System.Drawing.SizeF(1f, 1f);
+            }
+
+            System.Drawing.SizeF at96 = FontAutoScaleDimensionsAt96(container.Font);
+            return new System.Drawing.SizeF(scale * at96.Width / current.Width, scale * at96.Height / current.Height);
+        }
+
+        // 그 글꼴의 96 DPI 자동 크기 기준 — 같은 크기의 픽셀 글꼴로 프레임워크 계산을 그대로 빌린다.
+        private static System.Drawing.SizeF FontAutoScaleDimensionsAt96(System.Drawing.Font font)
+        {
+            using (System.Drawing.Font pixelFont = new System.Drawing.Font(
+                    font.FontFamily, font.SizeInPoints * 96f / 72f, font.Style, System.Drawing.GraphicsUnit.Pixel,
+                    font.GdiCharSet, font.GdiVerticalFont))
+            using (ContainerControl probe = new ContainerControl())
+            {
+                probe.SuspendLayout();
+                probe.AutoScaleMode = AutoScaleMode.Font;
+                probe.Font = pixelFont;
+                System.Drawing.SizeF dimensions = probe.CurrentAutoScaleDimensions;
+                probe.ResumeLayout(false);
+                return dimensions;
+            }
+        }
+
+        private static void ScaleSplitterLayout(Control parent, System.Drawing.SizeF factor)
+        {
+            foreach (Control child in parent.Controls)
+            {
+                SplitContainer split = child as SplitContainer;
+                ContainerControl container = child as ContainerControl;
+                if (split != null)
+                {
+                    ScaleSplitter(split, split.Orientation == Orientation.Vertical ? factor.Width : factor.Height);
+                }
+                else if (container != null && container.AutoScaleMode != AutoScaleMode.Inherit)
+                {
+                    continue;
+                }
+
+                ScaleSplitterLayout(child, factor);
+            }
+        }
+
+        private static void ScaleSplitter(SplitContainer split, float factor)
+        {
+            int panel1 = (int)Math.Round(split.Panel1MinSize * factor);
+            int panel2 = (int)Math.Round(split.Panel2MinSize * factor);
+            int distance = (int)Math.Round(split.SplitterDistance * factor);
+            try
+            {
+                split.Panel1MinSize = panel1;
+                split.Panel2MinSize = panel2;
+                split.SplitterDistance = distance;
+            }
+            catch (InvalidOperationException)
+            {
+                // 공간이 모자라면 SplitContainer 가 맞춘 위치를 그대로 둔다.
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                // 최소 크기 제약에 걸리면 SplitContainer 가 맞춘 위치를 그대로 둔다.
+            }
+        }
+
+        private static bool SameScale(System.Drawing.SizeF first, System.Drawing.SizeF second)
+        {
+            return Math.Abs(first.Width - second.Width) < 0.0005f && Math.Abs(first.Height - second.Height) < 0.0005f;
+        }
+
         protected virtual void InitializeMessaging()
         {
         }
