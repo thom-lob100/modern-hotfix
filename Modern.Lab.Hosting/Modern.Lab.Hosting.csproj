@@ -1,0 +1,208 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{9B8C7D6E-5F40-4A31-B2C3-D4E5F60718A9}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Modern.Lab.Hosting</RootNamespace>
+    <AssemblyName>Modern.Lab.Hosting</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <LangVersion>7.3</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(HostingBoundaryCheck)' == 'true' ">
+    <OutputPath>$(TEMP)\ModernLabHostingBoundary\Hosting\bin\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>$(TEMP)\ModernLabHostingBoundary\Hosting\obj\$(Configuration)\</IntermediateOutputPath>
+    <DefineConstants>$(DefineConstants);DISABLE_SAMPLES_FRIEND</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Design" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="WindowsFormsIntegration" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Contracts\ServerFields.cs" />
+    <Compile Include="Dictionaries\GridCaptionDictionary.cs" />
+    <Compile Include="LoadCoverSurface.cs" />
+    <Compile Include="LoadOutcome.cs" />
+    <Compile Include="Messaging\DataActionResult.cs" />
+    <Compile Include="Messaging\JsonTableConverter.cs" />
+    <Compile Include="Messaging\ModernFormBase.RequestFields.cs" />
+    <Compile Include="Messaging\ParameterNameConverter.cs" />
+    <Compile Include="Messaging\ParameterNameStyle.cs" />
+    <Compile Include="Messaging\ReplyMessageParser.cs" />
+    <Compile Include="Messaging\RequestParameters.cs" />
+    <Compile Include="Messaging\ServerMessageFormat.cs" />
+    <Compile Include="Messaging\ServerReplyException.cs" />
+    <Compile Include="ActionRule.cs" />
+    <Compile Include="ActionRuleCatalog.cs" />
+    <Compile Include="ActionRuleCheck.cs" />
+    <Compile Include="ActionRuleGroup.cs" />
+    <Compile Include="ActionRuleGuideForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ActionRuleGuideForm.Designer.cs">
+      <DependentUpon>ActionRuleGuideForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ModernFormBase.cs" />
+    <Compile Include="SearchBandLayout.cs" />
+    <Compile Include="ModernFormBase.Host.cs" />
+    <Compile Include="ModernFormBase.Messaging.cs" />
+    <Compile Include="ModernFormBase.RequestInfo.cs" />
+    <Compile Include="ModernFormBase.RuleGuide.cs" />
+    <Compile Include="ModernFormBase.Theme.cs" />
+    <Compile Include="Theming\ModernThemeSetting.cs" />
+    <Compile Include="Theming\ThemeTile.cs" />
+    <Compile Include="Theming\ModernThemeDialogForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Theming\ModernThemeDialogForm.Designer.cs">
+      <DependentUpon>ModernThemeDialogForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ModernLoadCover.cs" />
+    <Compile Include="ResponseContracts\TableReception.cs" />
+    <Compile Include="NewItems\NewItemTracker.cs" />
+    <Compile Include="NewItems\NewItemTint.cs" />
+    <Compile Include="ResponseContracts\ActionColumnRequirement.cs" />
+    <Compile Include="ResponseContracts\ActionContract.cs" />
+    <Compile Include="ResponseContracts\ActionGate.cs" />
+    <Compile Include="ResponseContracts\ActionRestriction.cs" />
+    <Compile Include="ResponseContracts\ActionRestrictionReason.cs" />
+    <Compile Include="ResponseContracts\ActionRestrictionScope.cs" />
+    <Compile Include="ResponseContracts\AliasConflict.cs" />
+    <Compile Include="ResponseContracts\AliasConflictKind.cs" />
+    <Compile Include="ResponseContracts\ColumnAlias.cs" />
+    <Compile Include="ResponseContracts\ColumnAliasCatalog.cs" />
+    <Compile Include="ResponseContracts\ResponseContractException.cs" />
+    <Compile Include="ResponseContracts\ResponseContractSet.cs" />
+    <Compile Include="ResponseContracts\ResponseColumns.cs" />
+    <Compile Include="ResponseContracts\ResponseKind.cs" />
+    <Compile Include="ResponseContracts\RowDisqualification.cs" />
+    <Compile Include="ResponseContracts\RowDisqualificationReason.cs" />
+    <Compile Include="ResponseContracts\SelectionSlot.cs" />
+    <Compile Include="ResponseContracts\StatusClassification.cs" />
+    <Compile Include="ResponseContracts\StatusPolicy.cs" />
+    <Compile Include="Schema\Entities\DurableEntity.cs" />
+    <Compile Include="Schema\Entities\DurableHistoryEntity.cs" />
+    <Compile Include="Schema\Fields\DurableTypField.cs" />
+    <Compile Include="Schema\Fields\DetDurableTypField.cs" />
+    <Compile Include="Schema\Fields\FingerPositionField.cs" />
+    <Compile Include="Schema\Entities\JudgeResultEntity.cs" />
+    <Compile Include="Schema\Fields\LotProcStatField.cs" />
+    <Compile Include="Schema\Fields\EqpMesStatTypField.cs" />
+    <Compile Include="Schema\Fields\EqpTypField.cs" />
+    <Compile Include="Schema\Fields\DetEqpTypField.cs" />
+    <Compile Include="Schema\Fields\CleanTypField.cs" />
+    <Compile Include="Schema\Schemas.cs" />
+    <Compile Include="Schema\Fields\LocNmField.cs" />
+    <Compile Include="Schema\Entities\SubCategoryEntity.cs" />
+    <Compile Include="Schema\Entities\CriteriaEntity.cs" />
+    <Compile Include="Schema\Fields\WfLoadStatField.cs" />
+    <Compile Include="Schema\Fields\DurableStatField.cs" />
+    <Compile Include="Schema\Fields\MesStatTypField.cs" />
+    <Compile Include="Schema\Fields\DurableMesProcStatCdField.cs" />
+    <Compile Include="ResponseContracts\TableContract.cs" />
+    <Compile Include="Schema\Entities\AreaEntity.cs" />
+    <Compile Include="Schema\Fields\AutoYnField.cs" />
+    <Compile Include="Schema\Fields\CommStatTypField.cs" />
+    <Compile Include="Schema\Entities\CommonTypeDetEntity.cs" />
+    <Compile Include="Schema\Entities\CommonTypeEntity.cs" />
+    <Compile Include="Schema\Entities\DurableChipEntity.cs" />
+    <Compile Include="Schema\Entities\DurableChipHistoryEntity.cs" />
+    <Compile Include="Schema\Entities\DurableLamellaEntity.cs" />
+    <Compile Include="Schema\Entities\DurableLamellaHistoryEntity.cs" />
+    <Compile Include="Schema\Entities\DurablePriorityEntity.cs" />
+    <Compile Include="Schema\Entities\DurableWaferEntity.cs" />
+    <Compile Include="Schema\Schemas.Business.cs" />
+    <Compile Include="Schema\Entities\EquipmentBase.cs" />
+    <Compile Include="Schema\Entities\EquipmentExtEntity.cs" />
+    <Compile Include="Schema\Entities\EquipmentExtHistoryEntity.cs" />
+    <Compile Include="Schema\Entities\EquipmentGroupEntity.cs" />
+    <Compile Include="Schema\Entities\EquipmentPriorityEntity.cs" />
+    <Compile Include="Schema\Entities\FlowEntity.cs" />
+    <Compile Include="Schema\Fields\JudgeResultField.cs" />
+    <Compile Include="Schema\Fields\LastEventCdField.cs" />
+    <Compile Include="Schema\Entities\LogisticsEntity.cs" />
+    <Compile Include="Schema\Entities\LotCodeEntity.cs" />
+    <Compile Include="Schema\Entities\LotBase.cs" />
+    <Compile Include="Schema\Entities\LotEntity.cs" />
+    <Compile Include="Schema\Entities\LotHistoryEntity.cs" />
+    <Compile Include="Schema\Fields\LotHoldStatField.cs" />
+    <Compile Include="Schema\Entities\LotPriorityEntity.cs" />
+    <Compile Include="Schema\Fields\LotStatTypField.cs" />
+    <Compile Include="Schema\Entities\LotTreeEntity.cs" />
+    <Compile Include="Schema\Fields\MesEqpStatField.cs" />
+    <Compile Include="Schema\Fields\MesProcStatCdField.cs" />
+    <Compile Include="Schema\Entities\OperEntity.cs" />
+    <Compile Include="Schema\Entities\PortBase.cs" />
+    <Compile Include="Schema\Entities\PortEntity.cs" />
+    <Compile Include="Schema\Entities\PortDetEntity.cs" />
+    <Compile Include="Schema\Entities\PortDetHistoryEntity.cs" />
+    <Compile Include="Schema\Entities\PortPriorityEntity.cs" />
+    <Compile Include="Schema\Entities\TransportBase.cs" />
+    <Compile Include="Schema\Entities\TransportEntity.cs" />
+    <Compile Include="Schema\Entities\TransportHistoryEntity.cs" />
+    <Compile Include="Schema\Fields\PortTypField.cs" />
+    <Compile Include="Schema\Entities\ProductEntity.cs" />
+    <Compile Include="Schema\Entities\ReasonCodeEntity.cs" />
+    <Compile Include="Schema\Entities\RequestEntity.cs" />
+    <Compile Include="Schema\Entities\RequestWaferEntity.cs" />
+    <Compile Include="Schema\Entities\SampleEntity.cs" />
+    <Compile Include="Schema\Fields\StateCodeField.cs" />
+    <Compile Include="Schema\Fields\SubProdTypField.cs" />
+    <Compile Include="Schema\Fields\TransferStatField.cs" />
+    <Compile Include="Schema\Entities\UserEntity.cs" />
+    <Compile Include="Schema\Entities\WaferEntity.cs" />
+    <Compile Include="Schema\Entities\WaferHistoryEntity.cs" />
+    <Compile Include="ResponseContracts\TableContractFields.cs" />
+    <Compile Include="ResponseContracts\TableResponse.cs" />
+    <Compile Include="ResponseContracts\TableResponseState.cs" />
+    <Compile Include="MasterData\MasterDataCrudDefinition.cs" />
+    <Compile Include="MasterData\MasterDataCrudFormBase.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MasterData\MasterDataCrudView.cs" />
+    <Compile Include="MasterData\PropertyGridField.cs" />
+    <Compile Include="MasterData\ModernPropertyGrid.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="..\SharedVersionInfo.cs">
+      <Link>Properties\SharedVersionInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Modern.Lab.Commons\Modern.Lab.Commons.csproj">
+      <Project>{3C9A1D2E-5B4F-4A6C-9D7E-0F1A2B3C4D5E}</Project>
+      <Name>Modern.Lab.Commons</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

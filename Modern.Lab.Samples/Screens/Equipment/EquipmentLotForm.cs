@@ -8,8 +8,8 @@ using Modern.Lab.Controls.Wpf.Data;
 using Modern.Lab.Controls.Wpf.Display;
 using Modern.Lab.Controls.Wpf.Input;
 using Modern.Lab.Data;
-using Modern.Lab.Hosting.Contracts;
 using Modern.Lab.Hosting;
+using Modern.Lab.Hosting.Contracts;
 using Modern.Lab.Hosting.ResponseContracts;
 using Modern.Lab.Samples.Contracts;
 using Modern.Lab.Samples.Services;
@@ -124,6 +124,14 @@ namespace Modern.Lab.Samples
         public EquipmentLotForm()
         {
             this.InitializeComponent();
+            SearchBandLayout.Attach(this.searchCard,
+                    new SearchBandLayout.Field[]
+                    {
+                        SearchBandLayout.Pair(this.lblGroup, this.cboGroup),
+                        SearchBandLayout.Pair(this.lblInterval, this.cboInterval),
+                        SearchBandLayout.Alone(this.badgeCountdown),
+                    },
+                    new Control[] { this.btnRefresh });
             this.childChips.SizeChanged += this.OnChildChipsSizeChanged;
 
             this.portCover = new DependentCover(this.portBusy);

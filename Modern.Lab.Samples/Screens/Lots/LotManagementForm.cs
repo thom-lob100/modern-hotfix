@@ -8,10 +8,10 @@ using Modern.Lab.Controls.Wpf.Data;
 using Modern.Lab.Controls.Wpf.Display;
 using Modern.Lab.Controls.Wpf.Input;
 using Modern.Lab.Data;
+using Modern.Lab.Hosting;
 using Modern.Lab.Hosting.Contracts;
 using Modern.Lab.Samples.Contracts;
 using Modern.Lab.WinForms.Controls.Selection;
-using Modern.Lab.Hosting;
 using Modern.Lab.Hosting.Messaging;
 using Modern.Lab.Hosting.ResponseContracts;
 using Modern.Lab.Samples.Services;
@@ -59,6 +59,14 @@ namespace Modern.Lab.Samples
         public LotManagementForm()
         {
             this.InitializeComponent();
+            SearchBandLayout.Attach(this.searchCard,
+                    new SearchBandLayout.Field[]
+                    {
+                        SearchBandLayout.Pair(this.lblType, this.cboType),
+                        SearchBandLayout.Pair(this.lblCreate, this.dtpCreate),
+                        SearchBandLayout.Pair(this.lblKeyword, this.txtKeyword),
+                    },
+                    new Control[] { this.btnReset, this.btnRefresh });
 
             this.waferCover = new DependentCover(this.waferBusy);
             this.historyCover = new DependentCover(this.historyBusy);

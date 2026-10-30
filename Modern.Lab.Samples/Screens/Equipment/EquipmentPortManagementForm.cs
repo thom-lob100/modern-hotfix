@@ -8,8 +8,8 @@ using Modern.Lab.Controls.Wpf.Data;
 using Modern.Lab.Controls.Wpf.Display;
 using Modern.Lab.Controls.Wpf.Input;
 using Modern.Lab.Data;
-using Modern.Lab.Hosting.Contracts;
 using Modern.Lab.Hosting;
+using Modern.Lab.Hosting.Contracts;
 using Modern.Lab.Hosting.ResponseContracts;
 using Modern.Lab.Samples.Services;
 using Modern.Lab.Samples.Contracts;
@@ -59,6 +59,12 @@ namespace Modern.Lab.Samples
         public EquipmentPortManagementForm()
         {
             this.InitializeComponent();
+            SearchBandLayout.Attach(this.searchCard,
+                    new SearchBandLayout.Field[]
+                    {
+                        SearchBandLayout.Pair(this.lblGroup, this.cboGroup),
+                    },
+                    new Control[] { this.btnReset, this.btnRefresh });
 
             this.portCover = new DependentCover(this.portBusy);
             this.historyCover = new DependentCover(this.historyBusy);

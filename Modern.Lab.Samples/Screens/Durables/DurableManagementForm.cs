@@ -7,8 +7,8 @@ using System.Windows.Forms;
 using Modern.Lab.Controls.Wpf.Data;
 using Modern.Lab.Controls.Wpf.Display;
 using Modern.Lab.Data;
-using Modern.Lab.Hosting.Contracts;
 using Modern.Lab.Hosting;
+using Modern.Lab.Hosting.Contracts;
 using Modern.Lab.Hosting.Messaging;
 using Modern.Lab.Hosting.ResponseContracts;
 using Modern.Lab.Samples.Services;
@@ -75,6 +75,15 @@ namespace Modern.Lab.Samples
         public DurableManagementForm()
         {
             this.InitializeComponent();
+            SearchBandLayout.Attach(this.searchCard,
+                    new SearchBandLayout.Field[]
+                    {
+                        SearchBandLayout.Pair(this.lblType, this.cboType),
+                        SearchBandLayout.Pair(this.lblLoadStatus, this.cboLoadStatus),
+                        SearchBandLayout.Alone(this.chkFromFab),
+                        SearchBandLayout.Pair(this.lblDurableId, this.txtDurableId),
+                    },
+                    new Control[] { this.btnReset, this.btnRefresh });
 
             this.contentCover = new DependentCover(this.contentBusy);
             this.historyCover = new DependentCover(this.historyBusy);
