@@ -15,9 +15,9 @@ namespace Modern.Lab.Hosting
     /// - 라벨은 한 줄 왼쪽 정렬이고 같은 띠의 라벨은 같은 폭(가장 긴 글자에 맞추되 최소 88)이다.
     /// - 라벨–편집기 8, 조건 사이 24, 줄 간격 40, 편집기 높이 32. 편집기 폭은 화면이 디자이너에 둔 값 그대로다.
     ///   높이가 32 가 아닌 것(배지 · 체크박스)은 줄 가운데에 놓는다.
-    /// - 오른쪽 버튼은 같은 폭 120 의 2열 격자(사이 8)로 조건 줄과 같은 높이에 선다. 버튼이 하나면 오른쪽 끝 한 칸이다.
-    /// - 폭이 모자라면 다음 줄로 내려가고 카드 높이가 줄 수를 따라 자란다(카드 여백 + 줄 수 × 40). 버튼은 자기 줄만
-    ///   막으므로 버튼 줄 아래의 조건 줄은 카드 오른쪽 끝까지 쓴다.
+    /// - 오른쪽 버튼은 같은 폭 120 으로 한 줄(사이 8)에 조건 첫 줄과 같은 높이에 서고, 마지막 버튼이 카드 오른쪽 끝이다.
+    /// - 폭이 모자라면 다음 줄로 내려가고 카드 높이가 줄 수를 따라 자란다(카드 여백 + 줄 수 × 40). 버튼은 첫 줄만
+    ///   막으므로 둘째 줄부터는 카드 오른쪽 끝까지 쓴다.
     /// - 숨긴 조건(자동 새로고침 배지처럼 때에 따라 보이는 것)도 자리를 지킨다 — 보였다 숨을 때 다른 조건이 뛰지 않게.
     ///
     /// 화면은 생성자에서 <see cref="Attach"/> 한 줄만 적는다. 첫 배치는 폼 Load 때(배율 보정이 끝난 뒤)이고
@@ -34,7 +34,6 @@ namespace Modern.Lab.Hosting
         public const int ButtonWidth = 120;
         public const int ButtonGap = 8;
 
-        private const int ButtonColumns = 2;
         private const int RowInset = 4;
         private const int LabelSlack = 4;
 
@@ -80,7 +79,7 @@ namespace Modern.Lab.Hosting
 
         /// <summary>
         /// 조회 카드에 규격을 붙인다. <paramref name="fields"/> 의 순서가 조건의 순서이고, <paramref name="buttons"/> 는
-        /// 오른쪽 격자에 왼쪽 위부터 차례로 놓인다(예: Reset · Refresh).
+        /// 오른쪽에 한 줄로 왼쪽부터 차례로 놓인다(예: Reset · Refresh).
         /// </summary>
         public static void Attach(Control band, IList<Field> fields, IList<Control> buttons)
         {
@@ -189,11 +188,10 @@ namespace Modern.Lab.Hosting
                 int labelWidth = this.LabelColumnWidth();
 
                 int buttonCount = this.buttons.Count;
-                int buttonColumns = Math.Min(ButtonColumns, buttonCount);
-                int buttonRows = (buttonCount + ButtonColumns - 1) / ButtonColumns;
-                int buttonsWidth = buttonColumns == 0
+                int buttonRows = buttonCount > 0 ? 1 : 0;
+                int buttonsWidth = buttonCount == 0
                         ? 0
-                        : buttonColumns * this.Px(ButtonWidth) + (buttonColumns - 1) * this.Px(ButtonGap);
+                        : buttonCount * this.Px(ButtonWidth) + (buttonCount - 1) * this.Px(ButtonGap);
                 int fieldsRight = buttonsWidth == 0 ? right : right - buttonsWidth - this.Px(FieldGap);
 
                 int x = left;
@@ -234,10 +232,8 @@ namespace Modern.Lab.Hosting
 
                 for (int index = 0; index < buttonCount; index++)
                 {
-                    int column = index % ButtonColumns;
-                    int row = index / ButtonColumns;
-                    int buttonLeft = right - buttonsWidth + column * (this.Px(ButtonWidth) + this.Px(ButtonGap));
-                    this.buttons[index].SetBounds(buttonLeft, top + row * rowHeight, this.Px(ButtonWidth), fieldHeight);
+                    int buttonLeft = right - buttonsWidth + index * (this.Px(ButtonWidth) + this.Px(ButtonGap));
+                    this.buttons[index].SetBounds(buttonLeft, top, this.Px(ButtonWidth), fieldHeight);
                 }
 
                 int totalRows = Math.Max(rows, buttonRows);
@@ -249,7 +245,7 @@ namespace Modern.Lab.Hosting
                 }
             }
 
-            // 버튼은 자기 줄만 막는다 — 버튼 줄 아래의 조건 줄은 카드 오른쪽 끝까지 쓴다.
+            // 버튼은 첫 줄만 막는다 — 둘째 줄부터는 카드 오른쪽 끝까지 쓴다.
             private static int RowRight(int row, int buttonRows, int fieldsRight, int right)
             {
                 return row <= buttonRows ? fieldsRight : right;
