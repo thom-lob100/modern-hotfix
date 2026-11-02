@@ -35,10 +35,16 @@ namespace Modern.Lab.Samples
         private DataTable waferData;
         private DataTable lotHistoryData;
         private DataTable waferHistoryData;
+        private DataTable candidateData;
+        private string candidateKey;
+        private bool candidateBinding;
 
         private const string channelTypes = "subProdTyps";
         private const string channelLots = "lots";
-        private const string channelSuggest = "suggest";
+        private const string channelCandidates = "candidates";
+        private const string channelCandidateQueue = "candidateQueue";
+        private const string channelLotIdFilter = "lotIdFilter";
+        private const string channelSerialNoFilter = "serialNoFilter";
         private const string channelWafers = "wafers";
         private const string channelLotHistory = "lotHistory";
         private const string channelWaferHistory = "waferHistory";
@@ -63,10 +69,12 @@ namespace Modern.Lab.Samples
                     new SearchBandLayout.Field[]
                     {
                         SearchBandLayout.Pair(this.lblType, this.cboType),
-                        SearchBandLayout.Pair(this.lblCreate, this.dtpCreate),
-                        SearchBandLayout.Pair(this.lblKeyword, this.txtKeyword),
+                        SearchBandLayout.Pair(this.chkCreateDate, this.lblCreate, this.dtpCreate),
+                        SearchBandLayout.Pair(this.lblLotId, this.cboLotId),
+                        SearchBandLayout.Pair(this.lblSerialNo, this.cboSerialNo),
                     },
-                    new Control[] { this.btnReset, this.btnRefresh });
+                    new Control[] { this.btnReset, this.btnRefresh },
+                    HorizontalAlignment.Right);
 
             this.waferCover = new DependentCover(this.waferBusy);
             this.historyCover = new DependentCover(this.historyBusy);
@@ -99,11 +107,14 @@ namespace Modern.Lab.Samples
 
             DateTime today = DateTime.Today;
             this.dtpCreate.SetRange(today.AddMonths(-1), today);
+            this.dtpCreate.RangeChanged += this.OnCreateRangeChanged;
 
-            this.txtKeyword.AutoCompleteMode = AutoCompleteMode.Suggest;
-            this.txtKeyword.AutoCompleteSource = AutoCompleteSource.CustomSource;
-            this.txtKeyword.SuggestionFilterMode = Modern.Lab.Controls.Wpf.Input.SuggestionFilterMode.None;
-            this.txtKeyword.UseEntity(Schemas.Lot);
+            this.cboLotId.DisplayMember = Schemas.Lot.LotId.Name;
+            this.cboLotId.ValueMember = Schemas.Lot.LotId.Name;
+            this.cboSerialNo.DisplayMember = Schemas.Lot.ReqSerialNo.Name;
+            this.cboSerialNo.ValueMember = Schemas.Lot.ReqSerialNo.Name;
+            this.WatchCandidateText(this.cboLotId, this.OnLotIdTextChanged);
+            this.WatchCandidateText(this.cboSerialNo, this.OnSerialNoTextChanged);
 
             this.gridLots.RowKeyMember = Schemas.Lot.RowKey;
             this.gridLots.CellLinkClick += this.OnReqSerialNoLinkClick;
@@ -145,6 +156,7 @@ namespace Modern.Lab.Samples
             this.cboType.SelectedIndex = -1;
 
             this.searchReady = true;
+            this.LoadCandidates();
             this.ExecuteSearch();
         }
 
@@ -156,9 +168,6 @@ namespace Modern.Lab.Samples
                 return;
             }
 
-            this.CancelDebounce(channelSuggest);
-            this.InvalidateChannel(channelSuggest);
-            this.txtKeyword.CloseSuggestions();
             this.ExecuteSearch();
         }
 
@@ -171,71 +180,228 @@ namespace Modern.Lab.Samples
             }
 
             this.cboType.SelectedIndex = -1;
+            this.ClearCandidateText();
+            this.chkCreateDate.Checked = true;
 
             DateTime today = DateTime.Today;
             this.dtpCreate.SetRange(today.AddMonths(-1), today);
-            this.txtKeyword.Text = string.Empty;
-            this.CancelDebounce(channelSuggest);
-            this.InvalidateChannel(channelSuggest);
-            this.txtKeyword.CloseSuggestions();
+            this.LoadCandidates();
             this.ExecuteSearch();
         }
 
-        private void OnKeywordTextChanged(object sender, EventArgs e)
+        private void OnTypeChanged(object sender, EventArgs e)
         {
             if (!this.searchReady)
             {
                 return;
             }
 
-            if (this.IsExistingCandidate(this.txtKeyword.Text.Trim()))
+            this.LoadCandidates();
+        }
+
+        private void OnCreateDateCheckedChanged(object sender, EventArgs e)
+        {
+            bool useRange = this.chkCreateDate.Checked;
+            this.dtpCreate.Enabled = useRange;
+
+            if (useRange && this.dtpCreate.FromDate == null && this.dtpCreate.ToDate == null)
             {
-                this.CancelDebounce(channelSuggest);
+                DateTime today = DateTime.Today;
+                this.dtpCreate.SetRange(today.AddMonths(-1), today);
+            }
+
+            if (this.searchReady)
+            {
+                this.QueueCandidates();
+            }
+        }
+
+        private void OnCreateRangeChanged(object sender, EventArgs e)
+        {
+            if (!this.searchReady)
+            {
                 return;
             }
 
-            this.Debounce(channelSuggest, 300, new MethodInvoker(this.LoadIdCandidatesAsync));
-        }
-
-        private bool IsExistingCandidate(string text)
-        {
-            AutoCompleteStringCollection source = this.txtKeyword.AutoCompleteCustomSource;
-
-            if (source == null || text.Length == 0)
+            if (this.chkCreateDate.Checked && this.dtpCreate.FromDate == null && this.dtpCreate.ToDate == null)
             {
-                return false;
-            }
-
-            foreach (string candidate in source)
-            {
-                if (string.Equals(candidate, text, StringComparison.OrdinalIgnoreCase))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private async void LoadIdCandidatesAsync()
-        {
-            string keyword = this.txtKeyword.Text.Trim();
-
-            if (keyword.Length == 0)
-            {
-                this.txtKeyword.SuggestionDataSource = null;
+                this.chkCreateDate.Checked = false;
                 return;
             }
+
+            this.QueueCandidates();
+        }
+
+        private void QueueCandidates()
+        {
+            this.Debounce(channelCandidateQueue, 250, new MethodInvoker(this.LoadCandidates));
+        }
+
+        private bool UseCreateRange()
+        {
+            return this.chkCreateDate.Checked;
+        }
+
+        private string CreateFromText()
+        {
+            return this.UseCreateRange() ? LotManagementPresenter.DateText(this.dtpCreate.FromDate) : string.Empty;
+        }
+
+        private string CreateToText()
+        {
+            return this.UseCreateRange() ? LotManagementPresenter.DateText(this.dtpCreate.ToDate) : string.Empty;
+        }
+
+        private void WatchCandidateText(ModernComboBox combo, System.Windows.Controls.TextChangedEventHandler handler)
+        {
+            if (combo.Child != null)
+            {
+                combo.Child.AddHandler(System.Windows.Controls.Primitives.TextBoxBase.TextChangedEvent, handler, true);
+            }
+        }
+
+        private void OnLotIdTextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            if (!this.candidateBinding)
+            {
+                this.Debounce(channelSerialNoFilter, 300, new MethodInvoker(this.ApplyLotIdChange));
+            }
+        }
+
+        private void OnSerialNoTextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            if (!this.candidateBinding)
+            {
+                this.Debounce(channelLotIdFilter, 300, new MethodInvoker(this.ApplySerialNoChange));
+            }
+        }
+
+        private void ApplyLotIdChange()
+        {
+            string lotId = this.cboLotId.Text.Trim();
+            string reqSerialNo = this.cboSerialNo.Text.Trim();
+
+            if (!LotManagementPresenter.BelongsTo(this.candidateData, lotId, reqSerialNo))
+            {
+                this.SetCandidateText(this.cboSerialNo, string.Empty);
+            }
+
+            this.BindSerialNoCandidates();
+        }
+
+        private void ApplySerialNoChange()
+        {
+            string lotId = LotManagementPresenter.LotIdOf(this.candidateData, this.cboSerialNo.Text.Trim());
+
+            if (lotId.Length > 0 && !string.Equals(lotId, this.cboLotId.Text.Trim(), StringComparison.OrdinalIgnoreCase))
+            {
+                this.SetCandidateText(this.cboLotId, lotId);
+                this.BindSerialNoCandidates();
+            }
+
+            this.BindLotIdCandidates();
+        }
+
+        private void SetCandidateText(ModernComboBox combo, string text)
+        {
+            this.candidateBinding = true;
+
+            try
+            {
+                combo.SelectedIndex = -1;
+                combo.Text = text;
+            }
+            finally
+            {
+                this.candidateBinding = false;
+            }
+        }
+
+        private async void LoadCandidates()
+        {
+            string subProdTyp = this.SelectedSubProdTyp();
+            string fromDate = this.CreateFromText();
+            string toDate = this.CreateToText();
+            string key = subProdTyp + "|" + fromDate + "|" + toDate;
+
+            if (this.candidateKey == key)
+            {
+                return;
+            }
+
+            this.candidateKey = key;
+            this.ClearCandidateText();
 
             LoadOutcome<DataTable> outcome = await this.FetchAsync(
-                    channelSuggest, () => this.GetLotIdCandidates(RequestParameters.Of(Schemas.Criteria.Keyword, keyword)));
+                    channelCandidates,
+                    () => this.GetLotCandidates(RequestParameters.Of(
+                            Schemas.Lot.SubProdTyp, subProdTyp,
+                            Schemas.Criteria.CrtFromDt, fromDate,
+                            Schemas.Criteria.CrtToDt, toDate)),
+                    true);
 
-            if (!outcome.IsCurrent || outcome.Failure != null || outcome.Value == null)
+            if (!outcome.IsCurrent)
             {
                 return;
             }
 
-            this.txtKeyword.SuggestionDataSource = outcome.Value;
+            if (outcome.Failure != null)
+            {
+                this.candidateKey = null;
+                return;
+            }
+
+            this.candidateData = outcome.Value;
+            this.BindLotIdCandidates();
+            this.BindSerialNoCandidates();
+        }
+
+        private void ClearCandidateText()
+        {
+            this.CancelDebounce(channelLotIdFilter);
+            this.CancelDebounce(channelSerialNoFilter);
+            this.candidateBinding = true;
+
+            try
+            {
+                this.cboLotId.SelectedIndex = -1;
+                this.cboLotId.Text = string.Empty;
+                this.cboSerialNo.SelectedIndex = -1;
+                this.cboSerialNo.Text = string.Empty;
+            }
+            finally
+            {
+                this.candidateBinding = false;
+            }
+        }
+
+        private void BindLotIdCandidates()
+        {
+            this.BindCandidates(this.cboLotId,
+                    LotManagementPresenter.LotIdCandidates(this.candidateData, this.cboSerialNo.Text.Trim()));
+        }
+
+        private void BindSerialNoCandidates()
+        {
+            this.BindCandidates(this.cboSerialNo,
+                    LotManagementPresenter.ReqSerialNoCandidates(this.candidateData, this.cboLotId.Text.Trim()));
+        }
+
+        private void BindCandidates(ModernComboBox combo, DataTable items)
+        {
+            string typed = combo.Text;
+            this.candidateBinding = true;
+
+            try
+            {
+                combo.DataSource = items;
+                combo.SelectedIndex = -1;
+                combo.Text = typed;
+            }
+            finally
+            {
+                this.candidateBinding = false;
+            }
         }
 
         private string SelectedSubProdTyp()
@@ -262,13 +428,15 @@ namespace Modern.Lab.Samples
         {
             string subProdTyp = this.SelectedSubProdTyp();
             this.newItems.BeginQuery();
-            string fromDate = LotManagementPresenter.DateText(this.dtpCreate.FromDate);
-            string toDate = LotManagementPresenter.DateText(this.dtpCreate.ToDate);
-            string keyword = this.txtKeyword.Text.Trim();
+            bool useRange = this.UseCreateRange();
+            string fromDate = this.CreateFromText();
+            string toDate = this.CreateToText();
+            string lotId = this.cboLotId.Text.Trim();
+            string reqSerialNo = this.cboSerialNo.Text.Trim();
             string keepLotId = this.SelectedLotId();
             int selectionVersion = this.lotSelectionVersion;
 
-            IDisposable busy = silent ? null : this.Busy("Loading lots...", fromDate + " ~ " + toDate);
+            IDisposable busy = silent ? null : this.Busy("Loading lots...", useRange ? fromDate + " ~ " + toDate : "All dates");
 
             LoadOutcome<DataTable> outcome;
 
@@ -280,7 +448,8 @@ namespace Modern.Lab.Samples
                                 Schemas.Lot.SubProdTyp, subProdTyp,
                                 Schemas.Criteria.CrtFromDt, fromDate,
                                 Schemas.Criteria.CrtToDt, toDate,
-                                Schemas.Criteria.Keyword, keyword)),
+                                Schemas.Lot.LotId, lotId,
+                                Schemas.Lot.ReqSerialNo, reqSerialNo)),
                         silent);
             }
             finally
@@ -302,7 +471,7 @@ namespace Modern.Lab.Samples
                 return;
             }
 
-            this.newItemCriteria = NewItemTracker.Criteria(NewItemTracker.SelectionSet(subProdTyp), fromDate, toDate, keyword);
+            this.newItemCriteria = NewItemTracker.Criteria(NewItemTracker.SelectionSet(subProdTyp), fromDate, toDate, lotId, reqSerialNo);
             bool selectNewItems = true;
 
             if (this.lotSelectionVersion != selectionVersion)

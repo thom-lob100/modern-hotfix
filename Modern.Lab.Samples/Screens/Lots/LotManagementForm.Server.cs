@@ -28,14 +28,18 @@ namespace Modern.Lab.Samples
                     "SUB_PROD_TYP", parameters.Value(Schemas.Lot.SubProdTyp),
                     "CRT_FROM_DT", parameters.Value(Schemas.Criteria.CrtFromDt),
                     "CRT_TO_DT", parameters.Value(Schemas.Criteria.CrtToDt),
-                    "KEYWORD", parameters.Value(Schemas.Criteria.Keyword)).Table;
+                    "LOT_ID", parameters.Value(Schemas.Lot.LotId),
+                    "REQ_SERIAL_NO", parameters.Value(Schemas.Lot.ReqSerialNo)).Table;
         }
 
         // LOT_ID
-        private DataTable GetLotIdCandidates(RequestParameters parameters)
+        // REQ_SERIAL_NO
+        private DataTable GetLotCandidates(RequestParameters parameters)
         {
-            return this.RequestFields("GetLotIdCandidates",
-                    "KEYWORD", parameters.Value(Schemas.Criteria.Keyword)).Table;
+            return this.RequestFields("GetLotCandidates",
+                    "SUB_PROD_TYP", parameters.Value(Schemas.Lot.SubProdTyp),
+                    "CRT_FROM_DT", parameters.Value(Schemas.Criteria.CrtFromDt),
+                    "CRT_TO_DT", parameters.Value(Schemas.Criteria.CrtToDt)).Table;
         }
 
         // WF_ID
