@@ -167,6 +167,26 @@ namespace Modern.Lab.Samples.Services
             return DistinctCandidates(pairs, Schemas.Lot.ReqSerialNo.Name, Schemas.Lot.LotId.Name, lotId);
         }
 
+        public static string CandidateValue(DataTable items, string column, string text)
+        {
+            if (items == null || text.Length == 0 || !items.Columns.Contains(column))
+            {
+                return string.Empty;
+            }
+
+            foreach (DataRow row in items.Rows)
+            {
+                string value = TableHelper.CellText(row, column).Trim();
+
+                if (string.Equals(value, text, StringComparison.OrdinalIgnoreCase))
+                {
+                    return value;
+                }
+            }
+
+            return string.Empty;
+        }
+
         public static string LotIdOf(DataTable pairs, string reqSerialNo)
         {
             if (pairs == null || reqSerialNo.Length == 0 || !pairs.Columns.Contains(Schemas.Lot.LotId.Name)

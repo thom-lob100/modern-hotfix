@@ -189,7 +189,6 @@ namespace Modern.Lab.Samples
             this.cboLotId.PlaceholderText = "All lots";
             this.cboLotId.Size = new System.Drawing.Size(150, 32);
             this.cboLotId.TabIndex = 6;
-            this.cboLotId.EnterPressed += new System.EventHandler(this.OnRefreshClick);
             this.cboLotId.Child = null;
             //
             // lblSerialNo
@@ -214,7 +213,6 @@ namespace Modern.Lab.Samples
             this.cboSerialNo.PlaceholderText = "All requests";
             this.cboSerialNo.Size = new System.Drawing.Size(125, 32);
             this.cboSerialNo.TabIndex = 8;
-            this.cboSerialNo.EnterPressed += new System.EventHandler(this.OnRefreshClick);
             this.cboSerialNo.Child = null;
             //
             // lblCreate

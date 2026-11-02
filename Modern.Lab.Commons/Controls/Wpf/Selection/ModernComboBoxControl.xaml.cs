@@ -200,12 +200,6 @@ namespace Modern.Lab.Controls.Wpf.Selection
         /// <summary>드롭다운 목록이 닫힌 직후에 발생한다(WinForms ComboBox.DropDownClosed 대응).</summary>
         public event EventHandler DropDownClosedEvent;
 
-        /// <summary>
-        /// 편집 칸에서 Enter 를 눌렀을 때 발생한다(엔터로 검색, 2026-11-02). 목록이 열려 있을 때의 Enter 는 항목 확정이라
-        /// 올리지 않는다 — 확정 뒤 다시 누른 Enter 가 온다. 핸들러가 읽는 <see cref="SelectionText"/> 는 그때 칸의 글자다.
-        /// </summary>
-        public event EventHandler EnterPressed;
-
         public ModernComboBoxControl()
         {
             this.filteredItems = new ObservableCollection<object>();
@@ -795,7 +789,6 @@ namespace Modern.Lab.Controls.Wpf.Selection
                 {
                     this.editableTextBox.TextChanged -= this.OnEditableTextChanged;
                     this.editableTextBox.PreviewKeyDown -= this.OnEditablePreviewKeyDown;
-                    this.editableTextBox.KeyDown -= this.OnEditableKeyDown;
                     this.editableTextBox.LostKeyboardFocus -= this.OnEditableLostFocus;
                 }
 
@@ -805,7 +798,6 @@ namespace Modern.Lab.Controls.Wpf.Selection
                 {
                     this.editableTextBox.TextChanged += this.OnEditableTextChanged;
                     this.editableTextBox.PreviewKeyDown += this.OnEditablePreviewKeyDown;
-                    this.editableTextBox.KeyDown += this.OnEditableKeyDown;
                     this.editableTextBox.LostKeyboardFocus += this.OnEditableLostFocus;
 
                     // 에디터가 템플릿에서 늦게 잡히므로 대소문자 강제를 여기서 적용한다.
@@ -1150,15 +1142,6 @@ namespace Modern.Lab.Controls.Wpf.Selection
             this.editableTextBox.CaretIndex = completed.Length;
 
             e.Handled = true;
-        }
-
-        // 목록이 닫힌 채 누른 Enter 만 올린다 — 열려 있으면 ComboBox 가 항목 확정으로 쓴다.
-        private void OnEditableKeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter && !this.InnerComboBox.IsDropDownOpen && this.EnterPressed != null)
-            {
-                this.EnterPressed(this, EventArgs.Empty);
-            }
         }
 
         private void OnEditableLostFocus(object sender, KeyboardFocusChangedEventArgs e)

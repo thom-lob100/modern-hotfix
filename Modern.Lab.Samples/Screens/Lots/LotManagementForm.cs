@@ -302,6 +302,18 @@ namespace Modern.Lab.Samples
             this.BindLotIdCandidates();
         }
 
+        private string SelectedLotIdValue()
+        {
+            return LotManagementPresenter.CandidateValue(
+                    this.cboLotId.DataSource as DataTable, Schemas.Lot.LotId.Name, this.cboLotId.Text.Trim());
+        }
+
+        private string SelectedSerialNoValue()
+        {
+            return LotManagementPresenter.CandidateValue(
+                    this.cboSerialNo.DataSource as DataTable, Schemas.Lot.ReqSerialNo.Name, this.cboSerialNo.Text.Trim());
+        }
+
         private void SetCandidateText(ModernComboBox combo, string text)
         {
             this.candidateBinding = true;
@@ -431,8 +443,8 @@ namespace Modern.Lab.Samples
             bool useRange = this.UseCreateRange();
             string fromDate = this.CreateFromText();
             string toDate = this.CreateToText();
-            string lotId = this.cboLotId.Text.Trim();
-            string reqSerialNo = this.cboSerialNo.Text.Trim();
+            string lotId = this.SelectedLotIdValue();
+            string reqSerialNo = this.SelectedSerialNoValue();
             string keepLotId = this.SelectedLotId();
             int selectionVersion = this.lotSelectionVersion;
 

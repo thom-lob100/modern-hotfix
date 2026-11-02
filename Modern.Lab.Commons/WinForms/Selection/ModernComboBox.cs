@@ -65,12 +65,6 @@ namespace Modern.Lab.WinForms.Controls.Selection
         /// <summary>드롭다운 목록이 닫힌 직후에 발생한다(WinForms ComboBox.DropDownClosed 호환).</summary>
         public event EventHandler DropDownClosed;
 
-        /// <summary>
-        /// 편집 칸에서 Enter 를 눌렀을 때 발생한다(엔터로 검색, 2026-11-02) — <c>ModernTextBox.EnterPressed</c> 와 같은 용도.
-        /// 목록이 열려 있을 때의 Enter 는 항목 확정이라 오지 않고, 닫힌 뒤 누른 Enter 가 온다. 핸들러가 읽는 <see cref="Text"/> 는 칸의 글자다.
-        /// </summary>
-        public event EventHandler EnterPressed;
-
         /// <summary>적절한 기본 크기로 컨트롤을 생성한다.</summary>
         public ModernComboBox()
         {
@@ -96,7 +90,6 @@ namespace Modern.Lab.WinForms.Controls.Selection
                 this.Wpf.SelectionChanged += this.OnWpfSelectionChanged;
                 this.Wpf.DropDownOpened += this.OnWpfDropDownOpened;
                 this.Wpf.DropDownClosedEvent += this.OnWpfDropDownClosed;
-                this.Wpf.EnterPressed += this.OnWpfEnterPressed;
 
                 // 늦은 Items.Add에서 보류 SelectedValue를 재시도하기 위한 구독.
                 // WPF 컨트롤 쪽 구독(ItemsSource 할당 시)이 먼저 등록되므로, 이
@@ -765,14 +758,6 @@ namespace Modern.Lab.WinForms.Controls.Selection
             if (this.DropDownClosed != null)
             {
                 this.DropDownClosed(this, EventArgs.Empty);
-            }
-        }
-
-        private void OnWpfEnterPressed(object sender, EventArgs e)
-        {
-            if (this.EnterPressed != null)
-            {
-                this.EnterPressed(this, EventArgs.Empty);
             }
         }
 
