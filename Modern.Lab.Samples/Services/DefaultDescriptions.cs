@@ -22,6 +22,8 @@ namespace Modern.Lab.Samples.Services
         public const string CreateDurable = "Manual Create Durable";
         public const string ManualInDurable = "Manual In Durable";
         public const string ManualOutDurable = "Manual Out Durable";
+        public const string ManualInCancel = "Manual In Cancel";
+        public const string ManualOutCancel = "Manual Out Cancel";
         public const string AssignRfId = "Manual Assign RFID";
         public const string HoldDurable = "Manual Hold Durable";
         public const string ReleaseDurable = "Manual Release Durable";

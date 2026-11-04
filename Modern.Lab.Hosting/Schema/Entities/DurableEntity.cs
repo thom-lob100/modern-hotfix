@@ -25,6 +25,8 @@ namespace Modern.Lab.Hosting.Schema
         public readonly LocNmField LocNm = Field<LocNmField>("LOC_NM").Caption("Location");
         public readonly Field EqpId = Field("EQP_ID").Caption("Eqp Id");
         public readonly Field PortNm = Field("PORT_NM").Caption("Port");
+        public readonly TransMoveStatCdField TransMoveStatCd = Field<TransMoveStatCdField>("TRANS_MOVE_STAT_CD").Caption("Move Status");
+        public readonly TransLastEventDescField TransLastEventDesc = Field<TransLastEventDescField>("TRANS_LAST_EVENT_DESC").Caption("Transport Event");
         public readonly Field RfId = Field("RFID").Caption("RFID");
         public readonly LastEventCdField LastEventCd = Field<LastEventCdField>("LAST_EVENT_CD").Caption("Last Event");
         public readonly Field Description = Field("DESCRIPTION").Caption("Description");

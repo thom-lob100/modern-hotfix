@@ -1100,6 +1100,14 @@ namespace Modern.Lab.Samples
                 case DurableManagementPresenter.ActionManualOut:
                     this.ShowManualOutDialog(row);
                     break;
+
+                case DurableManagementPresenter.ActionManualInCancel:
+                    this.ShowManualCancelDialog(row, DurableManagementPresenter.ActionManualInCancel);
+                    break;
+
+                case DurableManagementPresenter.ActionManualOutCancel:
+                    this.ShowManualCancelDialog(row, DurableManagementPresenter.ActionManualOutCancel);
+                    break;
             }
         }
 
@@ -1208,6 +1216,28 @@ namespace Modern.Lab.Samples
                 }
 
                 this.ProcessManualOut(options.Source, RequestParameters.Of(Schemas.Criteria.Description, dialog.Description));
+            }
+        }
+
+        protected virtual void ShowManualCancelDialog(DataRow durable, string actionKey)
+        {
+            bool inCancel = actionKey == DurableManagementPresenter.ActionManualInCancel;
+            string label = inCancel ? DurableManagementPresenter.ManualInCancelLabel : DurableManagementPresenter.ManualOutCancelLabel;
+            DurableScrapDialogOptions options = new DurableScrapDialogOptions();
+            options.Title = label + " — " + DurableManagementPresenter.Id(durable);
+            options.OkText = label;
+            options.DefaultDescription = inCancel ? Services.DefaultDescriptions.ManualInCancel : Services.DefaultDescriptions.ManualOutCancel;
+            options.Fields = ManualOutFields();
+            options.Source = ActionRows.Copy(durable);
+
+            using (DurableScrapDialogForm dialog = new DurableScrapDialogForm(options))
+            {
+                if (dialog.ShowDialog(this) != DialogResult.OK)
+                {
+                    return;
+                }
+
+                this.ProcessManualCancel(options.Source, actionKey, RequestParameters.Of(Schemas.Criteria.Description, dialog.Description));
             }
         }
 
@@ -1615,6 +1645,22 @@ namespace Modern.Lab.Samples
             this.Process(
                     () => this.ManualOutDurable(durable, parameters),
                     "Manual Out " + DurableManagementPresenter.Id(durable) + " ← " + eqpId + " " + portNm + "…",
+                    () => this.ExecuteSearch(true));
+        }
+
+        private void ProcessManualCancel(DataRow durable, string actionKey, RequestParameters parameters)
+        {
+            if (!this.StillAllows(actionKey, durable))
+            {
+                return;
+            }
+
+            bool inCancel = actionKey == DurableManagementPresenter.ActionManualInCancel;
+
+            this.Process(
+                    () => inCancel ? this.ManualInCancelDurable(durable, parameters) : this.ManualOutCancelDurable(durable, parameters),
+                    (inCancel ? DurableManagementPresenter.ManualInCancelLabel : DurableManagementPresenter.ManualOutCancelLabel)
+                            + " " + DurableManagementPresenter.Id(durable) + "…",
                     () => this.ExecuteSearch(true));
         }
 

@@ -41,6 +41,8 @@ namespace Modern.Lab.Samples
         // LAST_EVENT_CD
         // EQP_ID
         // PORT_NM
+        // TRANS_MOVE_STAT_CD
+        // TRANS_LAST_EVENT_DESC
         private DataTable GetDurables(RequestParameters parameters)
         {
             return this.RequestFields("GetDurableList",
@@ -214,6 +216,22 @@ namespace Modern.Lab.Samples
                     "DURABLE_ID", Schemas.Durable.DurableId.Text(durable),
                     "EQP_ID", Schemas.Durable.EqpId.Text(durable),
                     "PORT_NM", Schemas.Durable.PortNm.Text(durable),
+                    "DESCRIPTION", parameters.Value(Schemas.Criteria.Description),
+                    "USER_ID", this.CurrentUserId);
+        }
+
+        private DataActionResult ManualInCancelDurable(DataRow durable, RequestParameters parameters)
+        {
+            return this.RequestFields("ManualInCancelDurable",
+                    "DURABLE_ID", Schemas.Durable.DurableId.Text(durable),
+                    "DESCRIPTION", parameters.Value(Schemas.Criteria.Description),
+                    "USER_ID", this.CurrentUserId);
+        }
+
+        private DataActionResult ManualOutCancelDurable(DataRow durable, RequestParameters parameters)
+        {
+            return this.RequestFields("ManualOutCancelDurable",
+                    "DURABLE_ID", Schemas.Durable.DurableId.Text(durable),
                     "DESCRIPTION", parameters.Value(Schemas.Criteria.Description),
                     "USER_ID", this.CurrentUserId);
         }

@@ -74,6 +74,25 @@ namespace Modern.Lab.Samples
             ActionRule.Value(DurableEntityName, Schemas.Durable.MesStatTyp, Schemas.Durable.MesStatTyp.Normal)
         };
 
+        // Manual In Cancel — 회사 조건(2026-11-04): 적재 요청(TRANS_LAST_EVENT_DESC = EISMHS_LOAD_REQ)이 아직 끝나지 않은
+        // (TRANS_MOVE_STAT_CD Request · Requested · Scheduled · Moving) 지속재만 취소한다.
+        private static readonly ActionRule[] ManualInCancelRules =
+        {
+            ActionRule.Value(DurableEntityName, Schemas.Durable.TransLastEventDesc, Schemas.Durable.TransLastEventDesc.LoadReq),
+            ActionRule.Value(DurableEntityName, Schemas.Durable.TransMoveStatCd,
+                    Schemas.Durable.TransMoveStatCd.Request, Schemas.Durable.TransMoveStatCd.Requested,
+                    Schemas.Durable.TransMoveStatCd.Scheduled, Schemas.Durable.TransMoveStatCd.Moving)
+        };
+
+        // Manual Out Cancel — 회사 조건(2026-11-04): 반출 요청(TRANS_LAST_EVENT_DESC = EISMHS_UNLOAD_REQ)이 아직 끝나지 않은 지속재만 취소한다(이동 상태는 위와 같다).
+        private static readonly ActionRule[] ManualOutCancelRules =
+        {
+            ActionRule.Value(DurableEntityName, Schemas.Durable.TransLastEventDesc, Schemas.Durable.TransLastEventDesc.UnloadReq),
+            ActionRule.Value(DurableEntityName, Schemas.Durable.TransMoveStatCd,
+                    Schemas.Durable.TransMoveStatCd.Request, Schemas.Durable.TransMoveStatCd.Requested,
+                    Schemas.Durable.TransMoveStatCd.Scheduled, Schemas.Durable.TransMoveStatCd.Moving)
+        };
+
         // Manual In — 회사 조건(2026-11-04, 11-02 조건을 대체): 스토커 안(InStocker) · 장비에 실리지 않음(EQP_ID 빈 값) · 폐기 아님
         // · 진행 Idle · Normal 인 지속재만 장비 포트에 수동 투입한다. 사용 중(InUse) 조건은 빠졌다.
         private static readonly ActionRule[] ManualInRules =
@@ -287,6 +306,10 @@ namespace Modern.Lab.Samples
                     return ManualInRules;
                 case DurableManagementPresenter.ActionManualOut:
                     return ManualOutRules;
+                case DurableManagementPresenter.ActionManualInCancel:
+                    return ManualInCancelRules;
+                case DurableManagementPresenter.ActionManualOutCancel:
+                    return ManualOutCancelRules;
                 case DurableManagementPresenter.ActionHold:
                     return HoldRules;
                 case DurableManagementPresenter.ActionRelease:
