@@ -1,13 +1,10 @@
 using System.Data;
-using Modern.Lab.WinForms.Controls.Display;
 
 namespace Modern.Lab.Samples
 {
-    public sealed class DurableScrapDialogOptions
+    public sealed class DurableManualOutDialogOptions
     {
         public string Title { get; set; }
-
-        public ModernFieldDefinition[] Fields { get; set; }
 
         public string OkText { get; set; }
 

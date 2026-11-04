@@ -1200,15 +1200,14 @@ namespace Modern.Lab.Samples
 
         protected virtual void ShowManualOutDialog(DataRow durable)
         {
-            DurableScrapDialogOptions options = new DurableScrapDialogOptions();
+            DurableManualOutDialogOptions options = new DurableManualOutDialogOptions();
             options.Title = "Manual Out — " + DurableManagementPresenter.Id(durable)
                     + " · " + Schemas.Durable.EqpId.Text(durable) + " " + Schemas.Durable.PortNm.Text(durable);
             options.OkText = "Manual Out";
             options.DefaultDescription = Services.DefaultDescriptions.ManualOutDurable;
-            options.Fields = ManualOutFields();
             options.Source = ActionRows.Copy(durable);
 
-            using (DurableScrapDialogForm dialog = new DurableScrapDialogForm(options))
+            using (DurableManualOutDialogForm dialog = new DurableManualOutDialogForm(options))
             {
                 if (dialog.ShowDialog(this) != DialogResult.OK)
                 {
@@ -1223,14 +1222,13 @@ namespace Modern.Lab.Samples
         {
             bool inCancel = actionKey == DurableManagementPresenter.ActionManualInCancel;
             string label = inCancel ? DurableManagementPresenter.ManualInCancelLabel : DurableManagementPresenter.ManualOutCancelLabel;
-            DurableScrapDialogOptions options = new DurableScrapDialogOptions();
+            DurableManualCancelDialogOptions options = new DurableManualCancelDialogOptions();
             options.Title = label + " — " + DurableManagementPresenter.Id(durable);
             options.OkText = label;
             options.DefaultDescription = inCancel ? Services.DefaultDescriptions.ManualInCancel : Services.DefaultDescriptions.ManualOutCancel;
-            options.Fields = ManualOutFields();
             options.Source = ActionRows.Copy(durable);
 
-            using (DurableScrapDialogForm dialog = new DurableScrapDialogForm(options))
+            using (DurableManualCancelDialogForm dialog = new DurableManualCancelDialogForm(options))
             {
                 if (dialog.ShowDialog(this) != DialogResult.OK)
                 {
@@ -1239,17 +1237,6 @@ namespace Modern.Lab.Samples
 
                 this.ProcessManualCancel(options.Source, actionKey, RequestParameters.Of(Schemas.Criteria.Description, dialog.Description));
             }
-        }
-
-        private static Modern.Lab.WinForms.Controls.Display.ModernFieldDefinition[] ManualOutFields()
-        {
-            Modern.Lab.WinForms.Controls.Display.ModernFieldDefinition[] source = DurableDialogHelpers.SourceFields();
-            Modern.Lab.WinForms.Controls.Display.ModernFieldDefinition[] fields =
-                    new Modern.Lab.WinForms.Controls.Display.ModernFieldDefinition[source.Length + 2];
-            source.CopyTo(fields, 0);
-            fields[source.Length] = Services.CardFields.Of(Schemas.Durable.EqpId);
-            fields[source.Length + 1] = Services.CardFields.Of(Schemas.Durable.PortNm);
-            return fields;
         }
 
         protected virtual void ShowScrapDialog(DataRow durable)

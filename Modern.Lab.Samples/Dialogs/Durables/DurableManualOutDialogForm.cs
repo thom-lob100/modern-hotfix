@@ -5,17 +5,17 @@ using Modern.Lab.Hosting;
 
 namespace Modern.Lab.Samples
 {
-    public partial class DurableScrapDialogForm : ModernFormBase
+    public partial class DurableManualOutDialogForm : ModernFormBase
     {
-        private readonly DurableScrapDialogOptions options;
+        private readonly DurableManualOutDialogOptions options;
 
-        public DurableScrapDialogForm()
+        public DurableManualOutDialogForm()
         {
             this.InitializeComponent();
             this.InitializeModernForm(false);
         }
 
-        public DurableScrapDialogForm(DurableScrapDialogOptions options) : this()
+        public DurableManualOutDialogForm(DurableManualOutDialogOptions options) : this()
         {
             this.options = options ?? throw new ArgumentNullException(nameof(options));
         }
@@ -33,7 +33,7 @@ namespace Modern.Lab.Samples
 
             this.Text = this.options.Title ?? this.Text;
             this.btnOk.Text = this.options.OkText ?? this.btnOk.Text;
-            this.fieldSource.DefineFields(this.options.Fields ?? DurableDialogHelpers.SourceFields());
+            this.fieldSource.DefineFields(DurableDialogHelpers.TransportFields());
             this.fieldSource.SetRow(this.options.Source);
             this.txtDescription.Text = this.options.DefaultDescription ?? string.Empty;
         }
