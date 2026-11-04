@@ -64,6 +64,7 @@ namespace Modern.Lab.Samples
         private string candidateKey;
         private bool candidateBinding;
         private string appliedFabId = string.Empty;
+        private string appliedPickerKey = "||";
 
         private static readonly string[] CandidateColumns =
         {
@@ -504,16 +505,35 @@ namespace Modern.Lab.Samples
                 }
             }
 
-            this.BindPickerLists(values);
+            this.BindPickerLists(values, changed);
+            this.SearchIfPicksChanged(values);
         }
 
-        private void BindPickerLists(string[] values)
+        private void BindPickerLists(string[] values, int skip)
         {
             for (int index = 0; index < values.Length; index++)
             {
+                if (index == skip)
+                {
+                    continue;
+                }
+
                 this.BindCandidates(this.PickerCombo(index), DurableManagementPresenter.CandidateList(
                         this.candidateData, CandidateColumns[index], CandidateColumns, Without(values, index)));
             }
+        }
+
+        private void SearchIfPicksChanged(string[] values)
+        {
+            string key = string.Join("|", values);
+
+            if (key == this.appliedPickerKey)
+            {
+                return;
+            }
+
+            this.appliedPickerKey = key;
+            this.ExecuteSearch(true);
         }
 
         private async void LoadCandidates()
@@ -549,7 +569,7 @@ namespace Modern.Lab.Samples
             }
 
             this.candidateData = outcome.Value;
-            this.BindPickerLists(new string[] { string.Empty, string.Empty, string.Empty });
+            this.BindPickerLists(new string[] { string.Empty, string.Empty, string.Empty }, -1);
         }
 
         private void ClearCandidateText()
@@ -560,6 +580,7 @@ namespace Modern.Lab.Samples
             this.SetCandidateText(this.cboDurableId, string.Empty);
             this.SetCandidateText(this.cboLotId, string.Empty);
             this.SetCandidateText(this.cboSerialNo, string.Empty);
+            this.appliedPickerKey = "||";
         }
 
         private void SetCandidateText(Modern.Lab.WinForms.Controls.Selection.ModernComboBox combo, string text)
