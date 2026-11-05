@@ -1,0 +1,29 @@
+using Modern.Lab.WinForms.Controls.Data;
+
+namespace Modern.Lab.Hosting.Schema
+{
+    /// <summary>포트 이력 — 위 일곱 칸은 포트 화면들이 함께 쓰는 칸이고, 아래 다섯은 이력 칸이다. 키는 Eqp Id + Port + Timekey.</summary>
+    public sealed class PortDetHistoryEntity : TableEntity
+    {
+        public readonly Field EqpId = EquipmentColumns.EqpId();
+        public readonly Field PortNm = PortColumns.PortNm();
+        public readonly PortFields.PortTyp PortTyp = PortColumns.PortTyp().Badge();
+        public readonly Field Mode = PortColumns.Mode();
+        public readonly PortFields.TransferStatCd TransferStatCd = PortColumns.TransferStatCd();
+        public readonly Field LotId = LotColumns.LotId();
+        public readonly Field DurableId = DurableColumns.DurableId();
+        public readonly Field TimeKey = CommonColumns.TimeKey();
+        public readonly Field EventTm = CommonColumns.EventTm();
+        public readonly Field EventCd = CommonColumns.EventCd();
+        public readonly Field UserId = CommonColumns.UserId();
+        public readonly Field Remark = CommonColumns.Remark();
+
+        public PortDetHistoryEntity()
+        {
+            this.KeyFields = Fields(this.EqpId, this.PortNm, this.TimeKey);
+            this.ComboDisplayFields = Fields(this.PortNm, this.PortTyp);
+            this.ValueField = this.PortNm;
+            this.Seal();
+        }
+    }
+}
