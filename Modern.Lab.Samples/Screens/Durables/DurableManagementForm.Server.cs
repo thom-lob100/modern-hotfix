@@ -46,7 +46,7 @@ namespace Modern.Lab.Samples
         // MCS_ITG_YN
         // ACSS_TYP
         // PORT_TYP
-        // TRANS_DURABLE_ID
+        // TRANS_YN
         private DataTable GetDurables(RequestParameters parameters)
         {
             return this.RequestFields("GetDurableList",

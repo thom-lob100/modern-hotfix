@@ -28,7 +28,7 @@ namespace Modern.Lab.Hosting.Schema
         public readonly McsItgYnField McsItgYn = Field<McsItgYnField>("MCS_ITG_YN").Caption("MCS");
         public readonly AcssTypField AcssTyp = Field<AcssTypField>("ACSS_TYP").Caption("Access");
         public readonly PortTypField PortTyp = Field<PortTypField>("PORT_TYP").Caption("Port Type");
-        public readonly Field TransDurableId = Field("TRANS_DURABLE_ID").Caption("Transport Durable");
+        public readonly TransYnField TransYn = Field<TransYnField>("TRANS_YN").Caption("Transport");
         public readonly TransMoveStatCdField TransMoveStatCd = Field<TransMoveStatCdField>("TRANS_MOVE_STAT_CD").Caption("Move Status");
         public readonly TransLastEventDescField TransLastEventDesc = Field<TransLastEventDescField>("TRANS_LAST_EVENT_DESC").Caption("Transport Event");
         public readonly Field RfId = Field("RFID").Caption("RFID");

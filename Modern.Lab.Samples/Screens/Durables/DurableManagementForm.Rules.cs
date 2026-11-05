@@ -73,8 +73,16 @@ namespace Modern.Lab.Samples
             ActionRule.NotEmpty(DurableEntityName, Schemas.Durable.PortNm),
             ActionRule.Value(DurableEntityName, Schemas.Durable.McsItgYn, Schemas.Durable.McsItgYn.Y),
             ActionRule.Not(IsManualOutputPort, "The port is Manual access and Output only. Manual Out is not allowed there."),
-            ActionRule.NotEmpty(DurableEntityName, Schemas.Durable.TransDurableId)
+            ActionRule.Not(IsTransportQueued, TransportQueued)
         };
+
+        // 반송이 걸려 있으면(TRANS_YN = Y) Manual In · Manual Out 은 닫히고 Cancel 만 된다(2026-11-05 사용자 — TRANS_DURABLE_ID 빈 값 규칙을 대체).
+        private const string TransportQueued = "A transport is already queued. Cancel it first.";
+
+        private static bool IsTransportQueued(DataRow durable)
+        {
+            return Schemas.Durable.TransYn.Is(durable, Schemas.Durable.TransYn.Y);
+        }
 
         // 포트 접근 Manual 이면서 포트 종류 Output 인 조합 — 둘 중 하나라도 비면 조합이 아니다.
         private static bool IsManualOutputPort(DataRow durable)
@@ -108,7 +116,7 @@ namespace Modern.Lab.Samples
         {
             ActionRule.NotValue(DurableEntityName, Schemas.Durable.DurableStatCd, Schemas.Durable.DurableStatCd.Scrapped),
             ActionRule.NotValue(DurableEntityName, Schemas.Durable.LocNm, Schemas.Durable.LocNm.InBuffer, Schemas.Durable.LocNm.InBay),
-            ActionRule.NotEmpty(DurableEntityName, Schemas.Durable.TransDurableId)
+            ActionRule.Not(IsTransportQueued, TransportQueued)
         };
 
         // Hold — 회사 조건(2026-10-17): Normal · Idle · 예약(Reserved)되지 않은 지속재. Release — Hold · Idle 지속재.
