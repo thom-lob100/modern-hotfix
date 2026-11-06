@@ -738,10 +738,57 @@ namespace Modern.Lab.Hosting.MasterData
                 return;
             }
 
+            string keyText = DisplayKey(key);
+
             this.RunAction(
                     () => this.DeleteItem(key),
                     this.AfterDeleted,
+                    reply => this.OnDeleteRejected(reply, keyText),
                     "Deleting " + this.EntityNameLower + "…");
+        }
+
+        // 삭제 거절(2026-11-07) — 서버가 응답에 참조 표(DeleteReferenceColumns)를 실어 주면 규칙 안내 창과 같은 표로 "어디에 몇 건
+        // 쓰이는지"를 보인다. 표가 없거나 읽히지 않으면 전처럼 서버 문구 오류 창이다. 판정은 서버가 했고 화면은 그리기만 한다.
+        private void OnDeleteRejected(DataActionResult reply, string keyText)
+        {
+            DataTable references = this.DeleteReferences(reply);
+
+            if (references == null)
+            {
+                this.ShowActionFailure(reply);
+                return;
+            }
+
+            using (ActionRuleGuideForm guide = new ActionRuleGuideForm())
+            {
+                guide.ShowReferences(
+                        this.Text,
+                        "Delete " + this.definition.EntityName + " '" + keyText + "'",
+                        reply.Message,
+                        references);
+                guide.ShowDialog(this);
+            }
+        }
+
+        private DataTable DeleteReferences(DataActionResult reply)
+        {
+            if (reply == null || reply.CommunicationFailure || reply.Data.Length == 0)
+            {
+                return null;
+            }
+
+            DataTable table;
+
+            try
+            {
+                table = this.ParseQueryData(reply.Data);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+
+            return DeleteReferenceColumns.Describes(table) ? table : null;
         }
 
         protected virtual void OnActionMenuOpening(object sender, CancelEventArgs e)
