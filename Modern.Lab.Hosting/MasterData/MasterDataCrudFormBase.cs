@@ -411,6 +411,9 @@ namespace Modern.Lab.Hosting.MasterData
             return columns.ToArray();
         }
 
+        private readonly List<SharedLookup> sharedLookups = new List<SharedLookup>();
+        private bool sharedLookupHooked;
+
         private bool CompositeKey
         {
             get { return this.keyColumns.Length > 1; }
@@ -419,6 +422,139 @@ namespace Modern.Lab.Hosting.MasterData
         protected ModernPropertyGrid CrudEditor
         {
             get { return this.view.Editor; }
+        }
+
+        /// <summary>
+        /// 조회조건 콤보가 편집기 콤보 <paramref name="column"/> 의 항목 표를 같이 쓴다(2026-11-09 사용자 "조회조건은 대부분 에디트의 콤보랑
+        /// 공유해"). 전문은 편집기 선언(<c>.Grid.cs</c> 의 <c>Combo(…)</c>) 한 번만 나가고, 첫 조회와 펼칠 때 재조회의 표가 이 콤보에도 실린다 —
+        /// 값 · 표시 멤버는 편집기와 같다. 목록은 그대로(All 행 없음)라 빈 선택 · 빈 글자가 All 이다. 조회조건 콤보 하나에 한 줄,
+        /// 편집기에 없는 목록은 지금처럼 화면이 조회한다. <c>DefineEditors</c> 나 생성자에서 부른다.
+        /// </summary>
+        protected void ShareLookup(Modern.Lab.WinForms.Controls.Selection.ModernComboBox combo, string column)
+        {
+            this.ShareLookup(combo, column, null);
+        }
+
+        /// <summary><see cref="ShareLookup(Modern.Lab.WinForms.Controls.Selection.ModernComboBox, string)"/> 에 더해 맨 앞에 빈 값의
+        /// <paramref name="allLabel"/> 행을 붙인다 — 글자를 못 지우는 목록형(<c>DropDownList</c>) 콤보용. 이미 고른 값은 재조회 뒤에도 남고,
+        /// 없어진 값이면 All 행으로 돌아간다.</summary>
+        protected void ShareLookup(Modern.Lab.WinForms.Controls.Selection.ModernComboBox combo, string column, string allLabel)
+        {
+            if (combo == null)
+            {
+                throw new ArgumentNullException("combo");
+            }
+
+            if (string.IsNullOrEmpty(column))
+            {
+                throw new ArgumentException("편집기 콤보 컬럼 이름이 비어 있다.", "column");
+            }
+
+            SharedLookup entry = new SharedLookup(combo, column, allLabel);
+            this.sharedLookups.Add(entry);
+
+            if (!this.sharedLookupHooked)
+            {
+                this.view.Editor.ComboSourceApplied += this.OnComboSourceApplied;
+                this.sharedLookupHooked = true;
+            }
+
+            DataTable items = this.view.Editor.ComboSourceOf(column);
+
+            if (items != null)
+            {
+                this.ApplySharedLookup(entry, items);
+            }
+        }
+
+        private void OnComboSourceApplied(object sender, ComboSourceEventArgs e)
+        {
+            foreach (SharedLookup entry in this.sharedLookups)
+            {
+                if (string.Equals(entry.Column, e.Column, StringComparison.OrdinalIgnoreCase))
+                {
+                    this.ApplySharedLookup(entry, e.Items);
+                }
+            }
+        }
+
+        // 편집기 표의 복사본을 조회조건 콤보에 싣는다 — 목록형은 고른 값을, 입력형은 글자를 지킨다.
+        private void ApplySharedLookup(SharedLookup entry, DataTable items)
+        {
+            string valueMember;
+            string displayMember;
+
+            if (!this.view.Editor.TryGetComboMembers(entry.Column, out valueMember, out displayMember) || entry.Combo.IsDisposed)
+            {
+                return;
+            }
+
+            bool listStyle = entry.Combo.DropDownStyle == ComboBoxStyle.DropDownList;
+            string keptValue = (Convert.ToString(entry.Combo.SelectedValue) ?? string.Empty).Trim();
+            string keptText = entry.Combo.Text;
+            DataTable choices = SharedChoices(items, valueMember, displayMember, entry.AllLabel);
+
+            entry.Combo.DisplayMember = displayMember;
+            entry.Combo.ValueMember = valueMember;
+            entry.Combo.DataSource = choices;
+
+            if (listStyle)
+            {
+                if (keptValue.Length > 0)
+                {
+                    entry.Combo.SelectedValue = keptValue;
+                }
+
+                if (keptValue.Length == 0 || entry.Combo.SelectedIndex < 0)
+                {
+                    entry.Combo.SelectedIndex = entry.AllLabel != null && choices != null && choices.Rows.Count > 0 ? 0 : -1;
+                }
+            }
+            else
+            {
+                entry.Combo.SelectedIndex = -1;
+                entry.Combo.Text = keptText;
+            }
+        }
+
+        private static DataTable SharedChoices(DataTable items, string valueMember, string displayMember, string allLabel)
+        {
+            if (items == null)
+            {
+                return null;
+            }
+
+            DataTable choices = items.Copy();
+
+            if (allLabel != null && choices.Columns.Contains(valueMember))
+            {
+                DataRow all = choices.NewRow();
+
+                if (choices.Columns.Contains(displayMember) && choices.Columns[displayMember].DataType == typeof(string))
+                {
+                    all[displayMember] = allLabel;
+                }
+
+                choices.Rows.InsertAt(all, 0);
+            }
+
+            return choices;
+        }
+
+        private sealed class SharedLookup
+        {
+            internal SharedLookup(Modern.Lab.WinForms.Controls.Selection.ModernComboBox combo, string column, string allLabel)
+            {
+                this.Combo = combo;
+                this.Column = column;
+                this.AllLabel = allLabel;
+            }
+
+            internal Modern.Lab.WinForms.Controls.Selection.ModernComboBox Combo { get; private set; }
+
+            internal string Column { get; private set; }
+
+            internal string AllLabel { get; private set; }
         }
 
         /// <summary>

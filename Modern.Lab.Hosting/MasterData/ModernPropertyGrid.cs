@@ -244,6 +244,35 @@ namespace Modern.Lab.Hosting.MasterData
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public Func<string, object[], DataTable> ComboRefresh { get; set; }
 
+        /// <summary>콤보 컬럼에 항목 표가 실릴 때마다(첫 조회 · 펼칠 때 재조회) 컬럼마다 한 번 — 폼 베이스의 <c>ShareLookup</c> 이
+        /// 조회조건 콤보에 같은 표를 싣는다(2026-11-09).</summary>
+        public event EventHandler<ComboSourceEventArgs> ComboSourceApplied;
+
+        /// <summary>콤보 컬럼의 값 · 표시 멤버 — 콤보로 선언되지 않은 컬럼이면 false.</summary>
+        public bool TryGetComboMembers(string column, out string valueMember, out string displayMember)
+        {
+            FieldDefinition definition;
+
+            if (!string.IsNullOrEmpty(column) && this.definitions.TryGetValue(column, out definition)
+                    && definition.Kind == PropertyEditorKind.Combo)
+            {
+                valueMember = definition.ValueMember;
+                displayMember = definition.DisplayMember;
+                return true;
+            }
+
+            valueMember = null;
+            displayMember = null;
+            return false;
+        }
+
+        /// <summary>콤보 컬럼에 지금 실린 항목 표 — 아직 없으면 null. 고정 표 콤보는 선언 즉시 있다.</summary>
+        public DataTable ComboSourceOf(string column)
+        {
+            DataTable items;
+            return !string.IsNullOrEmpty(column) && this.comboSources.TryGetValue(column, out items) ? items : null;
+        }
+
         /// <summary>전문으로 항목을 받는 콤보(<c>.Field(…).Combo(전문 이름, …)</c>)가 하나라도 있는가 — 폼 베이스가 첫 조회 때
         /// 항목을 받아올지 정한다(2026-11-09). 고정 표 콤보만 있으면 false.</summary>
         [Browsable(false)]
@@ -690,6 +719,17 @@ namespace Modern.Lab.Hosting.MasterData
             {
                 this.comboSources[entry.Key] = entry.Value;
                 this.BindComboColumn(entry.Key, entry.Value);
+                this.OnComboSourceApplied(entry.Key, entry.Value);
+            }
+        }
+
+        private void OnComboSourceApplied(string column, DataTable items)
+        {
+            EventHandler<ComboSourceEventArgs> handler = this.ComboSourceApplied;
+
+            if (handler != null)
+            {
+                handler(this, new ComboSourceEventArgs(column, items));
             }
         }
 
