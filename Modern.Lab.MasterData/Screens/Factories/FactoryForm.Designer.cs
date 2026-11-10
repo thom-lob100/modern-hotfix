@@ -153,6 +153,7 @@ namespace Modern.Lab.MasterData
             this.cboFacTyp.Location = new System.Drawing.Point(88, 12);
             this.cboFacTyp.Name = "cboFacTyp";
             this.cboFacTyp.PlaceholderText = "All";
+            this.cboFacTyp.ShowClearButton = true;
             this.cboFacTyp.Size = new System.Drawing.Size(200, 32);
             this.cboFacTyp.TabIndex = 1;
             this.cboFacTyp.Child = null;
