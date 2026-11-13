@@ -7,6 +7,7 @@ using Modern.Lab.Hosting.Schema;
 using Modern.Lab.Samples.Services;
 using Modern.Lab.WinForms.Controls.Data;
 using Modern.Lab.WinForms.Controls.Dialogs;
+using Modern.Lab.WinForms.Controls.Selection;
 
 namespace Modern.Lab.Samples
 {
@@ -14,7 +15,6 @@ namespace Modern.Lab.Samples
     {
         private const string LookupHint = "Close and try again, or contact support.";
         private const string NoTransportText = "No transport can change its destination.";
-        private const string PortsEmptyText = "Select a destination to list its ports";
         private const string EquipmentKindText = "Equipment";
         private const string StbKindText = "STB";
         private const string StockerKindText = "Stocker";
@@ -66,6 +66,10 @@ namespace Modern.Lab.Samples
             this.btnOk.Text = this.options.OkText ?? this.btnOk.Text;
             this.txtDescription.Text = this.options.DefaultDescription ?? string.Empty;
             this.gridTransports.RowKeyMember = Schemas.Transport.DurableId.Name;
+            this.cboDestination.DisplayMember = Schemas.EquipmentExt.EqpId.Name;
+            this.cboDestination.ValueMember = Schemas.EquipmentExt.EqpId.Name;
+            this.cboPort.DisplayMember = Schemas.PortDet.PortNm.Name;
+            this.cboPort.ValueMember = Schemas.PortDet.PortNm.Name;
 
             this.ApplyKindChoices(null);
             this.LoadTransports();
@@ -145,33 +149,29 @@ namespace Modern.Lab.Samples
             return this.cboDestinationKind.SelectedIndex == 1;
         }
 
-        private string DestinationNoun(bool plural)
+        private string DestinationNoun()
         {
             if (!this.StorageSelected())
             {
-                return plural ? "equipments" : "equipment";
+                return "equipment";
             }
 
             if (string.Equals(this.storageKindText, StbKindText, StringComparison.Ordinal))
             {
-                return plural ? "STBs" : "STB";
+                return "STB";
             }
 
-            return plural ? "stockers" : "stocker";
+            return "stocker";
         }
 
         private void LoadDestinations()
         {
             DataRow transport = this.SelectedTransport();
             this.destinationData = null;
-            this.gridDestinations.StatusCountFormat = "{0:N0} " + this.DestinationNoun(true);
-            this.gridDestinations.EmptyText = transport == null
-                    ? "Select a transport to list its destinations"
-                    : "No other " + this.DestinationNoun(false) + " is available";
 
             if (transport == null)
             {
-                this.gridDestinations.DataSource = null;
+                this.cboDestination.DataSource = null;
                 return;
             }
 
@@ -179,15 +179,13 @@ namespace Modern.Lab.Samples
 
             if (equipments == null)
             {
-                this.gridDestinations.DataSource = null;
+                this.cboDestination.DataSource = null;
                 return;
             }
 
-            bool storage = this.StorageSelected();
-            this.destinationData = OtherThanCurrent(Candidates(equipments, storage ? StorageRules(transport) : EquipmentRules), transport);
-            GridColumns columns = storage ? StorageColumns(this.destinationData) : EquipmentColumns(this.destinationData);
-            columns.Apply(this.gridDestinations);
-            this.gridDestinations.DataSource = this.destinationData;
+            ActionRule[] rules = this.StorageSelected() ? StorageRules(transport) : EquipmentRules;
+            this.destinationData = OtherThanCurrent(Candidates(equipments, rules), transport);
+            this.cboDestination.DataSource = this.destinationData;
         }
 
         private DataTable Equipments()
@@ -232,8 +230,7 @@ namespace Modern.Lab.Samples
 
             if (destination == null)
             {
-                this.gridPorts.EmptyText = PortsEmptyText;
-                this.gridPorts.DataSource = null;
+                this.cboPort.DataSource = null;
                 return;
             }
 
@@ -246,22 +243,20 @@ namespace Modern.Lab.Samples
             }
             catch (Exception ex)
             {
-                this.gridPorts.DataSource = null;
+                this.cboPort.DataSource = null;
                 this.ShowErrorMessage("Port lookup failed", "Ports of " + eqpId + " could not be loaded. " + LookupHint, this.ServerFailureText(ex));
                 return;
             }
 
             if (ports == null)
             {
-                this.gridPorts.DataSource = null;
+                this.cboPort.DataSource = null;
                 this.ShowErrorMessage("Port lookup failed", "Ports of " + eqpId + " could not be loaded. " + LookupHint, "GetEqpPortList — the response has no table");
                 return;
             }
 
             this.portData = Candidates(ports, PortRules);
-            PortColumns(this.portData).Apply(this.gridPorts);
-            this.gridPorts.EmptyText = "No port of " + eqpId + " is ready to load";
-            this.gridPorts.DataSource = this.portData;
+            this.cboPort.DataSource = this.portData;
         }
 
         private void OnPortSelectionChanged(object sender, EventArgs e)
@@ -276,17 +271,24 @@ namespace Modern.Lab.Samples
 
         private DataRow SelectedDestination()
         {
-            return SelectedRow(this.gridDestinations);
+            return SelectedRow(this.cboDestination);
         }
 
         private DataRow SelectedPort()
         {
-            return SelectedRow(this.gridPorts);
+            return SelectedRow(this.cboPort);
         }
 
         private static DataRow SelectedRow(ModernDataGrid grid)
         {
             DataRowView selected = grid.SelectedItem as DataRowView;
+
+            return selected == null ? null : selected.Row;
+        }
+
+        private static DataRow SelectedRow(ModernComboBox combo)
+        {
+            DataRowView selected = combo.SelectedItem as DataRowView;
 
             return selected == null ? null : selected.Row;
         }
@@ -317,7 +319,7 @@ namespace Modern.Lab.Samples
             if (destination == null)
             {
                 this.lblStatus.Text = IsEmpty(this.destinationData)
-                        ? "No other " + this.DestinationNoun(false) + " is available."
+                        ? "No other " + this.DestinationNoun() + " is available."
                         : "Select a destination.";
                 return;
             }
