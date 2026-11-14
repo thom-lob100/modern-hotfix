@@ -1072,7 +1072,7 @@ namespace Modern.Lab.Hosting.MasterData
         }
 
         /// <summary>삭제 전문 — <paramref name="keyValues"/>는 정의의 키 컬럼 순서대로 편집기의 키 값이다.
-        /// 기본은 단일 키 <see cref="DeleteItem(string)"/>으로 넘긴다. 복합 키 화면은 이것을 재정의한다.</summary>
+        /// 기본은 단일 키 <see cref="DeleteItem(string)"/>으로 넘긴다. 복합 키 화면과 <see cref="KeyFields"/>로 키를 싣는 화면은 이것을 재정의한다.</summary>
         protected virtual DataActionResult DeleteItem(string[] keyValues)
         {
             return this.DeleteItem(keyValues.Length == 0 ? string.Empty : keyValues[0]);
@@ -1152,6 +1152,25 @@ namespace Modern.Lab.Hosting.MasterData
             }
 
             return result.ToArray();
+        }
+
+        /// <summary>
+        /// 키 컬럼 전부의 전문 이름/값 쌍(정의의 키 컬럼 순서) — 삭제 전문을
+        /// <c>WithMethodCommand("DeleteVendor", this.KeyFields(keyValues))</c> 한 줄로 적는다(2026-11-14).
+        /// 이름은 편집기가 저장 전문에 쓰는 이름(<see cref="ModernPropertyGrid.ParameterNameOf"/>)과 같고, 키가 늘거나 줄어도 화면은 그대로다.
+        /// 값을 더 실으려면 <see cref="WithMethodCommand(string, object[], object[])"/>의 뒤 인자에 이어 적는다.
+        /// </summary>
+        protected object[] KeyFields(string[] keyValues)
+        {
+            List<object> pairs = new List<object>();
+
+            for (int index = 0; index < this.keyColumns.Length; index = index + 1)
+            {
+                pairs.Add(this.view.Editor.ParameterNameOf(this.keyColumns[index]));
+                pairs.Add(keyValues != null && index < keyValues.Length ? keyValues[index] : string.Empty);
+            }
+
+            return pairs.ToArray();
         }
 
         // 이름/값 배열에서 이름의 자리(짝수 인덱스) — MethodCommand 쌍(0·1)은 건너뛴다.

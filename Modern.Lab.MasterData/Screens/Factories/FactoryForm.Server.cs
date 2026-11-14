@@ -26,10 +26,9 @@ namespace Modern.Lab.MasterData
             return this.RequestFields("FactoryAction", WithMethodCommand("UpdateFactory", requestFields));
         }
 
-        protected override DataActionResult DeleteItem(string key)
+        protected override DataActionResult DeleteItem(string[] keyValues)
         {
-            return this.RequestFields(
-                    "FactoryAction", "MethodCommand", "DeleteFactory", this.CrudEditor.ParameterNameOf("FAC_ID"), key);
+            return this.RequestFields("FactoryAction", WithMethodCommand("DeleteFactory", this.KeyFields(keyValues)));
         }
     }
 }

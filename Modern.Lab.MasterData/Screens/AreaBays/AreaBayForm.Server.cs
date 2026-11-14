@@ -26,10 +26,9 @@ namespace Modern.Lab.MasterData
             return this.RequestFields("AreaBayAction", WithMethodCommand("UpdateLocation", requestFields));
         }
 
-        protected override DataActionResult DeleteItem(string key)
+        protected override DataActionResult DeleteItem(string[] keyValues)
         {
-            return this.RequestFields(
-                    "AreaBayAction", "MethodCommand", "DeleteLocation", this.CrudEditor.ParameterNameOf("AREA_ID"), key);
+            return this.RequestFields("AreaBayAction", WithMethodCommand("DeleteLocation", this.KeyFields(keyValues)));
         }
 
         protected override DataTable RequestLookupItems(string requestName, object[] requestFields)

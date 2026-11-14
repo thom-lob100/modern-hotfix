@@ -23,10 +23,9 @@ namespace Modern.Lab.MasterData
             return this.RequestFields("LotCodeAction", WithMethodCommand("UpdateLotCode", requestFields));
         }
 
-        protected override DataActionResult DeleteItem(string key)
+        protected override DataActionResult DeleteItem(string[] keyValues)
         {
-            return this.RequestFields(
-                    "LotCodeAction", "MethodCommand", "DeleteLotCode", this.CrudEditor.ParameterNameOf("LOT_CD"), key);
+            return this.RequestFields("LotCodeAction", WithMethodCommand("DeleteLotCode", this.KeyFields(keyValues)));
         }
     }
 }

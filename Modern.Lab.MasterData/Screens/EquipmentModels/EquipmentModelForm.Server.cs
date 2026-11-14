@@ -26,10 +26,7 @@ namespace Modern.Lab.MasterData
 
         protected override DataActionResult DeleteItem(string[] keyValues)
         {
-            return this.RequestFields(
-                    "EquipmentModelAction", "MethodCommand", "DeleteEquipmentModel",
-                    this.CrudEditor.ParameterNameOf("FAC_ID"), keyValues[0],
-                    this.CrudEditor.ParameterNameOf("EQP_MODEL_CD"), keyValues[1]);
+            return this.RequestFields("EquipmentModelAction", WithMethodCommand("DeleteEquipmentModel", this.KeyFields(keyValues)));
         }
     }
 }

@@ -29,10 +29,7 @@ namespace Modern.Lab.MasterData
 
         protected override DataActionResult DeleteItem(string[] keyValues)
         {
-            return this.RequestFields(
-                    "VendorAction", "MethodCommand", "DeleteVendor",
-                    this.CrudEditor.ParameterNameOf("FAC_ID"), keyValues[0],
-                    this.CrudEditor.ParameterNameOf("VENDOR_NM"), keyValues[1]);
+            return this.RequestFields("VendorAction", WithMethodCommand("DeleteVendor", this.KeyFields(keyValues)));
         }
 
         protected override DataTable RequestLookupItems(string requestName, object[] requestFields)

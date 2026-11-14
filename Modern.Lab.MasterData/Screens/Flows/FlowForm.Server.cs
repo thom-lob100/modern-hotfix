@@ -23,10 +23,9 @@ namespace Modern.Lab.MasterData
             return this.RequestFields("FlowAction", WithMethodCommand("UpdateFlow", requestFields));
         }
 
-        protected override DataActionResult DeleteItem(string key)
+        protected override DataActionResult DeleteItem(string[] keyValues)
         {
-            return this.RequestFields(
-                    "FlowAction", "MethodCommand", "DeleteFlow", this.CrudEditor.ParameterNameOf("FLOW_ID"), key);
+            return this.RequestFields("FlowAction", WithMethodCommand("DeleteFlow", this.KeyFields(keyValues)));
         }
     }
 }

@@ -23,10 +23,9 @@ namespace Modern.Lab.MasterData
             return this.RequestFields("OperAction", WithMethodCommand("UpdateOper", requestFields));
         }
 
-        protected override DataActionResult DeleteItem(string key)
+        protected override DataActionResult DeleteItem(string[] keyValues)
         {
-            return this.RequestFields(
-                    "OperAction", "MethodCommand", "DeleteOper", this.CrudEditor.ParameterNameOf("OPER_ID"), key);
+            return this.RequestFields("OperAction", WithMethodCommand("DeleteOper", this.KeyFields(keyValues)));
         }
     }
 }

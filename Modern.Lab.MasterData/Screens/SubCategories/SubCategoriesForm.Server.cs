@@ -23,11 +23,9 @@ namespace Modern.Lab.MasterData
             return this.RequestFields("SubCategoryAction", WithMethodCommand("UpdateSubCategory", requestFields));
         }
 
-        protected override DataActionResult DeleteItem(string key)
+        protected override DataActionResult DeleteItem(string[] keyValues)
         {
-            return this.RequestFields(
-                    "SubCategoryAction", "MethodCommand", "DeleteSubCategory",
-                    this.CrudEditor.ParameterNameOf("SUB_CATG_CD"), key);
+            return this.RequestFields("SubCategoryAction", WithMethodCommand("DeleteSubCategory", this.KeyFields(keyValues)));
         }
     }
 }

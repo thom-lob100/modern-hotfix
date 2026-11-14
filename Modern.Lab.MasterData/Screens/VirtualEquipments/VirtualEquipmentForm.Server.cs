@@ -30,10 +30,9 @@ namespace Modern.Lab.MasterData
             return this.WriteVirtualEquipment("UpdateVirtualEquipment", requestFields);
         }
 
-        protected override DataActionResult DeleteItem(string key)
+        protected override DataActionResult DeleteItem(string[] keyValues)
         {
-            return this.RequestFields(
-                    "EquipmentAction", "MethodCommand", "DeleteVirtualEquipment", this.CrudEditor.ParameterNameOf("EQP_ID"), key);
+            return this.RequestFields("EquipmentAction", WithMethodCommand("DeleteVirtualEquipment", this.KeyFields(keyValues)));
         }
 
         private DataActionResult WriteVirtualEquipment(string method, object[] requestFields)

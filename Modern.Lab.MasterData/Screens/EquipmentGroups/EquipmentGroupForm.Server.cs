@@ -34,10 +34,9 @@ namespace Modern.Lab.MasterData
             return this.RequestFields("EquipmentGroupAction", WithMethodCommand("UpdateEquipmentGroup", requestFields));
         }
 
-        protected override DataActionResult DeleteItem(string key)
+        protected override DataActionResult DeleteItem(string[] keyValues)
         {
-            return this.RequestFields(
-                    "EquipmentGroupAction", "MethodCommand", "DeleteEquipmentGroup", this.CrudEditor.ParameterNameOf("EQP_GRP_ID"), key);
+            return this.RequestFields("EquipmentGroupAction", WithMethodCommand("DeleteEquipmentGroup", this.KeyFields(keyValues)));
         }
 
         protected override DataTable RequestLookupItems(string requestName, object[] requestFields)
