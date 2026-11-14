@@ -11,10 +11,8 @@ namespace Modern.Lab.MasterData
         private Modern.Lab.WinForms.Controls.Display.ModernLabel lblTitle;
         private System.Windows.Forms.Panel spTitle;
         private Modern.Lab.WinForms.Controls.Layout.ModernCardPanel searchCard;
-        private Modern.Lab.WinForms.Controls.Display.ModernLabel lblEquipment;
-        private Modern.Lab.WinForms.Controls.Selection.ModernComboBox cmbEquipment;
-        private Modern.Lab.WinForms.Controls.Display.ModernLabel lblPortTyp;
-        private Modern.Lab.WinForms.Controls.Selection.ModernComboBox cboPortTyp;
+        private Modern.Lab.WinForms.Controls.Display.ModernLabel lblEqpId;
+        private Modern.Lab.WinForms.Controls.Selection.ModernComboBox cboEqpId;
         private Modern.Lab.WinForms.Controls.Input.ModernButton btnRefresh;
         private Modern.Lab.WinForms.Controls.Input.ModernButton btnReset;
         private System.Windows.Forms.Panel gapSearch;
@@ -62,10 +60,8 @@ namespace Modern.Lab.MasterData
             this.lblTitle = new Modern.Lab.WinForms.Controls.Display.ModernLabel();
             this.spTitle = new System.Windows.Forms.Panel();
             this.searchCard = new Modern.Lab.WinForms.Controls.Layout.ModernCardPanel();
-            this.lblEquipment = new Modern.Lab.WinForms.Controls.Display.ModernLabel();
-            this.cmbEquipment = new Modern.Lab.WinForms.Controls.Selection.ModernComboBox();
-            this.lblPortTyp = new Modern.Lab.WinForms.Controls.Display.ModernLabel();
-            this.cboPortTyp = new Modern.Lab.WinForms.Controls.Selection.ModernComboBox();
+            this.lblEqpId = new Modern.Lab.WinForms.Controls.Display.ModernLabel();
+            this.cboEqpId = new Modern.Lab.WinForms.Controls.Selection.ModernComboBox();
             this.btnRefresh = new Modern.Lab.WinForms.Controls.Input.ModernButton();
             this.btnReset = new Modern.Lab.WinForms.Controls.Input.ModernButton();
             this.gapSearch = new System.Windows.Forms.Panel();
@@ -128,10 +124,8 @@ namespace Modern.Lab.MasterData
             //
             // searchCard
             //
-            this.searchCard.Controls.Add(this.lblEquipment);
-            this.searchCard.Controls.Add(this.cmbEquipment);
-            this.searchCard.Controls.Add(this.lblPortTyp);
-            this.searchCard.Controls.Add(this.cboPortTyp);
+            this.searchCard.Controls.Add(this.lblEqpId);
+            this.searchCard.Controls.Add(this.cboEqpId);
             this.searchCard.Controls.Add(this.btnReset);
             this.searchCard.Controls.Add(this.btnRefresh);
             this.searchCard.Dock = System.Windows.Forms.DockStyle.Top;
@@ -141,48 +135,28 @@ namespace Modern.Lab.MasterData
             this.searchCard.Size = new System.Drawing.Size(1376, 56);
             this.searchCard.TabIndex = 2;
             //
-            // lblEquipment
+            // lblEqpId
             //
-            this.lblEquipment.BackColor = System.Drawing.Color.Transparent;
-            this.lblEquipment.Kind = Modern.Lab.Controls.Wpf.Display.LabelKind.Label;
-            this.lblEquipment.Location = new System.Drawing.Point(12, 12);
-            this.lblEquipment.Name = "lblEquipment";
-            this.lblEquipment.Size = new System.Drawing.Size(90, 32);
-            this.lblEquipment.TabIndex = 0;
-            this.lblEquipment.Text = "Equipment";
+            this.lblEqpId.BackColor = System.Drawing.Color.Transparent;
+            this.lblEqpId.Kind = Modern.Lab.Controls.Wpf.Display.LabelKind.Label;
+            this.lblEqpId.Location = new System.Drawing.Point(12, 12);
+            this.lblEqpId.Name = "lblEqpId";
+            this.lblEqpId.Size = new System.Drawing.Size(72, 32);
+            this.lblEqpId.TabIndex = 0;
+            this.lblEqpId.Text = "Eqp Id";
             //
-            // cmbEquipment
+            // cboEqpId
             //
-            this.cmbEquipment.Location = new System.Drawing.Point(106, 12);
-            this.cmbEquipment.Name = "cmbEquipment";
-            this.cmbEquipment.Size = new System.Drawing.Size(240, 32);
-            this.cmbEquipment.TabIndex = 1;
-            this.cmbEquipment.Required = true;
-            this.cmbEquipment.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbEquipment.SelectedIndexChanged += new System.EventHandler(this.OnEquipmentChanged);
-            //
-            // lblPortTyp
-            //
-            this.lblPortTyp.BackColor = System.Drawing.Color.Transparent;
-            this.lblPortTyp.Kind = Modern.Lab.Controls.Wpf.Display.LabelKind.Label;
-            this.lblPortTyp.Location = new System.Drawing.Point(362, 8);
-            this.lblPortTyp.Name = "lblPortTyp";
-            this.lblPortTyp.Size = new System.Drawing.Size(72, 40);
-            this.lblPortTyp.TabIndex = 0;
-            this.lblPortTyp.Text = "Type";
-            this.lblPortTyp.TopLabel = "Port";
-            //
-            // cboPortTyp
-            //
-            this.cboPortTyp.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
-            this.cboPortTyp.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDown;
-            this.cboPortTyp.Location = new System.Drawing.Point(438, 12);
-            this.cboPortTyp.Name = "cboPortTyp";
-            this.cboPortTyp.PlaceholderText = "All";
-            this.cboPortTyp.ShowClearButton = true;
-            this.cboPortTyp.Size = new System.Drawing.Size(220, 32);
-            this.cboPortTyp.TabIndex = 2;
-            this.cboPortTyp.Child = null;
+            this.cboEqpId.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
+            this.cboEqpId.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDown;
+            this.cboEqpId.Location = new System.Drawing.Point(88, 12);
+            this.cboEqpId.Name = "cboEqpId";
+            this.cboEqpId.PlaceholderText = "Select Eqp Id";
+            this.cboEqpId.Required = true;
+            this.cboEqpId.ShowClearButton = true;
+            this.cboEqpId.Size = new System.Drawing.Size(220, 32);
+            this.cboEqpId.TabIndex = 1;
+            this.cboEqpId.Child = null;
             //
             // btnReset
             //
@@ -236,6 +210,7 @@ namespace Modern.Lab.MasterData
             // splitMain
             //
             this.splitMain.Size = new System.Drawing.Size(1376, 676);
+            this.splitMain.Panel2MinSize = 200;
             this.splitMain.SplitterDistance = 800;
             this.splitMain.SplitterWidth = 8;
             this.splitMain.TabIndex = 4;
@@ -298,6 +273,7 @@ namespace Modern.Lab.MasterData
             this.actionPanel.Controls.Add(this.btnCancel);
             this.actionPanel.Controls.Add(this.btnDuplicate);
             this.actionPanel.Controls.Add(this.btnNew);
+            this.actionPanel.AutoSize = true;
             this.actionPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.actionPanel.FlowDirection = System.Windows.Forms.FlowDirection.RightToLeft;
             this.actionPanel.Location = new System.Drawing.Point(14, 616);
@@ -305,13 +281,12 @@ namespace Modern.Lab.MasterData
             this.actionPanel.Padding = new System.Windows.Forms.Padding(0, 8, 0, 0);
             this.actionPanel.Size = new System.Drawing.Size(540, 50);
             this.actionPanel.TabIndex = 1;
-            this.actionPanel.WrapContents = false;
             //
             // btnDelete
             //
             this.btnDelete.Kind = Modern.Lab.Controls.Wpf.Input.ButtonKind.Danger;
             this.btnDelete.Location = new System.Drawing.Point(420, 8);
-            this.btnDelete.Margin = new System.Windows.Forms.Padding(8, 0, 0, 0);
+            this.btnDelete.Margin = new System.Windows.Forms.Padding(8, 0, 0, 8);
             this.btnDelete.Name = "btnDelete";
             this.btnDelete.Size = new System.Drawing.Size(100, 34);
             this.btnDelete.TabIndex = 4;
@@ -321,7 +296,7 @@ namespace Modern.Lab.MasterData
             //
             this.btnSave.Kind = Modern.Lab.Controls.Wpf.Input.ButtonKind.Execute;
             this.btnSave.Location = new System.Drawing.Point(312, 8);
-            this.btnSave.Margin = new System.Windows.Forms.Padding(8, 0, 0, 0);
+            this.btnSave.Margin = new System.Windows.Forms.Padding(8, 0, 0, 8);
             this.btnSave.Name = "btnSave";
             this.btnSave.Size = new System.Drawing.Size(100, 34);
             this.btnSave.TabIndex = 3;
@@ -331,7 +306,7 @@ namespace Modern.Lab.MasterData
             //
             this.btnCancel.Kind = Modern.Lab.Controls.Wpf.Input.ButtonKind.Secondary;
             this.btnCancel.Location = new System.Drawing.Point(204, 8);
-            this.btnCancel.Margin = new System.Windows.Forms.Padding(8, 0, 0, 0);
+            this.btnCancel.Margin = new System.Windows.Forms.Padding(8, 0, 0, 8);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(100, 34);
             this.btnCancel.TabIndex = 2;
@@ -341,7 +316,7 @@ namespace Modern.Lab.MasterData
             //
             this.btnDuplicate.Kind = Modern.Lab.Controls.Wpf.Input.ButtonKind.Secondary;
             this.btnDuplicate.Location = new System.Drawing.Point(116, 8);
-            this.btnDuplicate.Margin = new System.Windows.Forms.Padding(8, 0, 0, 0);
+            this.btnDuplicate.Margin = new System.Windows.Forms.Padding(8, 0, 0, 8);
             this.btnDuplicate.Name = "btnDuplicate";
             this.btnDuplicate.Size = new System.Drawing.Size(100, 34);
             this.btnDuplicate.TabIndex = 1;
@@ -351,7 +326,7 @@ namespace Modern.Lab.MasterData
             //
             this.btnNew.Kind = Modern.Lab.Controls.Wpf.Input.ButtonKind.Secondary;
             this.btnNew.Location = new System.Drawing.Point(96, 8);
-            this.btnNew.Margin = new System.Windows.Forms.Padding(8, 0, 0, 0);
+            this.btnNew.Margin = new System.Windows.Forms.Padding(0, 0, 0, 8);
             this.btnNew.Name = "btnNew";
             this.btnNew.Size = new System.Drawing.Size(100, 34);
             this.btnNew.TabIndex = 0;

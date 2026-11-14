@@ -9,17 +9,19 @@ namespace Modern.Lab.MasterData
 {
     public partial class PortForm
     {
-        // 선택 설정이다 — 이 파일이 없어도 응답 컬럼 전부가 텍스트 편집기로 구성된다. 선택 장비가 공급하는 EQP_ID 잠금은 본체가 한다.
-        // PORT_TYP 의 목록은 공통코드(CommonTyp PortType)에서 받고, 조회조건 콤보가 같은 목록을 쓴다.
+        // 선택 설정이다 — 이 파일이 없어도 응답 컬럼 전부가 텍스트 편집기로 구성된다. 조회한 장비로 채우는 EQP_ID 의 잠금은 본체가 한다.
+        // EQP_ID 의 목록은 조회조건 콤보가 함께 쓴다 — 이 파일이 없으면 조회조건에 Eqp Id 를 직접 친다.
+        // PORT_TYP 의 목록은 공통코드(CommonTyp PortType)에서 받는다.
         protected override void DefineEditors()
         {
+            this.CrudEditor.Field(Schemas.Port.EqpId.Name).Combo("GetEquipmentList", "EQP_ID", "EQP_ID");
             this.CrudEditor.Field(Schemas.Port.PortTyp.Name).Combo("GetPortTypeList", "TYP_VAL", "TYP_NM");
             this.CrudEditor.Field(Schemas.Port.Priority.Name).Number(0);
             this.CrudEditor.Field(Schemas.Port.UseYn.Name).Toggle();
             this.CrudEditor.Field(Schemas.Port.Description.Name).Multiline();
             // 감사 컬럼은 서버가 기록한다 — 보이되 고치지 않는다.
             this.CrudEditor.Field(Schemas.Port.UpdatedBy.Name, Schemas.Port.UpdatedAt.Name).ReadOnly();
-            this.ShareLookup(this.cboPortTyp, Schemas.Port.PortTyp.Name);
+            this.ShareLookup(this.cboEqpId, Schemas.Port.EqpId.Name);
         }
     }
 }

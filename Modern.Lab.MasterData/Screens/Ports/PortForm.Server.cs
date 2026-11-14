@@ -1,51 +1,63 @@
-using System;
-using System.Collections.Generic;
 using System.Data;
 
 using Modern.Lab.Hosting.Schema;
 using Modern.Lab.Hosting.Messaging;
+using Modern.Lab.Hosting.ResponseContracts;
 
 namespace Modern.Lab.MasterData
 {
     public partial class PortForm
     {
         // EQP_ID
-        private DataTable GetEquipments()
-        {
-            return this.RequestFields("PortAction", "MethodCommand", "SelectEquipment").Table;
-        }
-
-        private DataActionResult WritePort(string method, string eqpId, object[] fields)
-        {
-            string eqpIdParameter = this.CrudEditor.ParameterNameOf("EQP_ID");
-            List<object> pairs = new List<object> { eqpIdParameter, eqpId };
-            pairs.AddRange(WithoutFields(fields, eqpIdParameter));
-            return this.RequestFields("PortAction", WithMethodCommand(method, pairs.ToArray()));
-        }
-
-        private DataActionResult DeletePort(string eqpId, string portNm)
-        {
-            return this.WritePort("DeletePort", eqpId,
-                    new object[] { this.CrudEditor.ParameterNameOf("PORT_NM"), portNm });
-        }
-
-        // EQP_ID
         // PORT_NM
-        private DataTable GetPorts(string eqpId)
+        protected override DataTable RequestItems()
         {
-            return this.RequestFields("PortAction", "MethodCommand", "SelectPorts", "EqpId", eqpId, "PortTyp", this.queryPortTyp).Table;
+            return this.RequestFields(
+                    "PortAction",
+                    "MethodCommand", "SelectPorts",
+                    this.CrudEditor.ParameterNameOf("EQP_ID"), this.searchEqpId).Table;
+        }
+
+        protected override DataActionResult InsertItem(object[] requestFields)
+        {
+            return this.RequestFields("PortAction", WithMethodCommand("InsertPort", requestFields));
+        }
+
+        protected override DataActionResult UpdateItem(object[] requestFields)
+        {
+            return this.RequestFields("PortAction", WithMethodCommand("UpdatePort", requestFields));
+        }
+
+        protected override DataActionResult DeleteItem(string[] keyValues)
+        {
+            return this.RequestFields("PortAction", WithMethodCommand("DeletePort", this.KeyFields(keyValues)));
         }
 
         protected override DataTable RequestLookupItems(string requestName, object[] requestFields)
         {
             switch (requestName)
             {
+                case "GetEquipmentList":
+                    return this.GetEquipmentList();
+
                 case "GetPortTypeList":
                     return this.GetPortTypeList();
 
                 default:
                     return base.RequestLookupItems(requestName, requestFields);
             }
+        }
+
+        // EQP_ID
+        private DataTable GetEquipmentList()
+        {
+            DataTable table = this.RequestFields("PortAction", "MethodCommand", "SelectEquipment").Table;
+            string missing = ResponseColumns.Missing(table, "EQP_ID");
+            if (missing.Length > 0)
+            {
+                throw new ResponseContractException("Equipment — missing column " + missing);
+            }
+            return table;
         }
 
         // TYP_VAL
