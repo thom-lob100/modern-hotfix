@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Windows.Forms;
 using Modern.Lab.Hosting;
+using Modern.Lab.Hosting.Messaging;
 using Modern.Lab.Hosting.Schema;
 using Modern.Lab.Samples.Services;
 using Modern.Lab.WinForms.Controls.Dialogs;
@@ -13,13 +14,12 @@ namespace Modern.Lab.Samples
     public partial class TransportChangeDestDialogForm : ModernFormBase
     {
         private const string LookupHint = "Close and try again, or contact support.";
-        private const string EquipmentKindText = "Equipment";
+        private const string MachineKindText = "Machine";
         private const string StbKindText = "STB";
         private const string StockerKindText = "Stocker";
         private const string NoValueText = "-";
 
         private readonly TransportChangeDestDialogOptions options;
-        private DataTable equipmentData;
         private DataTable destinationData;
         private DataTable portData;
         private string storageKindText;
@@ -89,7 +89,7 @@ namespace Modern.Lab.Samples
 
             try
             {
-                this.cboDestinationKind.DataSource = new string[] { EquipmentKindText, this.storageKindText };
+                this.cboDestinationKind.DataSource = new string[] { MachineKindText, this.storageKindText };
                 this.cboDestinationKind.SelectedIndex = 0;
             }
             finally
@@ -103,11 +103,16 @@ namespace Modern.Lab.Samples
             return this.cboDestinationKind.SelectedIndex == 1;
         }
 
+        private string SelectedKind()
+        {
+            return this.StorageSelected() ? this.storageKindText : MachineKindText;
+        }
+
         private string DestinationNoun()
         {
             if (!this.StorageSelected())
             {
-                return "equipment";
+                return "machine";
             }
 
             if (string.Equals(this.storageKindText, StbKindText, StringComparison.Ordinal))
@@ -129,46 +134,28 @@ namespace Modern.Lab.Samples
                 return;
             }
 
-            DataTable equipments = this.Equipments();
-
-            if (equipments == null)
-            {
-                this.cboDestination.DataSource = null;
-                return;
-            }
-
-            ActionRule[] rules = this.StorageSelected() ? StorageRules(transport) : EquipmentRules;
-            this.destinationData = OtherThanCurrent(Candidates(equipments, rules), transport);
-            this.cboDestination.DataSource = this.destinationData;
-        }
-
-        private DataTable Equipments()
-        {
-            if (this.equipmentData != null)
-            {
-                return this.equipmentData;
-            }
-
             DataTable equipments;
 
             try
             {
-                equipments = this.GetEquipments();
+                equipments = this.GetEquipments(transport, RequestParameters.Of(Schemas.Criteria.Destination, this.SelectedKind()));
             }
             catch (Exception ex)
             {
-                this.ShowErrorMessage("Destination lookup failed", "Equipments, STBs and stockers could not be loaded. " + LookupHint, this.ServerFailureText(ex));
-                return null;
+                this.cboDestination.DataSource = null;
+                this.ShowErrorMessage("Destination lookup failed", "Machines, STBs and stockers could not be loaded. " + LookupHint, this.ServerFailureText(ex));
+                return;
             }
 
             if (equipments == null)
             {
-                this.ShowErrorMessage("Destination lookup failed", "Equipments, STBs and stockers could not be loaded. " + LookupHint, "GetEqpList — the response has no table");
-                return null;
+                this.cboDestination.DataSource = null;
+                this.ShowErrorMessage("Destination lookup failed", "Machines, STBs and stockers could not be loaded. " + LookupHint, "GetEqpList — the response has no table");
+                return;
             }
 
-            this.equipmentData = equipments;
-            return equipments;
+            this.destinationData = equipments;
+            this.cboDestination.DataSource = this.destinationData;
         }
 
         private void OnDestinationSelectionChanged(object sender, EventArgs e)
@@ -209,7 +196,7 @@ namespace Modern.Lab.Samples
                 return;
             }
 
-            this.portData = Candidates(ports, PortRules);
+            this.portData = ports;
             this.cboPort.DataSource = this.portData;
         }
 
@@ -247,16 +234,16 @@ namespace Modern.Lab.Samples
                 return;
             }
 
-            this.btnOk.Enabled = false;
             DataRow transport = this.options.Source;
+            DataRow destination = this.SelectedDestination();
+            DataRow port = this.SelectedPort();
+            this.ApplyActionReason(this.btnOk, ChangeDestinationReason(transport, destination, port));
 
             if (transport == null)
             {
                 this.lblStatus.Text = "Select a transport first.";
                 return;
             }
-
-            DataRow destination = this.SelectedDestination();
 
             if (destination == null)
             {
@@ -267,7 +254,6 @@ namespace Modern.Lab.Samples
             }
 
             string eqpId = Schemas.EquipmentExt.EqpId.Text(destination);
-            DataRow port = this.SelectedPort();
 
             if (port == null)
             {
@@ -277,9 +263,33 @@ namespace Modern.Lab.Samples
                 return;
             }
 
-            this.btnOk.Enabled = true;
             this.lblStatus.Text = Schemas.Transport.DurableId.Text(transport) + " → "
                     + TransportManagementPresenter.Place(eqpId, Schemas.PortDet.PortNm.Text(port));
+        }
+
+        private static string ChangeDestinationReason(DataRow transport, DataRow destination, DataRow port)
+        {
+            if (transport == null)
+            {
+                return "Select a transport first.";
+            }
+
+            if (destination == null)
+            {
+                return "Select a destination first.";
+            }
+
+            if (port == null)
+            {
+                return "Select a port first.";
+            }
+
+            return ActionRule.Check(ChangeDestinationRules, port);
+        }
+
+        protected override DataRow RuleGuideRow(DataRow selectedRow)
+        {
+            return this.SelectedPort();
         }
 
         private void OnOkClick(object sender, EventArgs e)

@@ -201,7 +201,7 @@ namespace Modern.Lab.Samples
                 return;
             }
 
-            this.transportData = Candidates(transports, TransportRules);
+            this.transportData = transports;
             TransportColumns(this.transportData).Apply(this.gridTransports);
             this.gridTransports.DataSource = this.transportData;
         }
@@ -347,7 +347,7 @@ namespace Modern.Lab.Samples
                 return;
             }
 
-            this.portData = Candidates(ports, PortRules);
+            this.portData = ports;
             this.cboPort.DataSource = this.portData;
         }
 
@@ -397,16 +397,16 @@ namespace Modern.Lab.Samples
                 return;
             }
 
-            this.btnOk.Enabled = false;
             DataRow transport = this.SelectedTransport();
+            DataRow destination = this.SelectedDestination();
+            DataRow port = this.SelectedPort();
+            this.ApplyActionReason(this.btnOk, ChangeDestinationReason(transport, destination, port));
 
             if (transport == null)
             {
                 this.lblStatus.Text = IsEmpty(this.transportData) ? NoTransportText : "Select a transport.";
                 return;
             }
-
-            DataRow destination = this.SelectedDestination();
 
             if (destination == null)
             {
@@ -417,7 +417,6 @@ namespace Modern.Lab.Samples
             }
 
             string eqpId = Schemas.EquipmentExt.EqpId.Text(destination);
-            DataRow port = this.SelectedPort();
 
             if (port == null)
             {
@@ -427,8 +426,32 @@ namespace Modern.Lab.Samples
                 return;
             }
 
-            this.btnOk.Enabled = true;
             this.lblStatus.Text = Schemas.Transport.DurableId.Text(transport) + " → " + Place(eqpId, Schemas.PortDet.PortNm.Text(port));
+        }
+
+        private static string ChangeDestinationReason(DataRow transport, DataRow destination, DataRow port)
+        {
+            if (transport == null)
+            {
+                return "Select a transport first.";
+            }
+
+            if (destination == null)
+            {
+                return "Select a destination first.";
+            }
+
+            if (port == null)
+            {
+                return "Select a port first.";
+            }
+
+            return ActionRule.Check(ChangeDestinationRules, RuleRow(transport, port));
+        }
+
+        protected override DataRow RuleGuideRow(DataRow selectedRow)
+        {
+            return RuleRow(this.SelectedTransport(), this.SelectedPort());
         }
 
         private void OnOkClick(object sender, EventArgs e)
