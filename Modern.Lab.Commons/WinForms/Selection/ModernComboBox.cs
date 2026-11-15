@@ -757,7 +757,9 @@ namespace Modern.Lab.WinForms.Controls.Selection
         {
             if (this.Wpf != null)
             {
-                this.Wpf.ApplyDropDownColumns(columns);
+                // 목록 헤더는 번역 사전을 지난 사본으로 그린다(번역이 꺼져 있으면 받은 배열 그대로) — 그리드와 같은 규칙.
+                this.Wpf.ApplyDropDownColumns(Modern.Lab.Controls.Wpf.Data.ModernDataGridColumn.ForDisplay(
+                        columns, Modern.Lab.Captions.ModernLanguageApplier.ScreenOf(this)));
             }
         }
 

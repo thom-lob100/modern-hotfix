@@ -41,6 +41,38 @@ namespace Modern.Lab.Controls.Wpf.Data
                     : caption;
         }
 
+        // 컨트롤이 컬럼을 받아 그리는 자리에서 쓰는 표시용 사본 — 헤더 글자(본·위·아래·묶음 제목)와 버튼 글자를 번역 사전(ModernLanguage)에 지나게 한다.
+        // 번역이 꺼져 있으면 받은 배열을 그대로 돌려준다(지금까지와 같은 객체). 켜져 있어도 원본 정의에는 영어 원문이 남는다 —
+        // GridColumns 가 "구성이 같으면 다시 만들지 않는다"를 원본끼리 비교하므로 재조회마다 값 필터·찾기 상태가 풀리지 않는다.
+        internal static ModernDataGridColumn[] ForDisplay(ModernDataGridColumn[] columns, string screen)
+        {
+            if (columns == null || !Modern.Lab.Captions.ModernLanguage.IsActive)
+            {
+                return columns;
+            }
+
+            ModernDataGridColumn[] shown = new ModernDataGridColumn[columns.Length];
+
+            for (int index = 0; index < columns.Length; index++)
+            {
+                shown[index] = columns[index] == null ? null : columns[index].ForDisplay(screen);
+            }
+
+            return shown;
+        }
+
+        // 위·본·아랫글씨는 각각 따로 번역한다 — 누락 목록의 참고 값은 컬럼 이름이다.
+        private ModernDataGridColumn ForDisplay(string screen)
+        {
+            ModernDataGridColumn shown = (ModernDataGridColumn)this.MemberwiseClone();
+            shown.HeaderText = Modern.Lab.Captions.ModernLanguage.Translate(screen, this.HeaderText, this.DataPropertyName);
+            shown.TopLabel = Modern.Lab.Captions.ModernLanguage.Translate(screen, this.TopLabel, this.DataPropertyName);
+            shown.BottomLabel = Modern.Lab.Captions.ModernLanguage.Translate(screen, this.BottomLabel, this.DataPropertyName);
+            shown.HeaderGroup = Modern.Lab.Captions.ModernLanguage.Translate(screen, this.HeaderGroup, this.DataPropertyName);
+            shown.ButtonText = Modern.Lab.Captions.ModernLanguage.Translate(screen, this.ButtonText, this.DataPropertyName);
+            return shown;
+        }
+
         /// <summary>빈 정의를 만든다(스타 너비, 가운데 정렬, 형식 없음, 텍스트 셀).</summary>
         public ModernDataGridColumn()
         {
