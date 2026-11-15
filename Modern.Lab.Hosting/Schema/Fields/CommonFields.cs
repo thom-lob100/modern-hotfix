@@ -68,6 +68,8 @@ namespace Modern.Lab.Hosting.Schema
             public readonly FieldValue Wafer = Value("Wafer");
             public readonly FieldValue Chip = Value("Chip");
             public readonly FieldValue Lamella = Value("Lamella");
+            // Logistics 의 추가의뢰(Add Request)는 Lot 이 이 값일 때만 열린다(2026-11-16 사용자 — 처음 받은 이름 BrokenWafer 를 같은 날 PartialWafer 로 바꿨다).
+            public readonly FieldValue PartialWafer = Value("PartialWafer");
         }
 
         /// <summary>Y · N 두 값만 갖는 칸 — 뜻이 칸 이름에 있는 플래그(REWORK_YN · RETURN_YN · SWAP_YN · SCRAP_DUE_YN)에 쓴다(2026-11-04).
