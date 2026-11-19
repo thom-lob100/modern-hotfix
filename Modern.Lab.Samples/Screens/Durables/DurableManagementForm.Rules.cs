@@ -48,7 +48,7 @@ namespace Modern.Lab.Samples
         };
 
         // Exchange 는 Durable 의 내용물 전체를 옮긴다(FOUP · TRAY, 2026-11-19 사용자 "모든게 다 TRAY도 되야해"). 내용물에 Lot 이 둘 이상이면 닫는다(ExchangeContentsReason — Exchange 전문은 LOT_ID 하나를 싣는다,
-        // 여러 Lot 이 든 FOUP 은 Edit 으로 옮긴다. 2026-11-04 사용자 지시). 내용물 표에 걸친 판정이라 값 규칙이 아니고 안내 창에는 나오지 않는다.
+        // 여러 Lot 이 든 Durable 은 Edit 으로 옮긴다. 2026-11-04 사용자 지시). 내용물 표에 걸친 판정이라 값 규칙이 아니고 안내 창에는 나오지 않는다.
         private static readonly ActionRule[] ExchangeRules = SourceRules;
 
         // Align 은 Durable 하나(FOUP · TRAY, 2026-11-19) 안에서 자리를 바꾼다(2026-11-18 사용자). 열리는 조건은 Exchange · Edit 의 Source 와 같다 — 회사 조건이 다르면 여기에 적는다.
@@ -63,24 +63,16 @@ namespace Modern.Lab.Samples
             },
             SourceRules);
 
-        // Manual Out — 회사 조건(2026-11-10 재설정): 베이가 아닌 곳(LOC_NM ≠ InBay)에서 장비 포트에 실려 있고(EQP_ID · PORT_NM 있음) 폐기 아니며
-        // 반송이 걸려 있지 않은(TRANS_YN = N) 지속재를 그 포트에서 수동 반출한다. 장비 조건 MCS_ITG_YN(Y) · COMM_STAT_TYP(OnLineRemote) · EQP_MES_STAT_TYP(Up)과
-        // 포트 조건 ACSS_TYP(Auto) · PORT_STAT_NM(UP) · VIRT_PORT_YN(N)은 Durable 행에 같이 오는 값으로 보고, 안내 창에는 Equipment · Port 로 보인다.
-        // ACSS_TYP + PORT_TYP 가 Manual + Output 인 조합은 ACSS_TYP = Auto 가 먼저 막으므로 따로 적지 않는다. 장비 · 포트는 고르지 않고 Durable 행의 값을 그대로 보낸다.
+        // Manual Out — 스토커(STB) 안의 지속재를 자기 스토커(STB)의 아웃포트로 보낸다(사용자 2026-11-19 정의). 조건은 2026-11-09 에 Manual In 으로 받은 것이다(2026-11-19 맞바꿈):
+        // 스토커에 있고(LOC_NM = InStocker) 위치 장비(자기 스토커)가 있으며(EQP_ID 있음) 폐기 아니고 반송이 걸려 있지 않은(TRANS_YN = N — 컬럼이 없거나 비어도 막는다) 지속재.
+        // 아웃포트는 Manual Out 창이 자기 스토커의 포트 목록에서 고른다(DurableManualOutDialogForm).
         // 반송이 걸려 있으면(TRANS_YN = Y) Manual In · Manual Out 은 닫히고 Cancel 만 된다(2026-11-05) — 값 규칙이라 "Durable · Transport: Y → needs N" 으로 보인다(2026-11-10).
         private static readonly ActionRule[] ManualOutRules =
         {
-            ActionRule.NotValue(DurableEntityName, Schemas.Durable.LocNm, Schemas.Durable.LocNm.InBay),
-            ActionRule.NotValue(DurableEntityName, Schemas.Durable.DurableStatCd, Schemas.Durable.DurableStatCd.Scrapped),
+            ActionRule.Value(DurableEntityName, Schemas.Durable.LocNm, Schemas.Durable.LocNm.InStocker),
             ActionRule.NotEmpty(DurableEntityName, Schemas.Durable.EqpId),
-            ActionRule.NotEmpty(DurableEntityName, Schemas.Durable.PortNm),
-            ActionRule.Value(DurableEntityName, Schemas.Durable.TransYn, Schemas.Durable.TransYn.N),
-            ActionRule.Value(EquipmentEntityName, Schemas.Durable.McsItgYn, Schemas.EquipmentExt.McsItgYn.Y),
-            ActionRule.Value(EquipmentEntityName, Schemas.Durable.CommStatTyp, Schemas.EquipmentExt.CommStatTyp.OnLineRemote),
-            ActionRule.Value(EquipmentEntityName, Schemas.Durable.EqpMesStatTyp, Schemas.EquipmentExt.MesStatTyp.Up),
-            ActionRule.Value(PortEntityName, Schemas.Durable.AcssTyp, Schemas.PortDet.AcssTyp.Auto),
-            ActionRule.Value(PortEntityName, Schemas.Durable.PortStatNm, Schemas.PortDet.PortStatNm.Up),
-            ActionRule.Value(PortEntityName, Schemas.Durable.VirtPortYn, Schemas.PortDet.VirtPortYn.N)
+            ActionRule.NotValue(DurableEntityName, Schemas.Durable.DurableStatCd, Schemas.Durable.DurableStatCd.Scrapped),
+            ActionRule.Value(DurableEntityName, Schemas.Durable.TransYn, Schemas.Durable.TransYn.N)
         };
 
         // Manual In Cancel — 회사 조건(2026-11-04): 적재 요청(TRANS_LAST_EVENT_DESC = EISMHS_LOAD_REQ)이 아직 끝나지 않은
@@ -102,15 +94,25 @@ namespace Modern.Lab.Samples
                     Schemas.Durable.TransMoveStatCd.Scheduled, Schemas.Durable.TransMoveStatCd.Moving)
         };
 
-        // Manual In — 회사 조건(2026-11-09 재설정, 앞선 조건을 모두 대체): 스토커에 있고(LOC_NM = InStocker) 위치 장비가 있으며(EQP_ID 있음)
-        // 폐기 아니고 반송이 걸려 있지 않은(TRANS_YN = N — 컬럼이 없거나 비어도 막는다) 지속재를 장비 포트에 수동 투입한다.
-        // 장비 · 포트 조건은 Manual In 창이 조회해 거른다(DurableManualInDialogForm.Rules.cs).
+        // Manual In — 다른 장비나 다른 스토커(STB)의 지속재를 목적지 스토커(STB)의 인포트로 보낸다(사용자 2026-11-19 정의). 조건은 2026-11-10 에 Manual Out 으로 받은 것이다(2026-11-19 맞바꿈):
+        // 베이가 아닌 곳(LOC_NM ≠ InBay)에서 포트에 실려 있고(EQP_ID · PORT_NM 있음) 폐기 아니며 반송이 걸려 있지 않은(TRANS_YN = N) 지속재.
+        // 실린 자리의 장비 조건 MCS_ITG_YN(Y) · COMM_STAT_TYP(OnLineRemote) · EQP_MES_STAT_TYP(Up)과 포트 조건 ACSS_TYP(Auto) · PORT_STAT_NM(UP) · VIRT_PORT_YN(N)은
+        // Durable 행에 같이 오는 값으로 보고, 안내 창에는 Equipment · Port 로 보인다. 포트가 빈 지속재(스토커 선반 안)는 닫힌다.
+        // ACSS_TYP + PORT_TYP 가 Manual + Output 인 조합은 ACSS_TYP = Auto 가 먼저 막으므로 따로 적지 않는다.
+        // 목적지 스토커(STB)와 인포트는 Manual In 창이 서버가 준 목록에서 고른다(DurableManualInDialogForm).
         private static readonly ActionRule[] ManualInRules =
         {
-            ActionRule.Value(DurableEntityName, Schemas.Durable.LocNm, Schemas.Durable.LocNm.InStocker),
-            ActionRule.NotEmpty(DurableEntityName, Schemas.Durable.EqpId),
+            ActionRule.NotValue(DurableEntityName, Schemas.Durable.LocNm, Schemas.Durable.LocNm.InBay),
             ActionRule.NotValue(DurableEntityName, Schemas.Durable.DurableStatCd, Schemas.Durable.DurableStatCd.Scrapped),
-            ActionRule.Value(DurableEntityName, Schemas.Durable.TransYn, Schemas.Durable.TransYn.N)
+            ActionRule.NotEmpty(DurableEntityName, Schemas.Durable.EqpId),
+            ActionRule.NotEmpty(DurableEntityName, Schemas.Durable.PortNm),
+            ActionRule.Value(DurableEntityName, Schemas.Durable.TransYn, Schemas.Durable.TransYn.N),
+            ActionRule.Value(EquipmentEntityName, Schemas.Durable.McsItgYn, Schemas.EquipmentExt.McsItgYn.Y),
+            ActionRule.Value(EquipmentEntityName, Schemas.Durable.CommStatTyp, Schemas.EquipmentExt.CommStatTyp.OnLineRemote),
+            ActionRule.Value(EquipmentEntityName, Schemas.Durable.EqpMesStatTyp, Schemas.EquipmentExt.MesStatTyp.Up),
+            ActionRule.Value(PortEntityName, Schemas.Durable.AcssTyp, Schemas.PortDet.AcssTyp.Auto),
+            ActionRule.Value(PortEntityName, Schemas.Durable.PortStatNm, Schemas.PortDet.PortStatNm.Up),
+            ActionRule.Value(PortEntityName, Schemas.Durable.VirtPortYn, Schemas.PortDet.VirtPortYn.N)
         };
 
         // Hold — 회사 조건(2026-10-17): Normal · Idle · 예약(Reserved)되지 않은 지속재. Release — Hold · Idle 지속재.

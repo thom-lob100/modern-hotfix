@@ -1279,7 +1279,7 @@ namespace Modern.Lab.Samples
         {
             DurableManualOutDialogOptions options = new DurableManualOutDialogOptions();
             options.Title = "Manual Out — " + DurableManagementPresenter.Id(durable)
-                    + " · " + Schemas.Durable.EqpId.Text(durable) + " " + Schemas.Durable.PortNm.Text(durable);
+                    + " · " + Schemas.Durable.EqpId.Text(durable);
             options.OkText = "Manual Out";
             options.DefaultDescription = Services.DefaultDescriptions.ManualOutDurable;
             options.Source = ActionRows.Copy(durable);
@@ -1291,7 +1291,9 @@ namespace Modern.Lab.Samples
                     return;
                 }
 
-                this.ProcessManualOut(options.Source, RequestParameters.Of(Schemas.Criteria.Description, dialog.Description));
+                this.ProcessManualOut(options.Source, RequestParameters.Of(
+                        Schemas.PortDet.PortNm, dialog.PortNm,
+                        Schemas.Criteria.Description, dialog.Description));
             }
         }
 
@@ -1720,7 +1722,7 @@ namespace Modern.Lab.Samples
             }
 
             string eqpId = Schemas.Durable.EqpId.Text(durable);
-            string portNm = Schemas.Durable.PortNm.Text(durable);
+            string portNm = parameters.Value(Schemas.PortDet.PortNm);
 
             if (ResponseColumns.IsBlank(eqpId) || ResponseColumns.IsBlank(portNm))
             {
@@ -1729,7 +1731,7 @@ namespace Modern.Lab.Samples
 
             this.Process(
                     () => this.ManualOutDurable(durable, parameters),
-                    "Manual Out " + DurableManagementPresenter.Id(durable) + " ← " + eqpId + " " + portNm + "…",
+                    "Manual Out " + DurableManagementPresenter.Id(durable) + " → " + eqpId + " " + portNm + "…",
                     () => this.ExecuteSearch(true));
         }
 
